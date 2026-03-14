@@ -1,0 +1,419 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>NY Groove · 2026</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Sen:wght@400..800&family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{--pri:#1a2744;--sec:#3b5998;--acc:#e8a838;--bg:#f4f2ec;--card:#fff;--txt:#1a1a18;--mut:#999;--brd:#e0ddd5;--win:#2d6a2e;--loss:#b22;--tie:#a80;--radius:10px;--blue:#2563eb}
+body{font-family:'Sen',sans-serif;background:var(--bg);color:var(--txt);min-height:100vh;-webkit-font-smoothing:antialiased}
+h1,h2,h3{font-family:'Sen',sans-serif;color:var(--pri)}
+button{cursor:pointer;font-family:inherit}input,textarea,select{font-family:inherit}
+.material-symbols-outlined{font-variation-settings:'FILL' 0,'wght' 300,'GRAD' 0,'opsz' 24}
+/* Sidebar */
+.sidebar{position:fixed;left:0;top:0;bottom:0;width:56px;display:flex;flex-direction:column;align-items:center;padding:16px 0;z-index:200}
+.sidebar-top{display:flex;flex-direction:column;align-items:center;gap:4px}
+.sidebar-bottom{margin-top:auto;display:flex;flex-direction:column;align-items:center;gap:4px;padding-bottom:8px}
+.nav-icon{width:40px;height:40px;display:flex;align-items:center;justify-content:center;border-radius:12px;border:none;background:transparent;color:rgba(26,39,68,0.22);font-size:22px;transition:all 0.25s;position:relative;margin:1px 0}
+.nav-icon:hover{color:var(--pri);background:rgba(26,39,68,0.06);box-shadow:0 0 20px rgba(26,39,68,0.08)}
+.nav-icon.active{color:var(--pri);background:rgba(26,39,68,0.08)}
+.nav-icon.active::after{content:'';position:absolute;left:0;top:10px;bottom:10px;width:3px;border-radius:0 2px 2px 0;background:var(--acc)}
+.nav-icon .tip{position:absolute;left:52px;top:50%;transform:translateY(-50%) translateX(-4px);background:var(--pri);color:#fff;padding:5px 12px;border-radius:6px;font-size:11px;font-weight:600;white-space:nowrap;opacity:0;pointer-events:none;transition:opacity 0.15s,transform 0.15s;box-shadow:0 4px 16px rgba(0,0,0,0.15)}
+.nav-icon:hover .tip{opacity:1;transform:translateY(-50%) translateX(0)}
+/* Layout */
+.header{padding:20px 24px 12px;margin-left:56px}
+.header-inner{max-width:1000px;margin:0 auto;display:flex;justify-content:space-between;align-items:center}
+.header-left{display:flex;align-items:center;gap:12px}
+.header-logo{font-size:28px;line-height:1}
+.header-team{font-size:22px;font-weight:800;color:var(--pri);letter-spacing:-0.5px}
+.header-sub{font-size:9px;letter-spacing:4px;color:var(--acc);font-weight:700;margin-top:1px;text-transform:uppercase}
+.page-wrap{margin-left:56px;min-height:100vh}
+.main{max-width:1000px;margin:0 auto;padding:0 24px 60px}
+.tab{display:none}.tab.active{display:block}
+/* Hero */
+.hero-section{text-align:center;padding:20px 0 28px}
+.hero-btn{position:relative;padding:18px 56px;font-size:15px;font-weight:800;letter-spacing:1.5px;text-transform:uppercase;color:#fff;background:linear-gradient(135deg,var(--acc) 0%,#d4912a 100%);border:none;border-radius:14px;cursor:pointer;box-shadow:0 6px 28px rgba(232,168,56,0.35);transition:all 0.25s;overflow:hidden;width:100%;max-width:420px}
+.hero-btn:hover{box-shadow:0 8px 36px rgba(232,168,56,0.5);transform:translateY(-2px)}
+.hero-btn:active{transform:translateY(0);box-shadow:0 3px 16px rgba(232,168,56,0.3)}
+.hero-btn::before{content:'';position:absolute;top:-50%;left:-50%;width:200%;height:200%;background:linear-gradient(45deg,transparent 30%,rgba(255,255,255,0.12) 50%,transparent 70%);animation:shimmer 3s ease-in-out infinite}
+@keyframes shimmer{0%{transform:translateX(-100%)}100%{transform:translateX(100%)}}
+/* Composer */
+.composer-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.4);z-index:300;display:none;align-items:center;justify-content:center;padding:20px}
+.composer-overlay.open{display:flex}
+.composer{background:var(--card);border-radius:16px;width:100%;max-width:620px;max-height:90vh;overflow-y:auto;box-shadow:0 12px 48px rgba(0,0,0,0.18);padding:28px}
+.composer h2{font-size:20px;margin-bottom:16px}
+.composer-type-row{display:flex;gap:8px;margin-bottom:18px;flex-wrap:wrap}
+.type-btn{padding:8px 16px;border:1px solid var(--brd);background:var(--card);border-radius:8px;font-size:12px;font-weight:600;color:var(--mut);transition:0.15s;display:inline-flex;align-items:center;gap:5px}
+.type-btn:hover{border-color:var(--pri);color:var(--pri)}
+.type-btn.active{background:var(--pri);color:#fff;border-color:var(--pri);box-shadow:0 2px 8px rgba(26,39,68,0.15)}
+.cf{margin-bottom:14px}.cf label{display:block;font-size:11px;font-weight:700;color:var(--mut);text-transform:uppercase;letter-spacing:0.6px;margin-bottom:4px}
+.cf input,.cf textarea{width:100%;padding:9px 12px;border:1px solid var(--brd);border-radius:8px;font-size:14px;transition:border-color 0.2s}
+.cf input:focus,.cf textarea:focus{outline:none;border-color:var(--acc)}
+.cf textarea{min-height:100px;resize:vertical;line-height:1.6}
+.photo-drop{border:2px dashed var(--brd);border-radius:10px;padding:24px;text-align:center;color:var(--mut);font-size:13px;cursor:pointer;transition:0.2s}
+.photo-drop:hover{border-color:var(--acc);color:var(--acc)}
+.photo-preview{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
+.photo-preview img{width:80px;height:80px;object-fit:cover;border-radius:6px;border:1px solid var(--brd)}
+/* Game picker grid */
+.game-picker{display:grid;grid-template-columns:repeat(5,1fr);gap:6px;margin-bottom:14px}
+.gp-cell{padding:10px 6px;border:1px solid var(--brd);border-radius:8px;text-align:center;font-size:11px;font-weight:600;color:var(--mut);transition:0.15s;background:var(--card)}
+.gp-cell.available{color:var(--pri);cursor:pointer;border-color:var(--pri);border-style:dashed}
+.gp-cell.available:hover{background:rgba(26,39,68,0.04);box-shadow:0 2px 8px rgba(26,39,68,0.1)}
+.gp-cell.selected{background:var(--pri);color:#fff;border-color:var(--pri);border-style:solid;box-shadow:0 2px 8px rgba(26,39,68,0.2)}
+.gp-cell.taken{color:#ccc;background:#fafaf8;cursor:default}
+.gp-cell .gp-label{font-size:10px;color:inherit;opacity:0.7;margin-top:2px}
+/* Buttons */
+.save-btn{padding:9px 24px;background:var(--blue);color:#fff;border:none;border-radius:8px;font-size:13px;font-weight:700;box-shadow:0 2px 10px rgba(37,99,235,0.25);transition:all 0.2s;letter-spacing:0.3px}
+.save-btn:hover{box-shadow:0 4px 16px rgba(37,99,235,0.35);transform:translateY(-1px)}
+.cancel-btn{padding:9px 20px;background:transparent;color:var(--mut);border:1px solid var(--brd);border-radius:8px;font-size:13px;font-weight:600;transition:0.15s}
+.cancel-btn:hover{border-color:var(--pri);color:var(--pri)}
+.del-btn{border:none;background:transparent;color:var(--mut);font-size:12px;font-weight:600;padding:4px 8px;border-radius:4px;transition:all 0.15s;display:flex;align-items:center;gap:4px}
+.del-btn:hover{color:var(--loss);background:rgba(187,34,34,0.04)}
+.del-btn.confirm{color:#fff;background:var(--loss);border-radius:4px}
+/* Feed & Posts */
+.feed{max-width:680px;margin:0 auto}
+.post{background:var(--card);border:1px solid var(--brd);border-radius:var(--radius);margin-bottom:16px;overflow:hidden;box-shadow:0 2px 12px rgba(0,0,0,0.05);transition:box-shadow 0.2s}
+.post:hover{box-shadow:0 4px 20px rgba(0,0,0,0.08)}
+.post-header{padding:16px 20px 8px;display:flex;justify-content:space-between;align-items:flex-start}
+.post-author{font-weight:700;font-size:14px;color:var(--pri)}.post-date{font-size:11px;color:var(--mut)}
+.post-title{font-size:20px;font-weight:800;color:var(--pri);padding:4px 20px 0}
+.post-body{padding:8px 20px 16px;font-size:14px;line-height:1.7;color:#444;white-space:pre-wrap}
+.post-photos{padding:0 20px 16px;display:flex;gap:8px;flex-wrap:wrap}
+.post-photos img{max-width:100%;border-radius:8px;border:1px solid var(--brd)}
+.post-score{padding:10px 18px;margin:4px 20px 10px;background:rgba(26,39,68,0.03);border-radius:8px;display:flex;align-items:center;gap:10px;font-weight:800;color:var(--pri);font-size:16px}
+.result-tag{font-size:12px;font-weight:800;color:#fff;padding:3px 10px;border-radius:4px}
+/* Comments */
+.comments-section{padding:0 20px 12px}
+.comments-toggle{border:none;background:transparent;color:var(--mut);font-size:12px;font-weight:600;padding:4px 0;display:flex;align-items:center;gap:4px;transition:0.15s}
+.comments-toggle:hover{color:var(--pri)}
+.comments-list{padding:8px 0}
+.comment{padding:8px 0;border-bottom:1px solid #f5f3ed;font-size:13px;line-height:1.5}
+.comment:last-child{border:none}
+.comment-author{font-weight:700;font-size:12px;color:var(--pri);display:inline}
+.comment-date{font-size:10px;color:var(--mut);margin-left:6px}
+.comment-text{margin-top:2px;color:#555}
+.comment-form{display:flex;gap:8px;margin-top:8px}
+.comment-form input{flex:1;padding:7px 10px;border:1px solid var(--brd);border-radius:6px;font-size:13px}
+.comment-form input:focus{outline:none;border-color:var(--acc)}
+.comment-form button{padding:7px 14px;background:var(--blue);color:#fff;border:none;border-radius:6px;font-size:12px;font-weight:700;box-shadow:0 1px 6px rgba(37,99,235,0.2)}
+.post-footer{padding:8px 20px 10px;border-top:1px solid #f0efe8;display:flex;justify-content:space-between;align-items:center}
+/* Roster page */
+.roster-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:12px;margin-top:16px}
+.roster-card{background:var(--card);border:1px solid var(--brd);border-radius:var(--radius);padding:20px 16px;text-align:center}
+.roster-avatar{width:64px;height:64px;border-radius:32px;background:linear-gradient(135deg,#e0ddd5,#d0cdc5);margin:0 auto 10px;display:flex;align-items:center;justify-content:center;font-size:24px;color:var(--mut)}
+.roster-card .rname{font-weight:700;font-size:15px;color:var(--pri)}
+.roster-card .rnumber{font-size:12px;color:var(--acc);font-weight:700;margin-top:2px}
+.roster-card input{border:none;background:transparent;outline:none;text-align:center;font-family:'Sen',sans-serif}
+.roster-card .rn-input{font-size:15px;font-weight:700;color:var(--pri);width:100%}
+.roster-card .rnum-input{font-size:12px;font-weight:700;color:var(--acc);width:60px;margin-top:2px}
+/* Other tabs */
+.card{background:var(--card);border:1px solid var(--brd);border-radius:var(--radius);margin-bottom:10px;overflow:hidden}
+.card-pad{padding:16px 18px}
+.sec-title{font-size:24px;font-weight:900;margin-bottom:6px;letter-spacing:-0.5px}
+.sec-hint{font-size:13px;color:var(--mut);font-style:italic;margin-bottom:18px}
+.table-wrap{overflow-x:auto;margin-top:8px;border-radius:var(--radius);border:1px solid var(--brd)}
+table{width:100%;border-collapse:collapse;font-size:12px}
+th{padding:8px 6px;background:var(--pri);color:#fff;font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:0.6px;text-align:center;white-space:nowrap}
+th:first-child{text-align:left;padding-left:12px}
+td{padding:5px 5px;text-align:center;border-bottom:1px solid #f0efe8;font-size:13px}
+td:first-child{text-align:left;padding-left:12px}tr:nth-child(even){background:#faf9f6}
+.cell-input{border:none;background:transparent;outline:none;font-size:13px;text-align:center;width:36px;padding:2px}
+.cell-input:focus{background:rgba(232,168,56,0.08);border-radius:3px}
+.cell-input.wide{width:110px;text-align:left}
+.total-row td{font-weight:700;color:var(--pri);border-top:2px solid var(--pri);background:rgba(26,39,68,0.03);font-size:12px}
+.calc-cell{font-weight:700;color:var(--pri)}
+.rm-btn{border:none;background:transparent;color:#ddd;cursor:pointer;font-size:13px;transition:0.15s}.rm-btn:hover{color:var(--loss)}
+.btn{padding:8px 16px;background:var(--pri);color:#fff;border:none;border-radius:6px;font-size:12px;font-weight:600;transition:0.15s;box-shadow:0 2px 8px rgba(0,0,0,0.12)}
+.btn:hover{opacity:0.9;box-shadow:0 3px 12px rgba(0,0,0,0.18)}
+.btn-sm{padding:5px 12px;font-size:11px;border-radius:4px}.btn-danger{background:var(--loss)}
+.game-tabs{display:flex;gap:5px;flex-wrap:wrap;margin-bottom:14px}
+.game-tab{padding:6px 14px;border:1px solid var(--brd);background:#fff;border-radius:4px;font-size:11px;font-weight:600;color:#666;transition:0.15s}
+.game-tab:hover{border-color:var(--pri)}
+.game-tab.active{background:var(--pri);color:#fff;border-color:var(--pri);box-shadow:0 2px 8px rgba(26,39,68,0.2)}
+.game-form{display:grid;grid-template-columns:repeat(auto-fill,minmax(155px,1fr));gap:8px;margin-bottom:14px}
+.game-form label{font-size:10px;font-weight:600;color:var(--mut);text-transform:uppercase;letter-spacing:0.5px;display:block;margin-bottom:2px}
+.game-form input{width:100%;padding:6px 8px;border:1px solid var(--brd);border-radius:4px;font-size:13px}
+.game-form input:focus{outline:none;border-color:var(--acc)}
+.leaders-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:10px}
+.leader-title{font-size:11px;font-weight:700;color:var(--sec);text-transform:uppercase;letter-spacing:1.2px;margin-bottom:8px}
+.leader-row{display:flex;justify-content:space-between;padding:4px 0;border-bottom:1px solid #f5f3ed}.leader-row:last-child{border:none}
+.leader-name{font-size:13px}.leader-name.top{font-weight:700;color:var(--pri)}
+.leader-val{font-weight:700;color:var(--pri);font-size:13px}
+.trend-pills{display:flex;gap:5px;flex-wrap:wrap;margin-bottom:16px}
+.trend-pill{padding:5px 14px;border:1px solid var(--brd);background:#fff;border-radius:20px;font-size:11px;font-weight:600;color:#666;transition:0.15s}
+.trend-pill:hover{border-color:var(--acc)}.trend-pill.active{background:var(--acc);color:#fff;border-color:var(--acc)}
+.chart-wrap{background:var(--card);border:1px solid var(--brd);border-radius:var(--radius);padding:20px;margin-bottom:16px;box-shadow:0 2px 12px rgba(0,0,0,0.05)}
+.toggle{width:38px;height:20px;border-radius:10px;background:#ccc;cursor:pointer;position:relative;transition:0.2s;flex-shrink:0}
+.toggle.on{background:var(--win)}.toggle .knob{width:16px;height:16px;border-radius:8px;background:#fff;position:absolute;top:2px;left:2px;transition:0.2s;box-shadow:0 1px 3px rgba(0,0,0,0.15)}.toggle.on .knob{left:20px}
+.s-card{background:var(--card);border:1px solid var(--brd);border-radius:10px;padding:20px 22px;margin-bottom:14px}.s-card h3{font-size:17px;margin-bottom:10px}
+.s-field{margin-bottom:14px}.s-label{display:block;font-size:11px;font-weight:600;color:var(--mut);text-transform:uppercase;letter-spacing:0.6px;margin-bottom:3px}
+.s-input{width:100%;padding:7px 10px;border:1px solid var(--brd);border-radius:5px;font-size:14px}.s-input:focus{outline:none;border-color:var(--acc)}
+.s-textarea{width:100%;padding:10px 12px;border:1px solid var(--brd);border-radius:6px;font-size:14px;line-height:1.6;resize:vertical;min-height:80px}.s-textarea:focus{outline:none;border-color:var(--acc)}
+.toggle-row{display:flex;justify-content:space-between;align-items:center;padding:7px 0;border-bottom:1px solid #f5f3ed}.toggle-row:last-child{border:none}
+.stat-config-row{display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid #f5f3ed}
+.stat-config-row input{padding:5px 8px;border:1px solid var(--brd);border-radius:4px;font-size:13px}.stat-config-row .sid{font-size:10px;color:#ccc}
+.settings-nav{display:flex;gap:5px;flex-wrap:wrap;margin-bottom:18px}
+.settings-pill{padding:6px 14px;border:1px solid var(--brd);background:#fff;border-radius:20px;font-size:11px;font-weight:600;color:#666;transition:0.15s}
+.settings-pill:hover{border-color:var(--pri)}.settings-pill.active{background:var(--pri);color:#fff;border-color:var(--pri)}
+.empty{text-align:center;padding:48px 24px;color:#bbb}.empty-text{font-size:16px;color:#999}
+.footer{text-align:center;padding:16px;font-size:11px;color:#ccc;letter-spacing:0.3px}
+@media(max-width:640px){.sidebar{width:44px}.nav-icon{width:34px;height:34px;font-size:20px}.page-wrap,.header{margin-left:44px}.main{padding:0 12px 40px}.hero-btn{padding:14px 24px;font-size:13px}.composer{margin:12px;padding:20px}.leaders-grid{grid-template-columns:1fr 1fr}.game-form{grid-template-columns:1fr 1fr}.game-picker{grid-template-columns:repeat(4,1fr)}.roster-grid{grid-template-columns:repeat(auto-fill,minmax(140px,1fr))}}
+@keyframes fadeIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+.tab.active{animation:fadeIn 0.25s ease}
+</style>
+</head>
+<body>
+<nav class="sidebar" id="sidebar"></nav>
+<div class="composer-overlay" id="composerOverlay"><div class="composer" id="composerInner"></div></div>
+<div class="page-wrap">
+<div class="header"><div class="header-inner"><div class="header-left"><span class="header-logo">⚾</span><div><div class="header-team" id="headerTeam">NY Groove</div><div class="header-sub" id="headerSeason">2026</div></div></div></div></div>
+<main class="main">
+<div class="tab" id="tab-home"><div class="hero-section"><button class="hero-btn" onclick="openComposer()">POST SOMETHING</button></div><div class="feed" id="feedArea"></div></div>
+<div class="tab" id="tab-roster"><h2 class="sec-title">The Roster</h2><p class="sec-hint">The 2026 New York Groove. Headshots coming soon.</p><div style="margin-bottom:12px"><button class="btn" onclick="D.roster.push({id:uid(),name:'',number:''});renderRoster()">+ Add Player</button> <button class="save-btn" style="margin-left:6px" onclick="saveNow();alert('Roster saved!')">Save Roster</button></div><div class="roster-grid" id="rosterGrid"></div></div>
+<div class="tab" id="tab-boxscores"><div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;margin-bottom:6px"><h2 class="sec-title">Box Scores</h2><button class="btn" onclick="addGame()">+ New Game</button></div><div class="game-tabs" id="gameTabs"></div><div id="boxScoreArea"></div></div>
+<div class="tab" id="tab-playerstats"><h2 class="sec-title">Player Stats</h2><p class="sec-hint">The Player Tracker 5000, reborn.</p><div id="playerStatsArea"></div></div>
+<div class="tab" id="tab-leaderboards"><h2 class="sec-title">Leaderboards</h2><div class="leaders-grid" id="leadersGrid"></div></div>
+<div class="tab" id="tab-trendtracker"><h2 class="sec-title">TrendTracker 5000</h2><div class="trend-pills" id="trendPills"></div><div class="chart-wrap"><canvas id="trendChart" height="260"></canvas></div><div id="trendTable"></div></div>
+<div class="tab" id="tab-statnotes"><h2 class="sec-title">Stat Notes</h2><div class="card card-pad"><textarea class="s-textarea" id="statNotesArea" style="min-height:250px" oninput="D.cfg.statNotes=this.value"></textarea><div style="margin-top:12px"><button class="save-btn" onclick="saveNow();alert('Saved!')">Save Notes</button></div></div></div>
+<div class="tab" id="tab-settings"><h2 class="sec-title">⚙ Settings</h2><div class="settings-nav" id="settingsNav"></div><div id="settingsArea"></div></div>
+</main>
+<footer class="footer">NY Groove · 2026</footer>
+</div>
+<script>
+const STORE='groove-stathub-2026';
+const DEFAULT_STATS=[{id:'pa',label:'PA',full:'Plate Appearances',on:true},{id:'ab',label:'AB',full:'At Bats',on:true},{id:'r',label:'R',full:'Runs',on:true},{id:'h',label:'H',full:'Hits',on:true},{id:'singles',label:'1B',full:'Singles',on:true},{id:'doubles',label:'2B',full:'Doubles',on:true},{id:'triples',label:'3B',full:'Triples',on:true},{id:'hr',label:'HR',full:'Home Runs',on:true},{id:'rbi',label:'RBI',full:'RBI',on:true},{id:'bb',label:'BB',full:'Walks',on:true},{id:'so',label:'K',full:'Strikeouts',on:true},{id:'hbp',label:'HBP',full:'Hit-by-Pitch',on:true},{id:'sf',label:'SF',full:'Sac Flies',on:true},{id:'sb',label:'SB',full:'Stolen Bases',on:true},{id:'cs',label:'CS',full:'Caught Stealing',on:true},{id:'gidp',label:'GIDP',full:'Grounded Into DP',on:true}];
+const DEFAULT_CFG={teamName:'NY Groove',seasonLabel:'2026',stats:DEFAULT_STATS,journalSections:[],statNotes:"Note: Does not count rainouts.\n\nRBIs may be incomplete for early-season games.",showHome:true,showRoster:true,showBoxScores:true,showPlayerStats:true,showLeaderboards:true,showTrendTracker:true,showStatNotes:true,messageToClaude:'',messageToHarry:'',customNotes:''};
+let D={cfg:{...DEFAULT_CFG},games:[],roster:[],posts:[]};
+let activeTab='home',activeGame=null,trendStat='rbi',settingsSub='general',trendChartInstance=null;
+let composerType='recap',composerData={},composerGameId=null;
+let openComments={};// postId -> true
+
+function uid(){return Math.random().toString(36).slice(2,10)}
+function n(v){const p=parseFloat(v);return isNaN(p)?0:p}
+function avg3(h,ab){return ab>0?(h/ab).toFixed(3):'—'}
+function esc(s){const d=document.createElement('div');d.textContent=s||'';return d.innerHTML}
+function enabledStats(){return(D.cfg.stats||[]).filter(s=>s.on)}
+
+// Date format: Mar 14 @ 10:00pm ET
+function fmtDate(ts){
+  if(!ts)return '';
+  const d=new Date(typeof ts==='number'?ts:ts+'T12:00:00');
+  if(isNaN(d))return ts;
+  const months=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  const mon=months[d.getMonth()];const day=d.getDate();
+  let hr=d.getHours();const min=d.getMinutes().toString().padStart(2,'0');
+  const ampm=hr>=12?'pm':'am';hr=hr%12||12;
+  return `${mon} ${day} @ ${hr}:${min}${ampm} ET`;
+}
+function fmtDateShort(ts){
+  if(!ts)return '';
+  const d=new Date(typeof ts==='number'?ts:ts+'T12:00:00');
+  if(isNaN(d))return ts;
+  const months=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  return `${months[d.getMonth()]} ${d.getDate()}`;
+}
+
+function loadData(){try{const r=localStorage.getItem(STORE);if(r){const d=JSON.parse(r);D.cfg={...DEFAULT_CFG,...(d.cfg||{})};D.games=d.games||[];D.roster=d.roster||[];D.posts=d.posts||[];D.posts.forEach(p=>{if(!p.comments)p.comments=[]})}}catch(e){console.error(e)}}
+function saveNow(){try{localStorage.setItem(STORE,JSON.stringify(D))}catch(e){console.error(e)}}
+
+// Which game IDs already have a recap post?
+function recapGameIds(){return new Set(D.posts.filter(p=>p.type==='recap'&&p.gameId).map(p=>p.gameId))}
+
+/* ═══ SIDEBAR ═══ */
+const TABS=[
+  {id:'home',icon:'home',label:'Feed',cfg:'showHome'},
+  {id:'roster',icon:'groups',label:'Roster',cfg:'showRoster'},
+  {id:'boxscores',icon:'scoreboard',label:'Box Scores',cfg:'showBoxScores'},
+  {id:'playerstats',icon:'person',label:'Player Stats',cfg:'showPlayerStats'},
+  {id:'leaderboards',icon:'emoji_events',label:'Leaderboards',cfg:'showLeaderboards'},
+  {id:'trendtracker',icon:'trending_up',label:'TrendTracker',cfg:'showTrendTracker'},
+  {id:'statnotes',icon:'sticky_note_2',label:'Stat Notes',cfg:'showStatNotes'},
+];
+function renderNav(){
+  let html='<div class="sidebar-top">';
+  TABS.forEach(t=>{if(t.cfg&&!D.cfg[t.cfg])return;html+=`<button class="nav-icon${activeTab===t.id?' active':''}" onclick="activeTab='${t.id}';renderAll()"><span class="material-symbols-outlined">${t.icon}</span><span class="tip">${t.label}</span></button>`});
+  html+=`</div><div class="sidebar-bottom"><button class="nav-icon${activeTab==='settings'?' active':''}" onclick="activeTab='settings';renderAll()"><span class="material-symbols-outlined">settings</span><span class="tip">Settings</span></button></div>`;
+  document.getElementById('sidebar').innerHTML=html;
+}
+function renderTabs(){document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));const el=document.getElementById('tab-'+activeTab);if(el)el.classList.add('active')}
+
+/* ═══ ROSTER PAGE ═══ */
+function renderRoster(){
+  const grid=document.getElementById('rosterGrid');
+  let html='';
+  D.roster.forEach((r,i)=>{
+    html+=`<div class="roster-card"><div class="roster-avatar"><span class="material-symbols-outlined" style="font-size:28px">person</span></div><input class="rn-input" value="${esc(r.name)}" placeholder="Name" oninput="D.roster[${i}].name=this.value"><input class="rnum-input" value="${esc(r.number?'#'+r.number:'')}" placeholder="#00" oninput="D.roster[${i}].number=this.value.replace('#','')"><button class="rm-btn" style="margin-top:6px;font-size:11px" onclick="delRosterPlayer(${i},this)">Remove</button></div>`;
+  });
+  grid.innerHTML=html;
+}
+function delRosterPlayer(i,btn){
+  if(btn.dataset.confirm){D.roster.splice(i,1);renderRoster();return}
+  btn.dataset.confirm='1';btn.textContent='Click again to confirm';btn.style.color='var(--loss)';btn.style.fontWeight='700';
+  setTimeout(()=>{if(btn.isConnected){delete btn.dataset.confirm;btn.textContent='Remove';btn.style.color='';btn.style.fontWeight=''}},3000);
+}
+
+/* ═══ COMPOSER ═══ */
+function openComposer(){composerType='recap';composerData={title:'',body:'',author:'',photos:[]};composerGameId=null;renderComposer();document.getElementById('composerOverlay').classList.add('open')}
+function closeComposer(){document.getElementById('composerOverlay').classList.remove('open')}
+
+function renderComposer(){
+  const types=[{id:'recap',label:'Game Recap',icon:'scoreboard'},{id:'photo',label:'Photos',icon:'photo_camera'},{id:'dataviz',label:'Data / Stats',icon:'bar_chart'},{id:'note',label:'Note',icon:'edit_note'}];
+  let html=`<h2>Post Something</h2><div class="composer-type-row">`;
+  types.forEach(t=>{html+=`<button class="type-btn${composerType===t.id?' active':''}" onclick="composerType='${t.id}';composerGameId=null;renderComposer()"><span class="material-symbols-outlined" style="font-size:16px">${t.icon}</span>${t.label}</button>`});
+  html+=`</div>`;
+  html+=`<div class="cf"><label>Author</label><input value="${esc(composerData.author)}" placeholder="Your name" oninput="composerData.author=this.value"></div>`;
+
+  if(composerType==='recap'){
+    // Game picker grid
+    const taken=recapGameIds();
+    html+=`<div class="cf"><label>Select a game</label>`;
+    if(!D.games.length){html+=`<p style="font-size:13px;color:var(--mut)">No box scores yet. Create games in Box Scores first.</p>`}
+    else{
+      html+=`<div class="game-picker">`;
+      D.games.forEach((g,i)=>{
+        const hasCap=taken.has(g.id);const sel=composerGameId===g.id;
+        const cls=sel?'selected':hasCap?'taken':'available';
+        const lbl=g.opponent?`vs ${esc(g.opponent)}`:`Game ${i+1}`;
+        const sub=g.date?fmtDateShort(g.date):'';
+        if(!hasCap){
+          html+=`<div class="gp-cell ${cls}" onclick="composerGameId='${g.id}';renderComposer()"><div style="font-size:12px;font-weight:700">${lbl}</div>${sub?`<div class="gp-label">${sub}</div>`:''}</div>`;
+        }else{
+          html+=`<div class="gp-cell ${cls}"><div style="font-size:12px">✓ ${lbl}</div>${sub?`<div class="gp-label">${sub}</div>`:''}</div>`;
+        }
+      });
+      html+=`</div>`;
+    }
+    html+=`</div>`;
+    html+=`<div class="cf"><label>Title</label><input value="${esc(composerData.title)}" placeholder="e.g. A Slugfest in the Rain" oninput="composerData.title=this.value"></div>`;
+    html+=`<div class="cf"><label>Write-up</label><textarea placeholder="The full story of this game — etched into history..." oninput="composerData.body=this.value">${esc(composerData.body)}</textarea></div>`;
+  }else if(composerType==='photo'){
+    html+=`<div class="cf"><label>Caption</label><input value="${esc(composerData.title)}" placeholder="What's in the photo?" oninput="composerData.title=this.value"></div>`;
+    html+=`<div class="cf"><label>Photos</label><div class="photo-drop" onclick="document.getElementById('photoInput').click()">Click to upload photos</div><input type="file" id="photoInput" accept="image/*" multiple style="display:none" onchange="handlePhotos(this.files)"><div class="photo-preview" id="photoPreview"></div></div>`;
+    html+=`<div class="cf"><label>Description</label><textarea placeholder="Story behind these photos..." oninput="composerData.body=this.value">${esc(composerData.body)}</textarea></div>`;
+  }else if(composerType==='dataviz'){
+    html+=`<div class="cf"><label>Title</label><input value="${esc(composerData.title)}" placeholder="e.g. RBI Trends Through Game 10" oninput="composerData.title=this.value"></div>`;
+    html+=`<div class="cf"><label>Analysis</label><textarea placeholder="What does the data show?" oninput="composerData.body=this.value">${esc(composerData.body)}</textarea></div>`;
+    html+=`<div class="cf"><label>Image (optional)</label><div class="photo-drop" onclick="document.getElementById('photoInput').click()">Upload chart / visualization</div><input type="file" id="photoInput" accept="image/*" multiple style="display:none" onchange="handlePhotos(this.files)"><div class="photo-preview" id="photoPreview"></div></div>`;
+  }else{
+    html+=`<div class="cf"><label>Title (optional)</label><input value="${esc(composerData.title)}" placeholder="Quick update" oninput="composerData.title=this.value"></div>`;
+    html+=`<div class="cf"><label>Note</label><textarea placeholder="What's on your mind, Groove member?" oninput="composerData.body=this.value">${esc(composerData.body)}</textarea></div>`;
+  }
+  html+=`<div style="display:flex;gap:10px;justify-content:flex-end;margin-top:20px"><button class="cancel-btn" onclick="closeComposer()">Cancel</button><button class="save-btn" onclick="publishPost()">Save & Publish</button></div>`;
+  document.getElementById('composerInner').innerHTML=html;
+  if(composerData.photos&&composerData.photos.length){const pp=document.getElementById('photoPreview');if(pp)pp.innerHTML=composerData.photos.map(p=>`<img src="${p}">`).join('')}
+}
+function handlePhotos(files){Array.from(files).forEach(f=>{const r=new FileReader();r.onload=e=>{composerData.photos.push(e.target.result);renderComposer()};r.readAsDataURL(f)})}
+
+function publishPost(){
+  // For recap, pull game info
+  let opponent='',runsFor='',runsAgainst='',gameDate='';
+  if(composerType==='recap'&&composerGameId){
+    const g=D.games.find(x=>x.id===composerGameId);
+    if(g){opponent=g.opponent||'';runsFor=g.runsFor||'';runsAgainst=g.runsAgainst||'';gameDate=g.date||''}
+  }
+  const post={id:uid(),type:composerType,title:composerData.title||'',body:composerData.body||'',
+    author:composerData.author||'Anonymous Groover',
+    date:composerType==='recap'&&gameDate?gameDate:new Date().toISOString().slice(0,10),
+    createdAt:Date.now(),photos:composerData.photos||[],
+    opponent,runsFor,runsAgainst,gameId:composerGameId||'',
+    comments:[]};
+  D.posts.unshift(post);saveNow();closeComposer();activeTab='home';renderAll();
+}
+
+/* ═══ FEED ═══ */
+function renderFeed(){
+  const area=document.getElementById('feedArea');
+  if(!D.posts.length){area.innerHTML='<div class="empty"><div class="empty-text" style="font-size:18px;color:#bbb;margin-top:20px">Nothing here yet.</div><p style="color:#ccc;font-size:13px;margin-top:6px">Hit the button to make history.</p></div>';return}
+  let html='';
+  D.posts.forEach((p,i)=>{
+    html+=`<div class="post">`;
+    // Header: author + date (no type badge)
+    html+=`<div class="post-header"><div><div class="post-author">${esc(p.author)}</div><div class="post-date">${fmtDate(p.createdAt||p.date)}</div></div></div>`;
+    // Title
+    if(p.title)html+=`<div class="post-title">${esc(p.title)}</div>`;
+    // Score line for recaps
+    if(p.type==='recap'&&p.runsFor){
+      const w=n(p.runsFor)>n(p.runsAgainst),l=n(p.runsFor)<n(p.runsAgainst),r=w?'W':l?'L':'T',bg=w?'var(--win)':l?'var(--loss)':'var(--tie)';
+      html+=`<div class="post-score"><span class="result-tag" style="background:${bg}">${r}</span><span>${esc(p.runsFor)} – ${esc(p.runsAgainst)}</span><span style="font-weight:400;font-size:13px;color:var(--mut)">vs ${esc(p.opponent)}</span></div>`;
+    }
+    // Body
+    if(p.body)html+=`<div class="post-body">${esc(p.body)}</div>`;
+    // Photos
+    if(p.photos&&p.photos.length){html+=`<div class="post-photos">`;p.photos.forEach(ph=>{html+=`<img src="${ph}" style="max-height:360px">`});html+=`</div>`}
+    // Comments
+    const commOpen=openComments[p.id];
+    const cc=p.comments||[];
+    html+=`<div class="comments-section">`;
+    html+=`<button class="comments-toggle" onclick="openComments['${p.id}']=!openComments['${p.id}'];renderFeed()"><span class="material-symbols-outlined" style="font-size:16px">${commOpen?'expand_less':'chat_bubble'}</span>${cc.length?cc.length+' comment'+(cc.length>1?'s':''):'Add a comment'}${commOpen?' — hide':''}</button>`;
+    if(commOpen){
+      html+=`<div class="comments-list">`;
+      cc.forEach((c,ci)=>{
+        html+=`<div class="comment"><div><span class="comment-author">${esc(c.author)}</span><span class="comment-date">${fmtDate(c.createdAt)}</span></div><div class="comment-text">${esc(c.text)}</div></div>`;
+      });
+      html+=`</div>`;
+      html+=`<div class="comment-form"><input id="cmt-${p.id}" placeholder="Write a comment..." onkeydown="if(event.key==='Enter')addComment('${p.id}')"><button onclick="addComment('${p.id}')">Post</button></div>`;
+    }
+    html+=`</div>`;
+    // Footer: delete
+    html+=`<div class="post-footer"><div></div><button class="del-btn" id="del-${p.id}" onclick="delPost(${i},this)"><span class="material-symbols-outlined" style="font-size:16px">delete</span>Delete</button></div>`;
+    html+=`</div>`;
+  });
+  area.innerHTML=html;
+}
+
+function addComment(postId){
+  const input=document.getElementById('cmt-'+postId);if(!input)return;
+  const text=input.value.trim();if(!text)return;
+  const post=D.posts.find(p=>p.id===postId);if(!post)return;
+  if(!post.comments)post.comments=[];
+  post.comments.push({id:uid(),author:'Groove Member',text,createdAt:Date.now()});
+  saveNow();renderFeed();
+}
+
+function delPost(i,btn){
+  if(btn.classList.contains('confirm')){D.posts.splice(i,1);saveNow();renderFeed();return}
+  btn.classList.add('confirm');btn.innerHTML='<span class="material-symbols-outlined" style="font-size:16px">warning</span>Click again to delete';
+  setTimeout(()=>{if(btn.isConnected){btn.classList.remove('confirm');btn.innerHTML='<span class="material-symbols-outlined" style="font-size:16px">delete</span>Delete'}},3000);
+}
+
+function renderHome(){document.getElementById('headerTeam').textContent=D.cfg.teamName;document.getElementById('headerSeason').textContent=D.cfg.seasonLabel;renderFeed()}
+
+/* ═══ BOX SCORES ═══ */
+function addGame(){const g={id:uid(),date:'',opponent:'',location:'',runsFor:'',runsAgainst:'',weather:'',players:D.roster.map(r=>({id:uid(),name:r.name,rosterId:r.id}))};D.games.push(g);activeGame=g.id;activeTab='boxscores';renderAll()}
+function renderBoxScores(){const gt=document.getElementById('gameTabs');gt.innerHTML='';D.games.forEach((g,i)=>{const b=document.createElement('button');b.className='game-tab'+(activeGame===g.id?' active':'');b.textContent=g.date||`Game ${i+1}`;b.onclick=()=>{activeGame=g.id;renderBoxScores()};gt.appendChild(b)});const area=document.getElementById('boxScoreArea');if(!activeGame||!D.games.find(g=>g.id===activeGame)){area.innerHTML=D.games.length?'<div class="empty"><div class="empty-text">Select a game above.</div></div>':'<div class="empty"><div class="empty-text">No games yet.</div></div>';return}const g=D.games.find(x=>x.id===activeGame);const gi=D.games.indexOf(g);const es=enabledStats();let html=`<div class="card card-pad"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;flex-wrap:wrap;gap:8px"><h3 style="font-size:18px;font-weight:900">Game ${gi+1}${g.date?' — '+esc(g.date):''}</h3><div style="display:flex;gap:6px"><button class="save-btn" onclick="saveNow();alert('Saved!')">Save</button><button class="btn btn-sm btn-danger" id="delgame-${gi}" onclick="delGame(${gi},this)">Delete</button></div></div><div class="game-form">`;[['date','Date','YYYY-MM-DD'],['opponent','Opponent','Team'],['location','Location','Field'],['runsFor','Runs For','0'],['runsAgainst','Runs Against','0'],['weather','Weather','Conditions']].forEach(([k,l,ph])=>{html+=`<div><label>${l}</label><input value="${esc(g[k]||'')}" placeholder="${ph}" oninput="updGame('${g.id}','${k}',this.value)"></div>`});html+=`</div><div class="table-wrap"><table><thead><tr><th>Player</th>`;es.forEach(s=>{html+=`<th title="${esc(s.full)}">${esc(s.label)}</th>`});html+=`<th></th></tr></thead><tbody>`;(g.players||[]).forEach(p=>{html+=`<tr><td><input class="cell-input wide" value="${esc(p.name||'')}" placeholder="Name" oninput="updPlayer('${g.id}','${p.id}','name',this.value)"></td>`;es.forEach(s=>{html+=`<td><input class="cell-input" value="${esc(p[s.id]||'')}" oninput="updPlayer('${g.id}','${p.id}','${s.id}',this.value)"></td>`});html+=`<td><button class="rm-btn" onclick="rmPlayer('${g.id}','${p.id}')">✕</button></td></tr>`});if((g.players||[]).length){html+=`<tr class="total-row"><td>TEAM</td>`;es.forEach(s=>{html+=`<td>${(g.players||[]).reduce((sum,p)=>sum+n(p[s.id]),0)}</td>`});html+=`<td></td></tr>`}html+=`</tbody></table></div><button class="btn btn-sm" style="margin-top:10px" onclick="addPlayerToGame('${g.id}')">+ Add Player</button></div>`;area.innerHTML=html}
+function delGame(i,btn){if(btn.dataset.confirm){D.games.splice(i,1);activeGame=null;saveNow();renderAll();return}btn.dataset.confirm='1';btn.textContent='Confirm delete';setTimeout(()=>{if(btn.isConnected){delete btn.dataset.confirm;btn.textContent='Delete'}},3000)}
+function updGame(gid,k,v){const g=D.games.find(x=>x.id===gid);if(g){g[k]=v;if(k==='date')renderBoxScores()}}
+function updPlayer(gid,pid,k,v){const g=D.games.find(x=>x.id===gid);if(g)(g.players||[]).forEach(p=>{if(p.id===pid)p[k]=v})}
+function addPlayerToGame(gid){const g=D.games.find(x=>x.id===gid);if(g){if(!g.players)g.players=[];g.players.push({id:uid(),name:''});renderBoxScores()}}
+function rmPlayer(gid,pid){const g=D.games.find(x=>x.id===gid);if(g)g.players=(g.players||[]).filter(p=>p.id!==pid);renderBoxScores()}
+
+/* ═══ PLAYER STATS ═══ */
+function getPlayerTotals(){const map={};D.games.forEach(g=>{(g.players||[]).forEach(p=>{const key=(p.name||'').trim().toLowerCase();if(!key)return;if(!map[key])map[key]={name:p.name,gp:0};map[key].gp++;enabledStats().forEach(s=>{map[key][s.id]=(map[key][s.id]||0)+n(p[s.id])})})});return Object.values(map).sort((a,b)=>(b.h||0)-(a.h||0))}
+function renderPlayerStats(){const pl=getPlayerTotals();const es=enabledStats();if(!pl.length){document.getElementById('playerStatsArea').innerHTML='<div class="empty"><div class="empty-text">No player data yet.</div></div>';return}let html=`<div class="table-wrap"><table><thead><tr><th>Player</th><th>GP</th>`;es.forEach(s=>{html+=`<th title="${esc(s.full)}">${esc(s.label)}</th>`});html+=`<th>AVG</th></tr></thead><tbody>`;pl.forEach(p=>{html+=`<tr><td style="font-weight:600">${esc(p.name)}</td><td style="text-align:center">${p.gp}</td>`;es.forEach(s=>{html+=`<td>${p[s.id]||0}</td>`});html+=`<td class="calc-cell">${avg3(p.h||0,p.ab||0)}</td></tr>`});html+=`</tbody></table></div>`;document.getElementById('playerStatsArea').innerHTML=html}
+
+/* ═══ LEADERBOARDS ═══ */
+function renderLeaderboards(){const pl=getPlayerTotals();const es=enabledStats();const grid=document.getElementById('leadersGrid');if(!pl.length){grid.innerHTML='<div class="empty" style="grid-column:1/-1"><div class="empty-text">No data yet.</div></div>';return}let html='';es.forEach(s=>{const top=[...pl].sort((a,b)=>(b[s.id]||0)-(a[s.id]||0)).slice(0,5);if(!top.length||!top[0][s.id])return;html+=`<div class="card" style="padding:14px 16px"><div class="leader-title">${esc(s.full)}</div>`;top.forEach((p,i)=>{html+=`<div class="leader-row"><span class="leader-name${i===0?' top':''}">${i===0?'👑 ':(i+1)+'. '}${esc(p.name)}</span><span class="leader-val">${p[s.id]||0}</span></div>`});html+=`</div>`});grid.innerHTML=html||'<div class="empty" style="grid-column:1/-1"><div class="empty-text">No data yet.</div></div>'}
+
+/* ═══ TRENDTRACKER ═══ */
+function renderTrendTracker(){const es=enabledStats();const pp=document.getElementById('trendPills');pp.innerHTML='';es.forEach(s=>{const b=document.createElement('button');b.className='trend-pill'+(trendStat===s.id?' active':'');b.textContent=s.full;b.onclick=()=>{trendStat=s.id;renderTrendTracker()};pp.appendChild(b)});const data=D.games.filter(g=>g.date).map(g=>{let t=0;(g.players||[]).forEach(p=>{t+=n(p[trendStat])});return{label:`G${D.games.indexOf(g)+1}`,date:g.date,opp:g.opponent,val:t}});if(trendChartInstance){trendChartInstance.destroy();trendChartInstance=null}const ctx=document.getElementById('trendChart');if(data.length){trendChartInstance=new Chart(ctx,{type:'line',data:{labels:data.map(d=>d.label),datasets:[{label:(es.find(s=>s.id===trendStat)||{}).full||trendStat,data:data.map(d=>d.val),borderColor:'#e8a838',backgroundColor:'rgba(232,168,56,0.1)',borderWidth:3,pointBackgroundColor:'#1a2744',pointRadius:5,pointHoverRadius:7,tension:0.3,fill:true}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{grid:{display:false},ticks:{font:{family:'Sen',size:11}}},y:{beginAtZero:true,grid:{color:'#f0efe8'},ticks:{font:{family:'Sen',size:11}}}}}})}const sn=(es.find(s=>s.id===trendStat)||{}).full||trendStat;let thtml='';if(data.length){thtml=`<div class="table-wrap"><table><thead><tr><th>Game</th><th>Date</th><th>Opp</th><th>${esc(sn)}</th></tr></thead><tbody>`;data.forEach(d=>{thtml+=`<tr><td>${esc(d.label)}</td><td>${esc(d.date)}</td><td>${esc(d.opp||'TBD')}</td><td class="calc-cell">${d.val}</td></tr>`});thtml+=`</tbody></table></div>`}document.getElementById('trendTable').innerHTML=thtml}
+function renderStatNotes(){document.getElementById('statNotesArea').value=D.cfg.statNotes||''}
+
+/* ═══ SETTINGS ═══ */
+const STABS=[{id:'general',label:'General'},{id:'tabs',label:'Tabs'},{id:'stats',label:'Stats'},{id:'messages',label:'Messages'}];
+function renderSettings(){const sn=document.getElementById('settingsNav');sn.innerHTML='';STABS.forEach(t=>{const b=document.createElement('button');b.className='settings-pill'+(settingsSub===t.id?' active':'');b.textContent=t.label;b.onclick=()=>{settingsSub=t.id;renderSettings()};sn.appendChild(b)});const area=document.getElementById('settingsArea');let html='';
+if(settingsSub==='general'){html=`<div class="s-card"><h3>General</h3>`;[['teamName','Team Name'],['seasonLabel','Season Label']].forEach(([k,l])=>{html+=`<div class="s-field"><label class="s-label">${l}</label><input class="s-input" value="${esc(D.cfg[k]||'')}" oninput="D.cfg['${k}']=this.value;renderHome()"></div>`});html+=`<div style="margin-top:16px"><button class="save-btn" onclick="saveNow();alert('Saved!')">Save Changes</button></div></div>`}
+if(settingsSub==='tabs'){html=`<div class="s-card"><h3>Tab Visibility</h3>`;[['showHome','Feed'],['showRoster','Roster'],['showBoxScores','Box Scores'],['showPlayerStats','Player Stats'],['showLeaderboards','Leaderboards'],['showTrendTracker','TrendTracker'],['showStatNotes','Stat Notes']].forEach(([k,l])=>{html+=`<div class="toggle-row"><span>${l}</span><div class="toggle${D.cfg[k]?' on':''}" onclick="D.cfg['${k}']=!D.cfg['${k}'];renderAll()"><div class="knob"></div></div></div>`});html+=`<div style="margin-top:16px"><button class="save-btn" onclick="saveNow();alert('Saved!')">Save</button></div></div>`}
+if(settingsSub==='stats'){html=`<div class="s-card"><h3>Stat Categories</h3>`;(D.cfg.stats||[]).forEach((s,i)=>{html+=`<div class="stat-config-row"><div class="toggle${s.on?' on':''}" onclick="D.cfg.stats[${i}].on=!D.cfg.stats[${i}].on;renderSettings()"><div class="knob"></div></div><input style="width:50px;font-weight:700" value="${esc(s.label)}" oninput="D.cfg.stats[${i}].label=this.value"><input style="flex:1" value="${esc(s.full)}" oninput="D.cfg.stats[${i}].full=this.value"><span class="sid">${esc(s.id)}</span></div>`});html+=`<div style="display:flex;gap:8px;margin-top:12px"><button class="btn btn-sm" onclick="D.cfg.stats.push({id:'c_'+uid(),label:'NEW',full:'New Stat',on:true});renderSettings()">+ Add Stat</button><button class="save-btn" onclick="saveNow();alert('Saved!')">Save</button></div></div>`}
+if(settingsSub==='messages'){html=`<div class="s-card"><h3>Message Board</h3><div class="s-field"><label class="s-label">Message to Claude</label><textarea class="s-textarea" placeholder="Instructions for Claude" oninput="D.cfg.messageToClaude=this.value">${esc(D.cfg.messageToClaude||'')}</textarea></div><div class="s-field"><label class="s-label">Message to Harry</label><textarea class="s-textarea" placeholder="Notes for Harry" oninput="D.cfg.messageToHarry=this.value">${esc(D.cfg.messageToHarry||'')}</textarea></div><div class="s-field"><label class="s-label">Scratchpad</label><textarea class="s-textarea" placeholder="General notes" oninput="D.cfg.customNotes=this.value">${esc(D.cfg.customNotes||'')}</textarea></div><button class="save-btn" onclick="saveNow();alert('Saved!')">Save</button></div>`}
+area.innerHTML=html}
+
+function renderAll(){renderNav();renderTabs();renderHome();renderRoster();renderBoxScores();renderPlayerStats();renderLeaderboards();renderTrendTracker();renderStatNotes();renderSettings()}
+loadData();renderAll();
+</script>
+</body>
+</html>
