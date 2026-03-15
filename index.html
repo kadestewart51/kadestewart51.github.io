@@ -82,9 +82,9 @@ button{cursor:pointer;font-family:inherit}input,textarea,select{font-family:inhe
 .gp-cell.taken{color:#ccc;background:#fafaf8;cursor:default}
 .gp-cell .gp-label{font-size:10px;color:inherit;opacity:0.7;margin-top:2px}
 /* Buttons */
-.save-btn{padding:9px 24px;background:var(--blue);color:#fff;border:none;border-radius:8px;font-size:13px;font-weight:700;box-shadow:0 2px 10px rgba(37,99,235,0.25);transition:all 0.2s;letter-spacing:0.3px}
+.save-btn{padding:9px 24px;background:var(--blue);color:#fff;border:none;border-radius:var(--radius);font-size:13px;font-weight:700;box-shadow:0 2px 10px rgba(37,99,235,0.25);transition:all 0.2s;letter-spacing:0.3px}
 .save-btn:hover{box-shadow:0 4px 16px rgba(37,99,235,0.35);transform:translateY(-1px)}
-.cancel-btn{padding:9px 20px;background:transparent;color:var(--mut);border:1px solid var(--brd);border-radius:8px;font-size:13px;font-weight:600;transition:0.15s}
+.cancel-btn{padding:9px 20px;background:transparent;color:var(--mut);border:1px solid var(--brd);border-radius:var(--radius);font-size:13px;font-weight:600;transition:0.15s}
 .cancel-btn:hover{border-color:var(--pri);color:var(--pri)}
 .del-btn{border:none;background:transparent;color:var(--mut);font-size:12px;font-weight:600;padding:4px 8px;border-radius:4px;transition:all 0.15s;display:flex;align-items:center;gap:4px}
 .del-btn:hover{color:var(--loss);background:rgba(187,34,34,0.04)}
@@ -164,17 +164,31 @@ td:first-child{text-align:left;padding-left:12px}tr:nth-child(even){background:#
 .total-row td{font-weight:700;color:var(--pri);border-top:2px solid var(--pri);background:rgba(26,39,68,0.03);font-size:12px}
 .calc-cell{font-weight:700;color:var(--pri)}
 .rm-btn{border:none;background:transparent;color:#ddd;cursor:pointer;font-size:13px;transition:0.15s}.rm-btn:hover{color:var(--loss)}
-.btn{padding:8px 16px;background:var(--pri);color:#fff;border:none;border-radius:6px;font-size:12px;font-weight:600;transition:0.15s;box-shadow:0 2px 8px rgba(0,0,0,0.12)}
+/* ═══ UNIFIED BUTTON SYSTEM — all interactive elements share one shape ═══ */
+.btn{padding:8px 16px;background:var(--pri);color:#fff;border:none;border-radius:var(--radius);font-size:12px;font-weight:600;transition:all 0.15s;box-shadow:0 2px 8px rgba(0,0,0,0.12)}
 .btn:hover{opacity:0.9;box-shadow:0 3px 12px rgba(0,0,0,0.18)}
-.btn-sm{padding:5px 12px;font-size:11px;border-radius:4px}.btn-danger{background:var(--loss)}
+.btn-sm{padding:5px 12px;font-size:11px}.btn-danger{background:var(--loss)}
+.btn-ghost{background:transparent;color:var(--mut);border:1px dashed var(--brd);box-shadow:none}
+.btn-ghost:hover{border-color:var(--acc);color:var(--acc);opacity:1;background:rgba(232,168,56,0.03)}
 .game-tabs{display:flex;gap:5px;flex-wrap:wrap;margin-bottom:14px}
-.game-tab{padding:6px 14px;border:1px solid var(--brd);background:#fff;border-radius:4px;font-size:11px;font-weight:600;color:#666;transition:0.15s}
+.game-tab{padding:6px 14px;border:1px solid var(--brd);background:#fff;border-radius:var(--radius);font-size:11px;font-weight:600;color:#666;transition:0.15s}
 .game-tab:hover{border-color:var(--pri)}
 .game-tab.active{background:var(--pri);color:#fff;border-color:var(--pri);box-shadow:0 2px 8px rgba(26,39,68,0.2)}
+.game-tab-add{padding:6px 14px;border:2px dashed var(--brd);background:transparent;border-radius:var(--radius);font-size:11px;font-weight:600;color:var(--mut);transition:0.15s;display:inline-flex;align-items:center;gap:4px}
+.game-tab-add:hover{border-color:var(--acc);color:var(--acc)}
 .game-form{display:grid;grid-template-columns:repeat(auto-fill,minmax(155px,1fr));gap:8px;margin-bottom:14px}
 .game-form label{font-size:10px;font-weight:600;color:var(--mut);text-transform:uppercase;letter-spacing:0.5px;display:block;margin-bottom:2px}
-.game-form input{width:100%;padding:6px 8px;border:1px solid var(--brd);border-radius:4px;font-size:13px}
-.game-form input:focus{outline:none;border-color:var(--acc)}
+.game-form input,.game-form select{width:100%;padding:6px 8px;border:1px solid var(--brd);border-radius:var(--radius);font-size:13px;font-family:'Sen',sans-serif}
+.game-form input:focus,.game-form select:focus{outline:none;border-color:var(--acc)}
+/* Player roster picker above box score */
+.roster-picker{display:flex;gap:6px;flex-wrap:wrap;align-items:center;margin-bottom:12px;padding:10px 14px;background:rgba(26,39,68,0.02);border-radius:var(--radius)}
+.roster-picker-chip{padding:5px 12px;border:1px solid var(--brd);background:var(--card);border-radius:var(--radius);font-size:11px;font-weight:600;color:var(--pri);cursor:pointer;transition:all 0.15s;display:inline-flex;align-items:center;gap:4px}
+.roster-picker-chip:hover{border-color:var(--acc);background:rgba(232,168,56,0.06)}
+.roster-picker-chip.selected{background:var(--pri);color:#fff;border-color:var(--pri)}
+.roster-picker-chip .rp-num{font-size:9px;opacity:0.6}
+/* Player name chip — used in posts, box scores, everywhere a Groove player appears */
+.player-chip{display:inline;font-weight:700;color:var(--pri);background:linear-gradient(135deg,rgba(232,168,56,0.1),rgba(232,168,56,0.05));padding:1px 7px;border-radius:4px;font-size:inherit;white-space:nowrap}
+.player-chip .pc-num{font-size:0.8em;color:var(--acc);font-weight:800;margin-left:2px}
 /* Box score notes */
 .box-notes{margin-top:12px}
 .box-notes label{display:block;font-size:10px;font-weight:700;color:var(--mut);text-transform:uppercase;letter-spacing:0.6px;margin-bottom:4px}
@@ -331,6 +345,40 @@ function n(v){const p=parseFloat(v);return isNaN(p)?0:p}
 function avg3(h,ab){return ab>0?(h/ab).toFixed(3):'—'}
 function esc(s){const d=document.createElement('div');d.textContent=s||'';return d.innerHTML}
 function enabledStats(){return(D.cfg.stats||[]).filter(s=>s.on)}
+
+/* ═══ PLAYER NAME CHIPS ═══ */
+// Build a lookup: lowercase name -> {name, number}
+function rosterMap(){
+  const m={};
+  D.roster.forEach(r=>{if(r.name)m[r.name.trim().toLowerCase()]={name:r.name,number:r.number||''}});
+  return m;
+}
+// Render a player name as a highlighted chip if they're on the roster
+function playerChip(name){
+  if(!name)return '';
+  const rm=rosterMap();
+  const entry=rm[name.trim().toLowerCase()];
+  if(entry){
+    return `<span class="player-chip">${esc(entry.name)}${entry.number?'<span class="pc-num">#'+esc(entry.number)+'</span>':''}</span>`;
+  }
+  return esc(name);
+}
+// Replace roster player names in free text with chips
+function chipifyText(text){
+  if(!text)return '';
+  const rm=rosterMap();
+  let safe=esc(text);
+  // Sort names longest-first to avoid partial matches
+  const names=Object.values(rm).sort((a,b)=>b.name.length-a.name.length);
+  names.forEach(r=>{
+    const escaped=esc(r.name);
+    const chip=`<span class="player-chip">${escaped}${r.number?'<span class="pc-num">#'+esc(r.number)+'</span>':''}</span>`;
+    // Case-insensitive replace, word boundary aware
+    const re=new RegExp('\\b'+escaped.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')+'\\b','gi');
+    safe=safe.replace(re,chip);
+  });
+  return safe;
+}
 
 function fmtDate(ts){
   if(!ts)return '';
@@ -662,15 +710,14 @@ function renderFeed(){
   let html='';
   D.posts.forEach((p,i)=>{
     html+=`<div class="post">`;
-    html+=`<div class="post-header"><div><div class="post-author">${esc(p.author)}</div><div class="post-date">${fmtDate(p.createdAt||p.date)}</div></div></div>`;
-    if(p.title)html+=`<div class="post-title">${esc(p.title)}</div>`;
+    html+=`<div class="post-header"><div><div class="post-author">${playerChip(p.author)}</div><div class="post-date">${fmtDate(p.createdAt||p.date)}</div></div></div>`;
+    if(p.title)html+=`<div class="post-title">${chipifyText(p.title)}</div>`;
     if(p.type==='recap'&&p.runsFor){
       const w=n(p.runsFor)>n(p.runsAgainst),l=n(p.runsFor)<n(p.runsAgainst),r=w?'W':l?'L':'T',bg=w?'var(--win)':l?'var(--loss)':'var(--tie)';
       html+=`<div class="post-score"><span class="result-tag" style="background:${bg}">${r}</span><span>${esc(p.runsFor)} – ${esc(p.runsAgainst)}</span><span style="font-weight:400;font-size:13px;color:var(--mut)">vs ${esc(p.opponent)}</span></div>`;
     }
-    if(p.body)html+=`<div class="post-body">${esc(p.body)}</div>`;
+    if(p.body)html+=`<div class="post-body">${chipifyText(p.body)}</div>`;
     if(p.photos&&p.photos.length){html+=`<div class="post-photos">`;p.photos.forEach(ph=>{html+=`<img src="${ph}" style="max-height:360px">`});html+=`</div>`}
-    // Comments
     const commOpen=openComments[p.id];
     const cc=p.comments||[];
     html+=`<div class="comments-section">`;
@@ -678,13 +725,12 @@ function renderFeed(){
     if(commOpen){
       html+=`<div class="comments-list">`;
       cc.forEach((c,ci)=>{
-        html+=`<div class="comment"><div><span class="comment-author">${esc(c.author)}</span><span class="comment-date">${fmtDate(c.createdAt)}</span></div><div class="comment-text">${esc(c.text)}</div></div>`;
+        html+=`<div class="comment"><div><span class="comment-author">${playerChip(c.author)}</span><span class="comment-date">${fmtDate(c.createdAt)}</span></div><div class="comment-text">${chipifyText(c.text)}</div></div>`;
       });
       html+=`</div>`;
       html+=`<div class="comment-form"><input id="cmt-${p.id}" placeholder="Write a comment..." onkeydown="if(event.key==='Enter')addComment('${p.id}')"><button onclick="addComment('${p.id}')">Post</button></div>`;
     }
     html+=`</div>`;
-    // Footer: delete (admin only)
     html+=`<div class="post-footer"><div></div>`;
     if(admin){html+=`<button class="del-btn" id="del-${p.id}" onclick="delPost(${i},this)"><span class="material-symbols-outlined" style="font-size:16px">delete</span>Delete</button>`}
     html+=`</div>`;
@@ -738,45 +784,104 @@ function renderHome(){
 function addGame(){const g={id:uid(),date:'',opponent:'',location:'',runsFor:'',runsAgainst:'',weather:'',notes:'',players:D.roster.map(r=>({id:uid(),name:r.name,rosterId:r.id}))};D.games.push(g);activeGame=g.id;activeTab='boxscores';renderAll()}
 function renderBoxScores(){
   const admin=isAdmin();
-  // Admin buttons
+  // Admin buttons area (clear — new game is in the tab row now)
   const adminBtns=document.getElementById('boxAdminBtns');
-  if(admin){adminBtns.innerHTML=`<button class="btn" onclick="addGame()">+ New Game</button>`}else{adminBtns.innerHTML=''}
+  adminBtns.innerHTML='';
 
-  const gt=document.getElementById('gameTabs');gt.innerHTML='';D.games.forEach((g,i)=>{const b=document.createElement('button');b.className='game-tab'+(activeGame===g.id?' active':'');b.textContent=g.date||`Game ${i+1}`;b.onclick=()=>{activeGame=g.id;renderBoxScores()};gt.appendChild(b)});const area=document.getElementById('boxScoreArea');if(!activeGame||!D.games.find(g=>g.id===activeGame)){area.innerHTML=D.games.length?'<div class="empty"><div class="empty-text">Select a game above.</div></div>':'<div class="empty"><div class="empty-text">No games yet.</div></div>';return}
+  // Game tabs + new game chip
+  const gt=document.getElementById('gameTabs');gt.innerHTML='';
+  D.games.forEach((g,i)=>{const b=document.createElement('button');b.className='game-tab'+(activeGame===g.id?' active':'');b.textContent=g.date?fmtDateShort(g.date):`Game ${i+1}`;b.onclick=()=>{activeGame=g.id;renderBoxScores()};gt.appendChild(b)});
+  if(admin){const ab=document.createElement('button');ab.className='game-tab-add';ab.innerHTML='<span class="material-symbols-outlined" style="font-size:14px">add</span>New Game';ab.onclick=addGame;gt.appendChild(ab)}
+
+  const area=document.getElementById('boxScoreArea');
+  if(!activeGame||!D.games.find(g=>g.id===activeGame)){area.innerHTML=D.games.length?'<div class="empty"><div class="empty-text">Select a game above.</div></div>':'<div class="empty"><div class="empty-text">No games yet.</div></div>';return}
   const g=D.games.find(x=>x.id===activeGame);const gi=D.games.indexOf(g);const es=enabledStats();
 
   if(admin){
-    // Editable box score
-    let html=`<div class="card card-pad"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;flex-wrap:wrap;gap:8px"><h3 style="font-size:18px;font-weight:900">Game ${gi+1}${g.date?' — '+esc(g.date):''}</h3><div style="display:flex;gap:6px"><button class="save-btn" onclick="saveNow(this)">Save</button><button class="btn btn-sm btn-danger" id="delgame-${gi}" onclick="delGame(${gi},this)">Delete</button></div></div><div class="game-form">`;
-    [['date','Date','YYYY-MM-DD'],['opponent','Opponent','Team'],['location','Location','Field'],['runsFor','Runs For','0'],['runsAgainst','Runs Against','0'],['weather','Weather','Conditions']].forEach(([k,l,ph])=>{html+=`<div><label>${l}</label><input value="${esc(g[k]||'')}" placeholder="${ph}" oninput="updGame('${g.id}','${k}',this.value)"></div>`});
-    html+=`</div><div class="table-wrap"><table><thead><tr><th>Player</th>`;es.forEach(s=>{html+=`<th title="${esc(s.full)}">${esc(s.label)}</th>`});html+=`<th></th></tr></thead><tbody>`;
-    (g.players||[]).forEach(p=>{html+=`<tr><td><input class="cell-input wide" value="${esc(p.name||'')}" placeholder="Name" oninput="updPlayer('${g.id}','${p.id}','name',this.value)"></td>`;es.forEach(s=>{html+=`<td><input class="cell-input" value="${esc(p[s.id]||'')}" oninput="updPlayer('${g.id}','${p.id}','${s.id}',this.value)"></td>`});html+=`<td><button class="rm-btn" onclick="rmPlayer('${g.id}','${p.id}')">✕</button></td></tr>`});
+    let html=`<div class="card card-pad"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;flex-wrap:wrap;gap:8px"><h3 style="font-size:18px;font-weight:900">Game ${gi+1}${g.date?' — '+fmtDateShort(g.date):''}</h3><div style="display:flex;gap:6px"><button class="save-btn" onclick="saveNow(this)">Save</button><button class="btn btn-sm btn-danger" id="delgame-${gi}" onclick="delGame(${gi},this)">Delete</button></div></div>`;
+    // Game form — reordered: Date, Opponent, Location, Weather, Runs For, Runs Against
+    const dateMin=activeSeason+'-01-01', dateMax=activeSeason+'-12-31';
+    html+=`<div class="game-form">`;
+    html+=`<div><label>Date</label><input type="date" value="${esc(g.date||'')}" min="${dateMin}" max="${dateMax}" onchange="updGameNoRerender('${g.id}','date',this.value);updateGameTab('${g.id}',this.value)"></div>`;
+    html+=`<div><label>Opponent</label><input value="${esc(g.opponent||'')}" placeholder="Team" oninput="updGameNoRerender('${g.id}','opponent',this.value)"></div>`;
+    html+=`<div><label>Location</label><input value="${esc(g.location||'')}" placeholder="Field name or address" oninput="updGameNoRerender('${g.id}','location',this.value)"></div>`;
+    html+=`<div><label>Conditions</label><input value="${esc(g.weather||'')}" placeholder="Sunny, rainy, etc." oninput="updGameNoRerender('${g.id}','weather',this.value)"></div>`;
+    html+=`<div><label>Runs For</label><input type="number" min="0" value="${esc(g.runsFor||'')}" placeholder="0" oninput="updGameNoRerender('${g.id}','runsFor',this.value)"></div>`;
+    html+=`<div><label>Runs Against</label><input type="number" min="0" value="${esc(g.runsAgainst||'')}" placeholder="0" oninput="updGameNoRerender('${g.id}','runsAgainst',this.value)"></div>`;
+    html+=`</div>`;
+    // Location → Google Maps link if filled
+    if(g.location){html+=`<div style="margin-bottom:10px"><a href="https://www.google.com/maps/search/${encodeURIComponent(g.location)}" target="_blank" rel="noopener" style="font-size:11px;color:var(--blue);display:inline-flex;align-items:center;gap:3px;text-decoration:none"><span class="material-symbols-outlined" style="font-size:14px">map</span>Open in Google Maps</a></div>`}
+    // Multi-select roster picker ABOVE the table
+    const currentNames=new Set((g.players||[]).map(p=>(p.name||'').trim().toLowerCase()));
+    const available=D.roster.filter(r=>r.name&&!currentNames.has(r.name.trim().toLowerCase())).sort((a,b)=>a.name.localeCompare(b.name));
+    if(available.length){
+      html+=`<div class="roster-picker"><span style="font-size:10px;font-weight:700;color:var(--mut);text-transform:uppercase;letter-spacing:0.6px;margin-right:6px">Add:</span>`;
+      available.forEach(r=>{
+        html+=`<button class="roster-picker-chip" onclick="addNamedPlayerToGame('${g.id}','${esc(r.name.replace(/'/g,"\\'"))}')">${esc(r.name)}${r.number?' <span class="rp-num">#'+esc(r.number)+'</span>':''}</button>`;
+      });
+      html+=`<button class="roster-picker-chip" style="border-style:dashed;color:var(--mut)" onclick="addGuestToGame('${g.id}')"><span class="material-symbols-outlined" style="font-size:13px">person_add</span>Guest</button>`;
+      html+=`</div>`;
+    }else{
+      html+=`<div style="margin-bottom:10px"><button class="btn btn-sm btn-ghost" onclick="addGuestToGame('${g.id}')"><span class="material-symbols-outlined" style="font-size:13px">person_add</span> Guest</button></div>`;
+    }
+    // Stat table
+    html+=`<div class="table-wrap"><table><thead><tr><th>Player</th>`;es.forEach(s=>{html+=`<th title="${esc(s.full)}">${esc(s.label)}</th>`});html+=`<th></th></tr></thead><tbody>`;
+    (g.players||[]).forEach(p=>{html+=`<tr><td><input class="cell-input wide" value="${esc(p.name||'')}" placeholder="Name" oninput="updPlayer('${g.id}','${p.id}','name',this.value)"></td>`;es.forEach(s=>{html+=`<td><input class="cell-input" type="number" min="0" value="${esc(p[s.id]||'')}" oninput="updPlayer('${g.id}','${p.id}','${s.id}',this.value)"></td>`});html+=`<td><button class="rm-btn" onclick="rmPlayer('${g.id}','${p.id}')">✕</button></td></tr>`});
     if((g.players||[]).length){html+=`<tr class="total-row"><td>TEAM</td>`;es.forEach(s=>{html+=`<td>${(g.players||[]).reduce((sum,p)=>sum+n(p[s.id]),0)}</td>`});html+=`<td></td></tr>`}
-    html+=`</tbody></table></div><button class="btn btn-sm" style="margin-top:10px" onclick="addPlayerToGame('${g.id}')">+ Add Player</button>`;
-    // Notes field
-    html+=`<div class="box-notes"><label>Game Notes</label><textarea placeholder="Anything notable — weather delays, highlights, lineup changes, umpire rulings..." oninput="updGame('${g.id}','notes',this.value)">${esc(g.notes||'')}</textarea></div>`;
+    html+=`</tbody></table></div>`;
+    // Notes
+    html+=`<div class="box-notes"><label>Game Notes</label><textarea placeholder="Anything notable — weather delays, highlights, lineup changes, umpire rulings..." oninput="updGameNoRerender('${g.id}','notes',this.value)">${esc(g.notes||'')}</textarea></div>`;
     html+=`</div>`;
     area.innerHTML=html;
   }else{
-    // Read-only box score
-    let html=`<div class="card card-pad"><h3 style="font-size:18px;font-weight:900;margin-bottom:12px">Game ${gi+1}${g.date?' — '+esc(g.date):''}${g.opponent?' vs '+esc(g.opponent):''}</h3>`;
+    // Read-only box score with player chips
+    let html=`<div class="card card-pad"><h3 style="font-size:18px;font-weight:900;margin-bottom:6px">Game ${gi+1}${g.date?' — '+fmtDateShort(g.date):''}${g.opponent?' vs '+esc(g.opponent):''}</h3>`;
+    if(g.location){html+=`<div style="margin-bottom:8px"><a href="https://www.google.com/maps/search/${encodeURIComponent(g.location)}" target="_blank" rel="noopener" style="font-size:12px;color:var(--blue);display:inline-flex;align-items:center;gap:3px;text-decoration:none"><span class="material-symbols-outlined" style="font-size:14px">map</span>${esc(g.location)}</a></div>`}
     if(g.runsFor||g.runsAgainst){
       const w=n(g.runsFor)>n(g.runsAgainst),l=n(g.runsFor)<n(g.runsAgainst),r=w?'W':l?'L':'T',bg=w?'var(--win)':l?'var(--loss)':'var(--tie)';
       html+=`<div style="margin-bottom:12px"><span class="result-tag" style="background:${bg};font-size:14px;padding:4px 12px">${r} ${esc(g.runsFor)} – ${esc(g.runsAgainst)}</span></div>`;
     }
     html+=`<div class="table-wrap"><table><thead><tr><th>Player</th>`;es.forEach(s=>{html+=`<th title="${esc(s.full)}">${esc(s.label)}</th>`});html+=`</tr></thead><tbody>`;
-    (g.players||[]).forEach(p=>{if(!p.name)return;html+=`<tr><td style="font-weight:600">${esc(p.name)}</td>`;es.forEach(s=>{html+=`<td>${p[s.id]||0}</td>`});html+=`</tr>`});
+    (g.players||[]).forEach(p=>{if(!p.name)return;html+=`<tr><td style="font-weight:600">${playerChip(p.name)}</td>`;es.forEach(s=>{html+=`<td>${p[s.id]||0}</td>`});html+=`</tr>`});
     if((g.players||[]).length){html+=`<tr class="total-row"><td>TEAM</td>`;es.forEach(s=>{html+=`<td>${(g.players||[]).reduce((sum,p)=>sum+n(p[s.id]),0)}</td>`});html+=`</tr>`}
     html+=`</tbody></table></div>`;
-    if(g.notes)html+=`<div style="margin-top:12px;padding:10px 14px;background:rgba(26,39,68,0.02);border-radius:8px;font-size:13px;color:#666;line-height:1.6;white-space:pre-wrap">${esc(g.notes)}</div>`;
+    if(g.notes)html+=`<div style="margin-top:12px;padding:10px 14px;background:rgba(26,39,68,0.02);border-radius:var(--radius);font-size:13px;color:#666;line-height:1.6;white-space:pre-wrap">${esc(g.notes)}</div>`;
     html+=`</div>`;
     area.innerHTML=html;
   }
 }
 function delGame(i,btn){if(btn.dataset.confirm){D.games.splice(i,1);activeGame=null;saveNow();renderAll();return}btn.dataset.confirm='1';btn.textContent='Confirm delete';setTimeout(()=>{if(btn.isConnected){delete btn.dataset.confirm;btn.textContent='Delete'}},3000)}
-function updGame(gid,k,v){const g=D.games.find(x=>x.id===gid);if(g){g[k]=v;if(k==='date')renderBoxScores()}}
+// Update game field WITHOUT re-rendering (prevents focus loss)
+function updGameNoRerender(gid,k,v){const g=D.games.find(x=>x.id===gid);if(g)g[k]=v}
+// Update game field AND re-render (for date changes that affect tabs)
+function updateGameTab(gid,v){
+  const g=D.games.find(x=>x.id===gid);if(!g)return;
+  // Update the tab label without full re-render
+  const tabs=document.getElementById('gameTabs');
+  if(tabs){const gi=D.games.indexOf(g);const btns=tabs.querySelectorAll('.game-tab');if(btns[gi])btns[gi].textContent=v||`Game ${gi+1}`}
+  // Update the heading
+  const gi=D.games.indexOf(g);
+  const heading=document.querySelector('#boxScoreArea h3');
+  if(heading)heading.textContent=`Game ${gi+1}${v?' — '+fmtDateShort(v):''}`;
+}
 function updPlayer(gid,pid,k,v){const g=D.games.find(x=>x.id===gid);if(g)(g.players||[]).forEach(p=>{if(p.id===pid)p[k]=v})}
-function addPlayerToGame(gid){const g=D.games.find(x=>x.id===gid);if(g){if(!g.players)g.players=[];g.players.push({id:uid(),name:''});renderBoxScores()}}
+// Add a named roster player to the game (chip click)
+function addNamedPlayerToGame(gid,name){
+  const g=D.games.find(x=>x.id===gid);if(!g)return;
+  if(!g.players)g.players=[];
+  const rosterEntry=D.roster.find(r=>r.name===name);
+  g.players.push({id:uid(),name:name,rosterId:rosterEntry?rosterEntry.id:''});
+  renderBoxScores();
+}
+// Add a guest (non-roster) player
+function addGuestToGame(gid){
+  const g=D.games.find(x=>x.id===gid);if(!g)return;
+  if(!g.players)g.players=[];
+  g.players.push({id:uid(),name:'',rosterId:''});
+  renderBoxScores();
+  // Focus the new empty name input
+  setTimeout(()=>{const inputs=document.querySelectorAll('#boxScoreArea .cell-input.wide');if(inputs.length)inputs[inputs.length-1].focus()},50);
+}
 function rmPlayer(gid,pid){const g=D.games.find(x=>x.id===gid);if(g)g.players=(g.players||[]).filter(p=>p.id!==pid);renderBoxScores()}
 
 /* ═══ PLAYER STATS ═══ */
