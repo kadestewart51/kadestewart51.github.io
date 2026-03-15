@@ -164,6 +164,19 @@ td:first-child{text-align:left;padding-left:12px}tr:nth-child(even){background:#
 .total-row td{font-weight:700;color:var(--pri);border-top:2px solid var(--pri);background:rgba(26,39,68,0.03);font-size:12px}
 .calc-cell{font-weight:700;color:var(--pri)}
 .rm-btn{border:none;background:transparent;color:#ddd;cursor:pointer;font-size:13px;transition:0.15s}.rm-btn:hover{color:var(--loss)}
+/* Box score row — draggable + selectable */
+tr.bs-row{transition:background 0.15s}
+tr.bs-row:hover{background:rgba(232,168,56,0.03)}
+tr.bs-row.selected{background:rgba(37,99,235,0.06)}
+tr.bs-row.selected td:first-child{border-left:3px solid var(--blue)}
+tr.bs-row.dragging{opacity:0.4;background:rgba(232,168,56,0.1)}
+tr.bs-row .drag-handle{cursor:grab;color:#ccc;font-size:16px;padding:0 4px;user-select:none;touch-action:none;display:flex;align-items:center}
+tr.bs-row .drag-handle:active{cursor:grabbing;color:var(--acc)}
+tr.bs-row .row-check{width:15px;height:15px;accent-color:var(--blue);cursor:pointer;margin:0}
+.bs-toolbar{display:flex;gap:8px;align-items:center;margin-bottom:8px;min-height:32px}
+.bs-toolbar .sel-count{font-size:11px;font-weight:700;color:var(--blue)}
+.bs-toolbar .del-selected{padding:4px 12px;background:var(--loss);color:#fff;border:none;border-radius:var(--radius);font-size:11px;font-weight:700;cursor:pointer;transition:0.15s;display:inline-flex;align-items:center;gap:4px}
+.bs-toolbar .del-selected:hover{opacity:0.85}
 /* ═══ UNIFIED BUTTON SYSTEM — all interactive elements share one shape ═══ */
 .btn{padding:8px 16px;background:var(--pri);color:#fff;border:none;border-radius:var(--radius);font-size:12px;font-weight:600;transition:all 0.15s;box-shadow:0 2px 8px rgba(0,0,0,0.12)}
 .btn:hover{opacity:0.9;box-shadow:0 3px 12px rgba(0,0,0,0.18)}
@@ -824,15 +837,17 @@ function renderBoxScores(){
     }else{
       html+=`<div style="margin-bottom:10px"><button class="btn btn-sm btn-ghost" onclick="addGuestToGame('${g.id}')"><span class="material-symbols-outlined" style="font-size:13px">person_add</span> Guest</button></div>`;
     }
-    // Stat table
-    html+=`<div class="table-wrap"><table><thead><tr><th>Player</th>`;es.forEach(s=>{html+=`<th title="${esc(s.full)}">${esc(s.label)}</th>`});html+=`<th></th></tr></thead><tbody>`;
-    (g.players||[]).forEach(p=>{html+=`<tr><td><input class="cell-input wide" value="${esc(p.name||'')}" placeholder="Name" oninput="updPlayer('${g.id}','${p.id}','name',this.value)"></td>`;es.forEach(s=>{html+=`<td><input class="cell-input" type="number" min="0" value="${esc(p[s.id]||'')}" oninput="updPlayer('${g.id}','${p.id}','${s.id}',this.value)"></td>`});html+=`<td><button class="rm-btn" onclick="rmPlayer('${g.id}','${p.id}')">✕</button></td></tr>`});
-    if((g.players||[]).length){html+=`<tr class="total-row"><td>TEAM</td>`;es.forEach(s=>{html+=`<td>${(g.players||[]).reduce((sum,p)=>sum+n(p[s.id]),0)}</td>`});html+=`<td></td></tr>`}
+    // Selection toolbar + stat table
+    html+=`<div class="bs-toolbar" id="bsToolbar-${g.id}"></div>`;
+    html+=`<div class="table-wrap"><table><thead><tr><th style="width:24px"></th><th style="width:24px"></th><th>Player</th>`;es.forEach(s=>{html+=`<th title="${esc(s.full)}">${esc(s.label)}</th>`});html+=`</tr></thead><tbody id="bsBody-${g.id}">`;
+    (g.players||[]).forEach((p,pi)=>{html+=`<tr class="bs-row" draggable="true" data-pid="${p.id}" data-gid="${g.id}" data-idx="${pi}"><td><input type="checkbox" class="row-check" data-pid="${p.id}" onchange="updateBsToolbar('${g.id}')"></td><td><span class="drag-handle material-symbols-outlined">drag_indicator</span></td><td><input class="cell-input wide" value="${esc(p.name||'')}" placeholder="Name" oninput="updPlayer('${g.id}','${p.id}','name',this.value)"></td>`;es.forEach(s=>{html+=`<td><input class="cell-input" type="number" min="0" value="${esc(p[s.id]||'')}" oninput="updPlayer('${g.id}','${p.id}','${s.id}',this.value)"></td>`});html+=`</tr>`});
+    if((g.players||[]).length){html+=`<tr class="total-row"><td></td><td></td><td>TEAM</td>`;es.forEach(s=>{html+=`<td>${(g.players||[]).reduce((sum,p)=>sum+n(p[s.id]),0)}</td>`});html+=`</tr>`}
     html+=`</tbody></table></div>`;
     // Notes
     html+=`<div class="box-notes"><label>Game Notes</label><textarea placeholder="Anything notable — weather delays, highlights, lineup changes, umpire rulings..." oninput="updGameNoRerender('${g.id}','notes',this.value)">${esc(g.notes||'')}</textarea></div>`;
     html+=`</div>`;
     area.innerHTML=html;
+    initBoxScoreDrag(g.id);
   }else{
     // Read-only box score with player chips
     let html=`<div class="card card-pad"><h3 style="font-size:18px;font-weight:900;margin-bottom:6px">Game ${gi+1}${g.date?' — '+fmtDateShort(g.date):''}${g.opponent?' vs '+esc(g.opponent):''}</h3>`;
@@ -883,6 +898,72 @@ function addGuestToGame(gid){
   setTimeout(()=>{const inputs=document.querySelectorAll('#boxScoreArea .cell-input.wide');if(inputs.length)inputs[inputs.length-1].focus()},50);
 }
 function rmPlayer(gid,pid){const g=D.games.find(x=>x.id===gid);if(g)g.players=(g.players||[]).filter(p=>p.id!==pid);renderBoxScores()}
+
+/* ═══ BOX SCORE ROW SELECTION + MULTI-DELETE ═══ */
+function getSelectedPids(gid){
+  const checks=document.querySelectorAll(`#bsBody-${gid} .row-check:checked`);
+  return Array.from(checks).map(c=>c.dataset.pid);
+}
+function updateBsToolbar(gid){
+  const tb=document.getElementById('bsToolbar-'+gid);if(!tb)return;
+  const sel=getSelectedPids(gid);
+  if(!sel.length){tb.innerHTML='';return}
+  tb.innerHTML=`<span class="sel-count">${sel.length} selected</span><button class="del-selected" onclick="deleteSelectedPlayers('${gid}')"><span class="material-symbols-outlined" style="font-size:14px">delete</span>Remove ${sel.length}</button><button style="border:none;background:transparent;color:var(--mut);font-size:11px;font-weight:600;cursor:pointer" onclick="clearSelection('${gid}')">Cancel</button>`;
+}
+function deleteSelectedPlayers(gid){
+  const pids=new Set(getSelectedPids(gid));
+  if(!pids.size)return;
+  const g=D.games.find(x=>x.id===gid);if(!g)return;
+  g.players=(g.players||[]).filter(p=>!pids.has(p.id));
+  renderBoxScores();
+}
+function clearSelection(gid){
+  document.querySelectorAll(`#bsBody-${gid} .row-check`).forEach(c=>c.checked=false);
+  updateBsToolbar(gid);
+}
+
+/* ═══ BOX SCORE ROW DRAG-AND-DROP ═══ */
+let dragSrcRow=null;
+function initBoxScoreDrag(gid){
+  const tbody=document.getElementById('bsBody-'+gid);if(!tbody)return;
+  const rows=tbody.querySelectorAll('tr.bs-row');
+  rows.forEach(row=>{
+    row.addEventListener('dragstart',e=>{
+      dragSrcRow=row;
+      row.classList.add('dragging');
+      e.dataTransfer.effectAllowed='move';
+      e.dataTransfer.setData('text/plain',row.dataset.pid);
+    });
+    row.addEventListener('dragend',()=>{
+      row.classList.remove('dragging');
+      dragSrcRow=null;
+      rows.forEach(r=>r.style.borderTop='');
+    });
+    row.addEventListener('dragover',e=>{
+      e.preventDefault();
+      e.dataTransfer.dropEffect='move';
+      if(dragSrcRow&&dragSrcRow!==row){
+        row.style.borderTop='2px solid var(--acc)';
+      }
+    });
+    row.addEventListener('dragleave',()=>{
+      row.style.borderTop='';
+    });
+    row.addEventListener('drop',e=>{
+      e.preventDefault();
+      row.style.borderTop='';
+      if(!dragSrcRow||dragSrcRow===row)return;
+      const g=D.games.find(x=>x.id===gid);if(!g||!g.players)return;
+      const fromIdx=parseInt(dragSrcRow.dataset.idx);
+      const toIdx=parseInt(row.dataset.idx);
+      if(isNaN(fromIdx)||isNaN(toIdx))return;
+      // Move the player in the array
+      const [moved]=g.players.splice(fromIdx,1);
+      g.players.splice(toIdx,0,moved);
+      renderBoxScores();
+    });
+  });
+}
 
 /* ═══ PLAYER STATS ═══ */
 function getPlayerTotals(){const map={};D.games.forEach(g=>{(g.players||[]).forEach(p=>{const key=(p.name||'').trim().toLowerCase();if(!key)return;if(!map[key])map[key]={name:p.name,gp:0};map[key].gp++;enabledStats().forEach(s=>{map[key][s.id]=(map[key][s.id]||0)+n(p[s.id])})})});return Object.values(map).sort((a,b)=>(b.h||0)-(a.h||0))}
