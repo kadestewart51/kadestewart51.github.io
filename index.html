@@ -232,12 +232,34 @@ tr.bs-row .row-check{width:15px;height:15px;accent-color:var(--blue);cursor:poin
 .footer{text-align:center;padding:16px;font-size:11px;color:#ccc;letter-spacing:0.3px}
 /* Admin allowlist tag */
 .admin-badge{display:inline-flex;align-items:center;gap:3px;font-size:10px;font-weight:700;color:var(--acc);text-transform:uppercase;letter-spacing:0.5px;padding:2px 8px;background:rgba(232,168,56,0.1);border-radius:4px;margin-left:6px}
-/* Season toggle */
-.season-toggle{display:flex;align-items:center;gap:0;border-radius:4px;overflow:hidden;border:1px solid var(--brd)}
-.season-btn{padding:3px 10px;font-size:10px;font-weight:700;letter-spacing:2px;text-transform:uppercase;border:none;background:transparent;color:var(--mut);cursor:pointer;transition:all 0.2s;font-family:'Sen',sans-serif}
-.season-btn:hover{color:var(--pri)}
-.season-btn.active{background:var(--pri);color:#fff}
-.season-btn.active:hover{background:var(--pri)}
+/* Season color schemes — like incognito, you always know where you are */
+body.season-2026{--bg:#f4f2ec;--pri:#1a2744;--acc:#e8a838;--brd:#e0ddd5;--card:#fff;--sec:#3b5998}
+body.season-2024{--bg:#1e2a3a;--pri:#c8d8e8;--acc:#e8a838;--brd:#2d3e52;--card:#243447;--sec:#5a8abd;--txt:#d0dce8;--mut:#7a8fa5;--win:#5cb85c;--loss:#d9534f;--tie:#f0ad4e}
+body.season-2024 h1,body.season-2024 h2,body.season-2024 h3{color:var(--pri)}
+body.season-2024 .post-body,body.season-2024 .comment-text{color:#a8b8c8}
+body.season-2024 .roster-card-bio{color:#8899aa}
+body.season-2024 th{background:var(--sec)}
+body.season-2024 tr:nth-child(even){background:rgba(255,255,255,0.03)}
+body.season-2024 td{border-bottom-color:var(--brd)}
+body.season-2024 .total-row td{border-top-color:var(--pri);background:rgba(200,216,232,0.05)}
+body.season-2024 .cell-input{color:var(--pri)}
+body.season-2024 .footer{color:#4a5a6a}
+/* Season tab bar */
+.season-bar{display:flex;margin-left:56px;border-bottom:1px solid var(--brd)}
+.season-tab{flex:1;padding:14px 0;text-align:center;font-size:15px;font-weight:800;letter-spacing:2px;text-transform:uppercase;border:none;cursor:pointer;transition:all 0.3s;font-family:'Sen',sans-serif;position:relative}
+.season-tab:after{content:'';position:absolute;bottom:0;left:20%;right:20%;height:3px;border-radius:2px 2px 0 0;background:transparent;transition:all 0.3s}
+.season-tab.active:after{background:var(--acc);left:10%;right:10%}
+.season-tab-2026{background:rgba(244,242,236,0.6);color:var(--mut)}
+.season-tab-2026.active{background:#f4f2ec;color:#1a2744}
+.season-tab-2024{background:rgba(30,42,58,0.6);color:#5a6a7a}
+.season-tab-2024.active{background:#1e2a3a;color:#c8d8e8}
+body.season-2024 .season-tab-2026{background:rgba(244,242,236,0.08);color:#5a6a7a}
+body.season-2024 .season-tab-2024.active{background:#1e2a3a;color:#c8d8e8}
+body.season-2024 .sidebar .nav-icon{color:rgba(200,216,232,0.25)}
+body.season-2024 .sidebar .nav-icon:hover{color:var(--pri);background:rgba(200,216,232,0.08)}
+body.season-2024 .sidebar .nav-icon.active{color:var(--pri);background:rgba(200,216,232,0.1)}
+body.season-2024 .admin-signin{color:#5a6a7a;border-color:var(--brd)}
+body.season-2024 .admin-signin:hover{color:var(--pri);border-color:var(--pri)}
 /* Auth bar */
 .auth-bar{display:flex;align-items:center;justify-content:flex-end;gap:10px;padding:8px 24px;margin-left:56px;font-size:12px;color:var(--mut)}
 .auth-bar .user-info{display:flex;align-items:center;gap:8px}
@@ -249,15 +271,7 @@ tr.bs-row .row-check{width:15px;height:15px;accent-color:var(--blue);cursor:poin
 .auth-btn.signout{border:none;background:transparent;box-shadow:none;color:var(--mut);font-weight:500;padding:4px 8px}
 .auth-btn.signout:hover{color:var(--loss)}
 .auth-gate{text-align:center;padding:16px;color:var(--mut);font-size:13px;margin-bottom:12px;background:rgba(37,99,235,0.04);border-radius:8px}
-/* Backlog list */
-.backlog-item{display:flex;gap:8px;padding:8px 0;border-bottom:1px solid #f5f3ed;font-size:13px;align-items:flex-start}
-.backlog-item:last-child{border:none}
-.backlog-bullet{width:6px;height:6px;border-radius:3px;background:var(--acc);flex-shrink:0;margin-top:6px}
-.backlog-pri{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;padding:2px 6px;border-radius:3px;flex-shrink:0}
-.backlog-pri.high{color:var(--loss);background:rgba(187,34,34,0.08)}
-.backlog-pri.med{color:var(--tie);background:rgba(168,128,0,0.08)}
-.backlog-pri.low{color:var(--mut);background:rgba(153,153,153,0.08)}
-@media(max-width:640px){.sidebar{width:44px}.nav-icon{width:34px;height:34px;font-size:20px}.page-wrap,.header{margin-left:44px}.main{padding:0 12px 40px}.hero-btn{padding:14px 24px;font-size:13px}.composer{margin:12px;padding:20px}.leaders-grid{grid-template-columns:1fr 1fr}.game-form{grid-template-columns:1fr 1fr}.game-picker{grid-template-columns:repeat(4,1fr)}.roster-grid{grid-template-columns:repeat(auto-fill,minmax(160px,1fr))}}
+@media(max-width:640px){.sidebar{width:44px}.nav-icon{width:34px;height:34px;font-size:20px}.page-wrap,.header{margin-left:44px}.season-bar{margin-left:44px}.main{padding:0 12px 40px}.hero-btn{padding:14px 24px;font-size:13px}.composer{margin:12px;padding:20px}.leaders-grid{grid-template-columns:1fr 1fr}.game-form{grid-template-columns:1fr 1fr}.game-picker{grid-template-columns:repeat(4,1fr)}.roster-grid{grid-template-columns:repeat(auto-fill,minmax(160px,1fr))}.season-tab{font-size:13px;padding:12px 0}}
 @keyframes fadeIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
 .tab.active{animation:fadeIn 0.25s ease}
 </style>
@@ -269,9 +283,10 @@ tr.bs-row .row-check{width:15px;height:15px;accent-color:var(--blue);cursor:poin
 <canvas id="grassCanvas"></canvas>
 <nav class="sidebar" id="sidebar"></nav>
 <div class="composer-overlay" id="composerOverlay"><div class="composer" id="composerInner"></div></div>
+<div class="season-bar" id="seasonBar"></div>
 <div class="page-wrap">
 <div class="auth-bar" id="authBar"></div>
-<div class="header"><div class="header-inner"><div class="header-left"><span class="header-logo">⚾</span><div><div class="header-team" id="headerTeam">NY Groove</div><div id="seasonToggle" style="display:flex;align-items:center;gap:2px;margin-top:2px"></div></div></div><div class="header-record" id="headerRecord"></div></div></div>
+<div class="header"><div class="header-inner"><div class="header-left"><span class="header-logo">⚾</span><div><div class="header-team" id="headerTeam">NY Groove</div></div></div><div class="header-record" id="headerRecord"></div></div></div>
 <main class="main">
 <div class="tab" id="tab-home"><div class="hero-section"><button class="hero-btn" id="heroBtn" onclick="heroClick()">POST SOMETHING</button></div><div class="feed" id="feedArea"></div></div>
 <div class="tab" id="tab-roster"><div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;margin-bottom:6px"><div><h2 class="sec-title">The Roster</h2><p class="sec-hint" id="rosterHint">The 2026 New York Groove.</p></div><div id="rosterAdminBtns"></div></div><div class="roster-grid" id="rosterGrid"></div></div>
@@ -774,9 +789,12 @@ function heroClick(){
 
 function renderHome(){
   document.getElementById('headerTeam').textContent=D.cfg.teamName;
-  // Season toggle
-  const st=document.getElementById('seasonToggle');
-  st.innerHTML=SEASONS.map(y=>`<div class="season-toggle"><button class="season-btn${activeSeason===y?' active':''}" onclick="switchSeason('${y}')">${y}</button></div>`).join('');
+  // Season bar — large tabs at top
+  const sb=document.getElementById('seasonBar');
+  sb.innerHTML=SEASONS.map(y=>`<button class="season-tab season-tab-${y}${activeSeason===y?' active':''}" onclick="switchSeason('${y}')">${y} Season</button>`).join('');
+  // Apply season body class for color scheme
+  SEASONS.forEach(y=>document.body.classList.remove('season-'+y));
+  document.body.classList.add('season-'+activeSeason);
   renderRecord();
   const btn=document.getElementById('heroBtn');
   if(btn){
@@ -977,7 +995,7 @@ function renderTrendTracker(){const es=enabledStats();const pp=document.getEleme
 function renderStatNotes(){document.getElementById('statNotesArea').value=D.cfg.statNotes||''}
 
 /* ═══ SETTINGS ═══ */
-const STABS=[{id:'general',label:'General'},{id:'tabs',label:'Tabs'},{id:'stats',label:'Stats'},{id:'messages',label:'Messages'},{id:'backlog',label:'Backlog'}];
+const STABS=[{id:'general',label:'General'},{id:'tabs',label:'Tabs'},{id:'stats',label:'Stats'},{id:'import',label:'Import CSV'},{id:'backlog',label:'Backlog'}];
 function renderSettings(){
   // Settings are admin-only
   if(!isAdmin()){
@@ -990,35 +1008,202 @@ if(settingsSub==='general'){html=`<div class="s-card"><h3>General</h3>`;[['teamN
 html+=`<div class="s-card"><h3>Admin Allowlist</h3><p style="font-size:12px;color:var(--mut);margin-bottom:8px">Only these Google email addresses can create/edit content. Everyone else gets read-only access. Edit the ADMIN_EMAILS array in the HTML source.</p><div style="font-family:monospace;font-size:12px;background:#f8f7f3;padding:10px;border-radius:6px;color:#666">${ADMIN_EMAILS.length?ADMIN_EMAILS.map(e=>esc(e)).join('<br>'):'<em>No emails configured — edit ADMIN_EMAILS in HTML</em>'}</div></div>`}
 if(settingsSub==='tabs'){html=`<div class="s-card"><h3>Tab Visibility</h3>`;[['showHome','Feed'],['showRoster','Roster'],['showBoxScores','Box Scores'],['showPlayerStats','Player Stats'],['showLeaderboards','Leaderboards'],['showTrendTracker','TrendTracker'],['showStatNotes','Stat Notes']].forEach(([k,l])=>{html+=`<div class="toggle-row"><span>${l}</span><div class="toggle${D.cfg[k]?' on':''}" onclick="D.cfg['${k}']=!D.cfg['${k}'];renderAll()"><div class="knob"></div></div></div>`});html+=`<div style="margin-top:16px"><button class="save-btn" onclick="saveNow(this)">Save</button></div></div>`}
 if(settingsSub==='stats'){html=`<div class="s-card"><h3>Stat Categories</h3>`;(D.cfg.stats||[]).forEach((s,i)=>{html+=`<div class="stat-config-row"><div class="toggle${s.on?' on':''}" onclick="D.cfg.stats[${i}].on=!D.cfg.stats[${i}].on;renderSettings()"><div class="knob"></div></div><input style="width:50px;font-weight:700" value="${esc(s.label)}" oninput="D.cfg.stats[${i}].label=this.value"><input style="flex:1" value="${esc(s.full)}" oninput="D.cfg.stats[${i}].full=this.value"><span class="sid">${esc(s.id)}</span></div>`});html+=`<div style="display:flex;gap:8px;margin-top:12px"><button class="btn btn-sm" onclick="D.cfg.stats.push({id:'c_'+uid(),label:'NEW',full:'New Stat',on:true});renderSettings()">+ Add Stat</button><button class="save-btn" onclick="saveNow(this)">Save</button></div></div>`}
-if(settingsSub==='messages'){html=`<div class="s-card"><h3>Message Board</h3><div class="s-field"><label class="s-label">Message to Claude</label><textarea class="s-textarea" placeholder="Instructions for Claude" oninput="D.cfg.messageToClaude=this.value">${esc(D.cfg.messageToClaude||'')}</textarea></div><div class="s-field"><label class="s-label">Message to Harry</label><textarea class="s-textarea" placeholder="Notes for Harry" oninput="D.cfg.messageToHarry=this.value">${esc(D.cfg.messageToHarry||'')}</textarea></div><div class="s-field"><label class="s-label">Scratchpad</label><textarea class="s-textarea" placeholder="General notes" oninput="D.cfg.customNotes=this.value">${esc(D.cfg.customNotes||'')}</textarea></div><button class="save-btn" onclick="saveNow(this)">Save</button></div>`}
+if(settingsSub==='import'){
+  html=`<div class="s-card"><h3>Import Game from CSV</h3>
+  <p style="font-size:12px;color:var(--mut);margin-bottom:14px">Drop a game box score CSV exported from the NY Groove Stat Hub Google Sheet. The parser will do its best to extract the date, opponent, score, and player stats. You can clean up anything it gets wrong in the Box Scores tab afterward.</p>
+  <div class="photo-drop" id="csvDropZone" onclick="document.getElementById('csvFileInput').click()" style="margin-bottom:14px">
+    <span class="material-symbols-outlined" style="font-size:28px;display:block;margin-bottom:4px">upload_file</span>
+    Click or drop a .csv file here
+  </div>
+  <input type="file" id="csvFileInput" accept=".csv" style="display:none" onchange="handleCsvImport(this.files[0])">
+  <div id="csvImportResult"></div></div>`;
+}
 if(settingsSub==='backlog'){
   const BACKLOG=[
-    {pri:'high',text:'Player tagging — @mention players in write-ups, photo captions; auto-backlink to their roster card'},
-    {pri:'high',text:'Headshot upload per player on roster cards'},
-    {pri:'high',text:'Player names in box scores link back to roster page'},
-    {pri:'high',text:'Post editing — edit published posts after the fact'},
-    {pri:'med',text:'About page with team history, committee info, alumni section'},
-    {pri:'med',text:'Contact / Get Involved button for new members'},
-    {pri:'med',text:'Schedule integration — GCal embed or manual game schedule'},
-    {pri:'med',text:'Positions played tracking per game in box scores'},
-    {pri:'med',text:'"Log a Game" wizard — combined box score entry + game recap in one flow'},
-    {pri:'med',text:'Rich text in posts — Markdown or simple bold/italic/links toolbar'},
-    {pri:'med',text:'Photo gallery / lightbox view for photo posts'},
-    {pri:'med',text:'Line score (innings breakdown) embedded in Game Recap posts'},
-    {pri:'low',text:'Search / filter on the feed by post type, date, or author'},
-    {pri:'low',text:'Reactions / likes on posts for friends and family'},
-    {pri:'low',text:'Dark mode toggle'},
-    {pri:'low',text:'Pin / reorder important posts'},
-    {pri:'low',text:'Mobile bottom tab bar instead of sidebar'},
-    {pri:'low',text:'Data validation on box score stat inputs (numbers only)'},
+    'Player tagging — @mention players in write-ups, photo captions; auto-backlink to their roster card',
+    'Headshot upload per player on roster cards',
+    'Player names in box scores link back to roster page',
+    'Post editing — edit published posts after the fact',
+    'About page with team history, committee info, alumni section',
+    'Contact / Get Involved button for new members',
+    'Schedule integration — GCal embed or manual game schedule',
+    'Positions played tracking per game in box scores',
+    '"Log a Game" wizard — combined box score entry + game recap in one flow',
+    'Rich text in posts — Markdown or simple bold/italic/links toolbar',
+    'Photo gallery / lightbox view for photo posts',
+    'Line score (innings breakdown) embedded in Game Recap posts',
+    'Search / filter on the feed by post type, date, or author',
+    'Reactions / likes on posts for friends and family',
+    'Dark mode toggle',
+    'Pin / reorder important posts',
+    'Mobile bottom tab bar instead of sidebar',
+    'Data validation on box score stat inputs (numbers only)',
   ];
-  html=`<div class="s-card"><h3>Feature Backlog</h3><p style="font-size:12px;color:var(--mut);margin-bottom:14px">Ideas and feature requests from the team. Priority doesn't mean order — it's a conversation starter.</p>`;
+  html=`<div class="s-card"><h3>Feature Backlog</h3>`;
   BACKLOG.forEach(b=>{
-    html+=`<div class="backlog-item"><span class="backlog-bullet"></span><span class="backlog-pri ${b.pri}">${b.pri}</span><span>${esc(b.text)}</span></div>`;
+    html+=`<div style="padding:7px 0;border-bottom:1px solid #f5f3ed;font-size:13px;color:#555">${esc(b)}</div>`;
   });
   html+=`</div>`;
 }
 area.innerHTML=html}
+
+/* ═══ CSV IMPORT ═══ */
+function parseCsvText(text){
+  // Simple CSV parser that handles quoted fields
+  const rows=[];let row=[];let cell='';let inQuote=false;
+  for(let i=0;i<text.length;i++){
+    const c=text[i];
+    if(inQuote){
+      if(c==='"'&&text[i+1]==='"'){cell+='"';i++}
+      else if(c==='"'){inQuote=false}
+      else{cell+=c}
+    }else{
+      if(c==='"'){inQuote=true}
+      else if(c===','){row.push(cell);cell=''}
+      else if(c==='\n'||c==='\r'){
+        if(c==='\r'&&text[i+1]==='\n')i++;
+        row.push(cell);rows.push(row);row=[];cell='';
+      }else{cell+=c}
+    }
+  }
+  if(cell||row.length){row.push(cell);rows.push(row)}
+  return rows;
+}
+
+function handleCsvImport(file){
+  if(!file)return;
+  const result=document.getElementById('csvImportResult');
+  result.innerHTML='<p style="color:var(--mut)">Parsing...</p>';
+  const reader=new FileReader();
+  reader.onload=function(e){
+    try{
+      const rows=parseCsvText(e.target.result);
+      const game=parseCsvToGame(rows);
+      if(!game){result.innerHTML='<p style="color:var(--loss)">Could not parse this CSV. Make sure it\'s a game box score tab from the Stat Hub sheet.</p>';return}
+      // Show preview
+      const pCount=game.players.length;
+      const resultTag=game.runsFor&&game.runsAgainst?(parseInt(game.runsFor)>parseInt(game.runsAgainst)?'W':'L'):'?';
+      let preview=`<div class="s-card" style="margin-top:12px"><h3>Preview</h3>`;
+      preview+=`<p style="font-size:13px;margin-bottom:8px"><strong>${game.date||'No date'}</strong> vs <strong>${game.opponent||'Unknown'}</strong> — ${game.runsFor||'?'}-${game.runsAgainst||'?'} (${resultTag})</p>`;
+      preview+=`<p style="font-size:12px;color:var(--mut);margin-bottom:8px">${game.location||'No location'} · ${pCount} players</p>`;
+      if(pCount){
+        preview+=`<div style="font-size:11px;color:#666;margin-bottom:10px">`;
+        game.players.forEach(p=>{preview+=`<span style="display:inline-block;padding:2px 8px;background:#f4f2ec;border-radius:4px;margin:2px">${esc(p.name||'?')}</span>`});
+        preview+=`</div>`;
+      }
+      preview+=`<div style="display:flex;gap:8px"><button class="save-btn" onclick="commitCsvImport()">Import Game</button><button class="cancel-btn" onclick="document.getElementById('csvImportResult').innerHTML=''">Cancel</button></div></div>`;
+      result.innerHTML=preview;
+      // Stash the parsed game for commit
+      window._pendingImport=game;
+    }catch(err){
+      result.innerHTML=`<p style="color:var(--loss)">Parse error: ${esc(err.message)}</p>`;
+    }
+  };
+  reader.readAsText(file);
+}
+
+function parseCsvToGame(rows){
+  if(rows.length<8)return null;
+  const months={January:'01',February:'02',March:'03',April:'04',May:'05',June:'06',July:'07',August:'08',September:'09',October:'10',November:'11',December:'12'};
+
+  // Row 2: matchup, Row 3: location+date + team1 score, Row 4: team2 score
+  const matchup=(rows[2]&&rows[2][2]||'').trim();
+  const locRaw=(rows[3]&&rows[3][2]||'').trim();
+
+  // Opponent
+  let opponent='',isAway=false;
+  if(matchup){
+    if(matchup.includes('@')){
+      const parts=matchup.split('@');
+      if(parts[0].toLowerCase().includes('groove')||parts[0].toLowerCase().includes('new york')){
+        isAway=true;opponent=parts[1].trim();
+      }else{
+        opponent=parts[0].trim();
+      }
+    }else{
+      const m=matchup.match(/vs\.?\s*(.+)/i);
+      if(m)opponent=m[1].trim();
+    }
+  }
+
+  // Date
+  let dateStr='';
+  const dm=locRaw.match(/(\w+)\s+(\d{1,2}),?\s*(\d{4})/);
+  if(dm&&months[dm[1]])dateStr=`${dm[3]}-${months[dm[1]]}-${String(dm[2]).padStart(2,'0')}`;
+
+  // Location
+  const location=locRaw.split(',')[0].trim();
+
+  // Find R column in row 2
+  let rCol=null;
+  if(rows[2])for(let i=0;i<rows[2].length;i++){if(rows[2][i].trim()==='R'){rCol=i;break}}
+
+  // Determine Groove row
+  let grooveRow=4,oppRow=3;
+  const r3=(rows[3]||[]).slice(16,22).join('').toUpperCase();
+  const r4=(rows[4]||[]).slice(16,22).join('').toUpperCase();
+  if(r3.includes('GROOVE'))      {grooveRow=3;oppRow=4}
+  else if(r4.includes('GROOVE')) {grooveRow=4;oppRow=3}
+  else if(r3.includes('AWAY')&&isAway){grooveRow=3;oppRow=4}
+  else if(r4.includes('HOME')&&!isAway){grooveRow=4;oppRow=3}
+  else if(isAway){grooveRow=3;oppRow=4}
+
+  const pn=v=>{if(!v)return '';const c=v.replace(/[^0-9.\-]/g,'');try{return String(parseInt(parseFloat(c)))}catch(e){return ''}};
+  const runsFor=rCol!==null&&rows[grooveRow]&&rCol<rows[grooveRow].length?pn(rows[grooveRow][rCol]):'';
+  const runsAgainst=rCol!==null&&rows[oppRow]&&rCol<rows[oppRow].length?pn(rows[oppRow][rCol]):'';
+
+  // Find BATTING header
+  let headerRow=null;
+  for(let ri=0;ri<Math.min(rows.length,15);ri++){
+    if(rows[ri]&&rows[ri][2]&&rows[ri][2].trim()==='Player'){headerRow=ri;break}
+  }
+  if(!headerRow)return null;
+
+  // Column map
+  const hdr=rows[headerRow];
+  const statKeys={'Player':'name','#':'number','POS':'position','PA':'pa','AB':'ab','R':'r','H':'h','1B':'singles','2B':'doubles','3B':'triples','HR':'hr','RBI':'rbi','BB':'bb','K':'so','HBP':'hbp','SF':'sf','SB':'sb','CS':'cs'};
+  const colMap={};
+  hdr.forEach((c,ci)=>{
+    const clean=c.trim().replace(/\n/g,'');
+    if(statKeys[clean])colMap[statKeys[clean]]=ci;
+    if(clean.includes('GI')&&clean.includes('DP'))colMap['gidp']=ci;
+  });
+
+  // Parse players
+  const players=[];
+  for(let ri=headerRow+1;ri<Math.min(headerRow+30,rows.length);ri++){
+    const row=rows[ri];if(!row)break;
+    const nameCi=colMap.name||2;
+    if(nameCi>=row.length)break;
+    const name=row[nameCi].trim();
+    if(!name){
+      const paCi=colMap.pa||5;
+      if(paCi<row.length&&pn(row[paCi]))break;
+      continue;
+    }
+    if(['PITCHING','BATTING','Player','Note:','Note'].includes(name.toUpperCase()))break;
+
+    const player={id:uid(),name,rosterId:''};
+    for(const[sk,ci]of Object.entries(colMap)){
+      if(['name','number','position'].includes(sk))continue;
+      if(ci<row.length){const v=pn(row[ci]);if(v)player[sk]=v}
+    }
+    players.push(player);
+  }
+
+  return{id:uid(),date:dateStr,opponent,location,runsFor,runsAgainst,weather:'',notes:'',players};
+}
+
+function commitCsvImport(){
+  const game=window._pendingImport;
+  if(!game)return;
+  D.games.push(game);
+  activeGame=game.id;
+  activeTab='boxscores';
+  saveNow();
+  window._pendingImport=null;
+  renderAll();
+}
 
 function renderAll(){renderNav();renderTabs();renderHome();renderRoster();renderBoxScores();renderPlayerStats();renderLeaderboards();renderTrendTracker();renderStatNotes();renderSettings()}
 
