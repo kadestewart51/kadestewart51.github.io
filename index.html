@@ -11,7 +11,13 @@
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
 :root{--pri:#1a2744;--sec:#3b5998;--acc:#e8a838;--bg:#f4f2ec;--card:#fff;--txt:#1a1a18;--mut:#999;--brd:#e0ddd5;--win:#2d6a2e;--loss:#b22;--tie:#a80;--radius:10px;--blue:#2563eb}
-body{font-family:'Sen',sans-serif;background:var(--bg);color:var(--txt);min-height:100vh;-webkit-font-smoothing:antialiased}
+body{font-family:'Sen',sans-serif;background:var(--bg);color:var(--txt);min-height:100vh;-webkit-font-smoothing:antialiased;transition:background-color 0.8s ease}
+/* Admin grass field */
+body.admin-mode{--bg:#e4edde;--brd:#c5d4bb}
+#grassCanvas{position:fixed;inset:0;z-index:0;pointer-events:none;opacity:0;transition:opacity 1.2s ease}
+body.admin-mode #grassCanvas{opacity:1}
+.page-wrap{position:relative;z-index:1}
+.sidebar{position:relative;z-index:201}
 h1,h2,h3{font-family:'Sen',sans-serif;color:var(--pri)}
 button{cursor:pointer;font-family:inherit}input,textarea,select{font-family:inherit}
 .material-symbols-outlined{font-variation-settings:'FILL' 0,'wght' 300,'GRAD' 0,'opsz' 24}
@@ -227,6 +233,7 @@ td:first-child{text-align:left;padding-left:12px}tr:nth-child(even){background:#
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
 </head>
 <body>
+<canvas id="grassCanvas"></canvas>
 <nav class="sidebar" id="sidebar"></nav>
 <div class="composer-overlay" id="composerOverlay"><div class="composer" id="composerInner"></div></div>
 <div class="page-wrap">
@@ -269,8 +276,7 @@ if (firebaseReady) {
 
 /* ═══ ADMIN ALLOWLIST ═══
    Only these email addresses can create/edit content.
-   Everyone else gets read-only access.
-   Add your email and Harry's email here. */
+   Everyone else gets read-only access.*/
 const ADMIN_EMAILS = [
   'kadeastewart@gmail.com',
   'harry.breault@gmail.com'
@@ -328,32 +334,68 @@ function getRecord(){
   return {w,l,t};
 }
 
-function loadData(cb){
-  if(firebaseReady&&db){
-    db.collection('stathub').doc(DOC_ID).get().then(snap=>{
-      if(snap.exists){
-        const d=snap.data();
-        D.cfg={...DEFAULT_CFG,...(d.cfg||{})};D.games=d.games||[];D.roster=d.roster||[];D.posts=d.posts||[];
-        D.posts.forEach(p=>{if(!p.comments)p.comments=[]});
-        // migrate roster fields
-        D.roster.forEach(r=>{if(!r.position)r.position='';if(!r.bio)r.bio=''});
+/* ═══ DATA PERSISTENCE ═══ */
+let firestoreUnsubscribe = null;
+let savingInProgress = false; // prevent onSnapshot feedback loop
+
+function loadData(cb) {
+  if (firebaseReady && db) {
+    db.collection('stathub').doc(DOC_ID).get().then(snap => {
+      if (snap.exists) {
+        applySnapshot(snap.data());
       } else {
         loadFromLocalStorage();
       }
-      if(cb)cb();
-    }).catch(e=>{console.error('Firestore load failed, using localStorage:',e);loadFromLocalStorage();if(cb)cb()});
+      if (cb) cb();
+    }).catch(e => {
+      console.error('Firestore load failed, using localStorage:', e);
+      loadFromLocalStorage();
+      if (cb) cb();
+    });
   } else {
     loadFromLocalStorage();
-    if(cb)cb();
+    if (cb) cb();
   }
 }
-function loadFromLocalStorage(){
-  try{const r=localStorage.getItem(STORE);if(r){const d=JSON.parse(r);D.cfg={...DEFAULT_CFG,...(d.cfg||{})};D.games=d.games||[];D.roster=d.roster||[];D.posts=d.posts||[];D.posts.forEach(p=>{if(!p.comments)p.comments=[]});D.roster.forEach(r=>{if(!r.position)r.position='';if(!r.bio)r.bio=''})}}catch(e){console.error(e)}
+
+function startRealtimeSync() {
+  if (!firebaseReady || !db || firestoreUnsubscribe) return;
+  firestoreUnsubscribe = db.collection('stathub').doc(DOC_ID).onSnapshot(snap => {
+    if (savingInProgress) return; // ignore our own writes
+    if (snap.exists) {
+      applySnapshot(snap.data());
+      renderAll();
+    }
+  }, err => console.error('Realtime sync error:', err));
 }
-function saveNow(){
-  try{localStorage.setItem(STORE,JSON.stringify(D))}catch(e){console.error(e)}
-  if(firebaseReady&&db&&currentUser){
-    db.collection('stathub').doc(DOC_ID).set(JSON.parse(JSON.stringify(D))).catch(e=>console.error('Firestore save failed:',e));
+
+function stopRealtimeSync() {
+  if (firestoreUnsubscribe) { firestoreUnsubscribe(); firestoreUnsubscribe = null; }
+}
+
+function applySnapshot(d) {
+  D.cfg = { ...DEFAULT_CFG, ...(d.cfg || {}) };
+  D.games = d.games || [];
+  D.roster = d.roster || [];
+  D.posts = d.posts || [];
+  D.posts.forEach(p => { if (!p.comments) p.comments = [] });
+  D.roster.forEach(r => { if (!r.position) r.position = ''; if (!r.bio) r.bio = '' });
+}
+
+function loadFromLocalStorage(){
+  try{const r=localStorage.getItem(STORE);if(r){applySnapshot(JSON.parse(r))}}catch(e){console.error(e)}
+}
+
+function saveNow() {
+  // Always save to localStorage as backup
+  try { localStorage.setItem(STORE, JSON.stringify(D)) } catch(e) { console.error(e) }
+  // Save to Firestore if available and user is admin
+  if (firebaseReady && db && isAdmin()) {
+    savingInProgress = true;
+    const payload = JSON.parse(JSON.stringify(D));
+    db.collection('stathub').doc(DOC_ID).set(payload)
+      .then(() => { setTimeout(() => { savingInProgress = false }, 500) })
+      .catch(e => { console.error('Firestore save failed:', e); savingInProgress = false });
   }
 }
 
@@ -364,7 +406,10 @@ function signIn(){
 }
 function signOut(){
   if(auth)auth.signOut();
-  currentUser=null;renderAuthBar();renderAll();
+  currentUser=null;
+  document.body.classList.remove('admin-mode');
+  stopRealtimeSync();
+  renderAuthBar();renderAll();
 }
 function renderAuthBar(){
   const bar=document.getElementById('authBar');
@@ -387,7 +432,14 @@ if(firebaseReady&&auth){
   auth.onAuthStateChanged(user=>{
     currentUser=user;
     renderAuthBar();
-    if(user){loadData(()=>renderAll())}
+    if(user){
+      loadData(()=>{renderAll();startRealtimeSync()});
+      if(isAdmin()) document.body.classList.add('admin-mode'); else document.body.classList.remove('admin-mode');
+      initGrass();
+    } else {
+      stopRealtimeSync();
+      document.body.classList.remove('admin-mode');
+    }
     renderAll();
   });
 }
@@ -737,7 +789,92 @@ if(settingsSub==='backlog'){
 area.innerHTML=html}
 
 function renderAll(){renderNav();renderTabs();renderHome();renderRoster();renderBoxScores();renderPlayerStats();renderLeaderboards();renderTrendTracker();renderStatNotes();renderSettings()}
-loadData(()=>{renderAll();renderAuthBar()});
+
+/* ═══ GRASS FIELD ANIMATION ═══ */
+let grassAnimId = null;
+function initGrass() {
+  if (grassAnimId) return; // already running
+  const canvas = document.getElementById('grassCanvas');
+  if (!canvas) return;
+  const ctx = canvas.getContext('2d');
+
+  // Blade pool — generated once, animated continuously
+  let blades = [];
+  const BLADE_COUNT = 220;
+  const COLORS = ['#7db36a','#6ea55c','#8dc07a','#5c9648','#9acc88','#a3d196','#78ab65'];
+
+  function resize() {
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+    generateBlades();
+  }
+
+  function generateBlades() {
+    blades = [];
+    const w = canvas.width, h = canvas.height;
+    for (let i = 0; i < BLADE_COUNT; i++) {
+      blades.push({
+        x: Math.random() * w,
+        baseY: h - Math.random() * 90,
+        height: 30 + Math.random() * 70,
+        width: 1.5 + Math.random() * 2.5,
+        color: COLORS[Math.floor(Math.random() * COLORS.length)],
+        phase: Math.random() * Math.PI * 2,
+        speed: 0.3 + Math.random() * 0.5,
+        amplitude: 3 + Math.random() * 8
+      });
+    }
+  }
+
+  let time = 0;
+  function draw() {
+    const w = canvas.width, h = canvas.height;
+    ctx.clearRect(0, 0, w, h);
+
+    // Soft gradient ground
+    const grd = ctx.createLinearGradient(0, h * 0.7, 0, h);
+    grd.addColorStop(0, 'rgba(120,170,100,0)');
+    grd.addColorStop(0.4, 'rgba(120,170,100,0.03)');
+    grd.addColorStop(1, 'rgba(100,155,80,0.08)');
+    ctx.fillStyle = grd;
+    ctx.fillRect(0, h * 0.7, w, h * 0.3);
+
+    // Draw blades
+    for (const b of blades) {
+      const sway = Math.sin(time * b.speed + b.phase) * b.amplitude;
+      ctx.save();
+      ctx.globalAlpha = 0.18;
+      ctx.strokeStyle = b.color;
+      ctx.lineWidth = b.width;
+      ctx.lineCap = 'round';
+      ctx.beginPath();
+      ctx.moveTo(b.x, b.baseY);
+      // Quadratic curve for natural bend
+      ctx.quadraticCurveTo(
+        b.x + sway * 0.6, b.baseY - b.height * 0.5,
+        b.x + sway, b.baseY - b.height
+      );
+      ctx.stroke();
+      ctx.restore();
+    }
+    time += 0.016;
+    grassAnimId = requestAnimationFrame(draw);
+  }
+
+  window.addEventListener('resize', resize);
+  resize();
+  draw();
+}
+
+// On load: handle admin mode for local (no-Firebase) mode
+loadData(()=>{
+  renderAll();
+  renderAuthBar();
+  if(!firebaseReady && isAdmin()){
+    document.body.classList.add('admin-mode');
+    initGrass();
+  }
+});
 </script>
 </body>
 </html>
