@@ -205,6 +205,12 @@ td:first-child{text-align:left;padding-left:12px}tr:nth-child(even){background:#
 .footer{text-align:center;padding:16px;font-size:11px;color:#ccc;letter-spacing:0.3px}
 /* Admin allowlist tag */
 .admin-badge{display:inline-flex;align-items:center;gap:3px;font-size:10px;font-weight:700;color:var(--acc);text-transform:uppercase;letter-spacing:0.5px;padding:2px 8px;background:rgba(232,168,56,0.1);border-radius:4px;margin-left:6px}
+/* Season toggle */
+.season-toggle{display:flex;align-items:center;gap:0;border-radius:4px;overflow:hidden;border:1px solid var(--brd)}
+.season-btn{padding:3px 10px;font-size:10px;font-weight:700;letter-spacing:2px;text-transform:uppercase;border:none;background:transparent;color:var(--mut);cursor:pointer;transition:all 0.2s;font-family:'Sen',sans-serif}
+.season-btn:hover{color:var(--pri)}
+.season-btn.active{background:var(--pri);color:#fff}
+.season-btn.active:hover{background:var(--pri)}
 /* Auth bar */
 .auth-bar{display:flex;align-items:center;justify-content:flex-end;gap:10px;padding:8px 24px;margin-left:56px;font-size:12px;color:var(--mut)}
 .auth-bar .user-info{display:flex;align-items:center;gap:8px}
@@ -238,18 +244,18 @@ td:first-child{text-align:left;padding-left:12px}tr:nth-child(even){background:#
 <div class="composer-overlay" id="composerOverlay"><div class="composer" id="composerInner"></div></div>
 <div class="page-wrap">
 <div class="auth-bar" id="authBar"></div>
-<div class="header"><div class="header-inner"><div class="header-left"><span class="header-logo">⚾</span><div><div class="header-team" id="headerTeam">NY Groove</div><div class="header-sub" id="headerSeason">2026</div></div></div><div class="header-record" id="headerRecord"></div></div></div>
+<div class="header"><div class="header-inner"><div class="header-left"><span class="header-logo">⚾</span><div><div class="header-team" id="headerTeam">NY Groove</div><div id="seasonToggle" style="display:flex;align-items:center;gap:2px;margin-top:2px"></div></div></div><div class="header-record" id="headerRecord"></div></div></div>
 <main class="main">
 <div class="tab" id="tab-home"><div class="hero-section"><button class="hero-btn" id="heroBtn" onclick="heroClick()">POST SOMETHING</button></div><div class="feed" id="feedArea"></div></div>
-<div class="tab" id="tab-roster"><div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;margin-bottom:6px"><div><h2 class="sec-title">The Roster</h2><p class="sec-hint">The 2026 New York Groove.</p></div><div id="rosterAdminBtns"></div></div><div class="roster-grid" id="rosterGrid"></div></div>
+<div class="tab" id="tab-roster"><div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;margin-bottom:6px"><div><h2 class="sec-title">The Roster</h2><p class="sec-hint" id="rosterHint">The 2026 New York Groove.</p></div><div id="rosterAdminBtns"></div></div><div class="roster-grid" id="rosterGrid"></div></div>
 <div class="tab" id="tab-boxscores"><div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;margin-bottom:6px"><h2 class="sec-title">Box Scores</h2><div id="boxAdminBtns"></div></div><div class="game-tabs" id="gameTabs"></div><div id="boxScoreArea"></div></div>
 <div class="tab" id="tab-playerstats"><h2 class="sec-title">Player Stats</h2><p class="sec-hint">The Player Tracker 5000, reborn.</p><div id="playerStatsArea"></div></div>
 <div class="tab" id="tab-leaderboards"><h2 class="sec-title">Leaderboards</h2><div class="leaders-grid" id="leadersGrid"></div></div>
 <div class="tab" id="tab-trendtracker"><h2 class="sec-title">TrendTracker 5000</h2><div class="trend-pills" id="trendPills"></div><div class="chart-wrap"><canvas id="trendChart" height="260"></canvas></div><div id="trendTable"></div></div>
-<div class="tab" id="tab-statnotes"><h2 class="sec-title">Stat Notes</h2><div class="card card-pad"><textarea class="s-textarea" id="statNotesArea" style="min-height:250px" oninput="D.cfg.statNotes=this.value"></textarea><div style="margin-top:12px"><button class="save-btn" onclick="saveNow();alert('Saved!')">Save Notes</button></div></div></div>
+<div class="tab" id="tab-statnotes"><h2 class="sec-title">Stat Notes</h2><div class="card card-pad"><textarea class="s-textarea" id="statNotesArea" style="min-height:250px" oninput="D.cfg.statNotes=this.value"></textarea><div style="margin-top:12px"><button class="save-btn" onclick="saveNow(this)">Save Notes</button></div></div></div>
 <div class="tab" id="tab-settings"><h2 class="sec-title">⚙ Settings</h2><div class="settings-nav" id="settingsNav"></div><div id="settingsArea"></div></div>
 </main>
-<footer class="footer">NY Groove · 2026</footer>
+<footer class="footer" id="siteFooter">NY Groove · 2026</footer>
 </div>
 <script>
 /* ═══════════════════════════════════════════
@@ -289,8 +295,29 @@ function isAdmin(){
   return ADMIN_EMAILS.includes(currentUser.email);
 }
 
-const STORE='groove-stathub-2026';
-const DOC_ID='main';
+/* ═══ SEASON MANAGEMENT ═══ */
+const SEASONS = ['2024','2026'];
+let activeSeason = '2026'; // default
+
+function STORE() { return 'groove-stathub-' + activeSeason }
+function DOC_ID() { return activeSeason }
+
+function switchSeason(year) {
+  if (year === activeSeason) return;
+  // Stop listening to old season
+  stopRealtimeSync();
+  activeSeason = year;
+  activeGame = null;
+  activeTab = 'home';
+  openComments = {};
+  expandedRoster = {};
+  // Load new season's data
+  loadData(() => {
+    renderAll();
+    if (firebaseReady && currentUser) startRealtimeSync();
+  });
+}
+
 const DEFAULT_STATS=[{id:'pa',label:'PA',full:'Plate Appearances',on:true},{id:'ab',label:'AB',full:'At Bats',on:true},{id:'r',label:'R',full:'Runs',on:true},{id:'h',label:'H',full:'Hits',on:true},{id:'singles',label:'1B',full:'Singles',on:true},{id:'doubles',label:'2B',full:'Doubles',on:true},{id:'triples',label:'3B',full:'Triples',on:true},{id:'hr',label:'HR',full:'Home Runs',on:true},{id:'rbi',label:'RBI',full:'RBI',on:true},{id:'bb',label:'BB',full:'Walks',on:true},{id:'so',label:'K',full:'Strikeouts',on:true},{id:'hbp',label:'HBP',full:'Hit-by-Pitch',on:true},{id:'sf',label:'SF',full:'Sac Flies',on:true},{id:'sb',label:'SB',full:'Stolen Bases',on:true},{id:'cs',label:'CS',full:'Caught Stealing',on:true},{id:'gidp',label:'GIDP',full:'Grounded Into DP',on:true}];
 const DEFAULT_CFG={teamName:'NY Groove',seasonLabel:'2026',stats:DEFAULT_STATS,journalSections:[],statNotes:"Note: Does not count rainouts.\n\nRBIs may be incomplete for early-season games.",showHome:true,showRoster:true,showBoxScores:true,showPlayerStats:true,showLeaderboards:true,showTrendTracker:true,showStatNotes:true,messageToClaude:'',messageToHarry:'',customNotes:''};
 let D={cfg:{...DEFAULT_CFG},games:[],roster:[],posts:[]};
@@ -340,7 +367,7 @@ let savingInProgress = false; // prevent onSnapshot feedback loop
 
 function loadData(cb) {
   if (firebaseReady && db) {
-    db.collection('stathub').doc(DOC_ID).get().then(snap => {
+    db.collection('stathub').doc(DOC_ID()).get().then(snap => {
       if (snap.exists) {
         applySnapshot(snap.data());
       } else {
@@ -360,7 +387,7 @@ function loadData(cb) {
 
 function startRealtimeSync() {
   if (!firebaseReady || !db || firestoreUnsubscribe) return;
-  firestoreUnsubscribe = db.collection('stathub').doc(DOC_ID).onSnapshot(snap => {
+  firestoreUnsubscribe = db.collection('stathub').doc(DOC_ID()).onSnapshot(snap => {
     if (savingInProgress) return; // ignore our own writes
     if (snap.exists) {
       applySnapshot(snap.data());
@@ -383,19 +410,34 @@ function applySnapshot(d) {
 }
 
 function loadFromLocalStorage(){
-  try{const r=localStorage.getItem(STORE);if(r){applySnapshot(JSON.parse(r))}}catch(e){console.error(e)}
+  try{const r=localStorage.getItem(STORE());if(r){applySnapshot(JSON.parse(r))}}catch(e){console.error(e)}
 }
 
-function saveNow() {
+function saveNow(btn) {
+  // Show saving state on the triggering button if provided
+  const origText = btn ? btn.textContent : null;
+  if (btn) { btn.textContent = 'Saving...'; btn.disabled = true; btn.style.opacity = '0.7' }
+
   // Always save to localStorage as backup
-  try { localStorage.setItem(STORE, JSON.stringify(D)) } catch(e) { console.error(e) }
+  try { localStorage.setItem(STORE(), JSON.stringify(D)) } catch(e) { console.error(e) }
+
   // Save to Firestore if available and user is admin
   if (firebaseReady && db && isAdmin()) {
     savingInProgress = true;
     const payload = JSON.parse(JSON.stringify(D));
-    db.collection('stathub').doc(DOC_ID).set(payload)
-      .then(() => { setTimeout(() => { savingInProgress = false }, 500) })
-      .catch(e => { console.error('Firestore save failed:', e); savingInProgress = false });
+    db.collection('stathub').doc(DOC_ID()).set(payload)
+      .then(() => {
+        setTimeout(() => { savingInProgress = false }, 500);
+        if (btn) { btn.textContent = '✓ Saved'; btn.disabled = false; btn.style.opacity = '1'; setTimeout(() => { if(btn.isConnected) btn.textContent = origText }, 2000) }
+      })
+      .catch(e => {
+        console.error('Firestore save failed:', e);
+        savingInProgress = false;
+        if (btn) { btn.textContent = '✗ Save failed'; btn.disabled = false; btn.style.opacity = '1'; btn.style.color = 'var(--loss)'; setTimeout(() => { if(btn.isConnected){ btn.textContent = origText; btn.style.color = '' }}, 3000) }
+      });
+  } else {
+    // Local-only: just confirm
+    if (btn) { btn.textContent = '✓ Saved locally'; btn.disabled = false; btn.style.opacity = '1'; setTimeout(() => { if(btn.isConnected) btn.textContent = origText }, 2000) }
   }
 }
 
@@ -480,6 +522,8 @@ function renderRecord(){
 function renderRoster(){
   const grid=document.getElementById('rosterGrid');
   const admin=isAdmin();
+  const hint=document.getElementById('rosterHint');
+  if(hint) hint.textContent='The '+activeSeason+' New York Groove.';
   let html='';
 
   D.roster.forEach((r,i)=>{
@@ -525,7 +569,7 @@ function renderRoster(){
   // Admin buttons area
   const adminBtns=document.getElementById('rosterAdminBtns');
   if(admin){
-    adminBtns.innerHTML=`<button class="save-btn" onclick="saveNow();alert('Roster saved!')">Save Roster</button>`;
+    adminBtns.innerHTML=`<button class="save-btn" onclick="saveNow(this)">Save Roster</button>`;
   }else{
     adminBtns.innerHTML='';
   }
@@ -671,7 +715,9 @@ function heroClick(){
 
 function renderHome(){
   document.getElementById('headerTeam').textContent=D.cfg.teamName;
-  document.getElementById('headerSeason').textContent=D.cfg.seasonLabel;
+  // Season toggle
+  const st=document.getElementById('seasonToggle');
+  st.innerHTML=SEASONS.map(y=>`<div class="season-toggle"><button class="season-btn${activeSeason===y?' active':''}" onclick="switchSeason('${y}')">${y}</button></div>`).join('');
   renderRecord();
   const btn=document.getElementById('heroBtn');
   if(btn){
@@ -680,12 +726,12 @@ function renderHome(){
       btn.textContent='POST SOMETHING';
       btn.style.display='';
     }else{
-      // Hide the post button for non-admins
       btn.style.display='none';
     }
   }
   renderFeed();
   renderAuthBar();
+  const ft=document.getElementById('siteFooter');if(ft)ft.textContent='NY Groove · '+activeSeason;
 }
 
 /* ═══ BOX SCORES ═══ */
@@ -701,7 +747,7 @@ function renderBoxScores(){
 
   if(admin){
     // Editable box score
-    let html=`<div class="card card-pad"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;flex-wrap:wrap;gap:8px"><h3 style="font-size:18px;font-weight:900">Game ${gi+1}${g.date?' — '+esc(g.date):''}</h3><div style="display:flex;gap:6px"><button class="save-btn" onclick="saveNow();alert('Saved!')">Save</button><button class="btn btn-sm btn-danger" id="delgame-${gi}" onclick="delGame(${gi},this)">Delete</button></div></div><div class="game-form">`;
+    let html=`<div class="card card-pad"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;flex-wrap:wrap;gap:8px"><h3 style="font-size:18px;font-weight:900">Game ${gi+1}${g.date?' — '+esc(g.date):''}</h3><div style="display:flex;gap:6px"><button class="save-btn" onclick="saveNow(this)">Save</button><button class="btn btn-sm btn-danger" id="delgame-${gi}" onclick="delGame(${gi},this)">Delete</button></div></div><div class="game-form">`;
     [['date','Date','YYYY-MM-DD'],['opponent','Opponent','Team'],['location','Location','Field'],['runsFor','Runs For','0'],['runsAgainst','Runs Against','0'],['weather','Weather','Conditions']].forEach(([k,l,ph])=>{html+=`<div><label>${l}</label><input value="${esc(g[k]||'')}" placeholder="${ph}" oninput="updGame('${g.id}','${k}',this.value)"></div>`});
     html+=`</div><div class="table-wrap"><table><thead><tr><th>Player</th>`;es.forEach(s=>{html+=`<th title="${esc(s.full)}">${esc(s.label)}</th>`});html+=`<th></th></tr></thead><tbody>`;
     (g.players||[]).forEach(p=>{html+=`<tr><td><input class="cell-input wide" value="${esc(p.name||'')}" placeholder="Name" oninput="updPlayer('${g.id}','${p.id}','name',this.value)"></td>`;es.forEach(s=>{html+=`<td><input class="cell-input" value="${esc(p[s.id]||'')}" oninput="updPlayer('${g.id}','${p.id}','${s.id}',this.value)"></td>`});html+=`<td><button class="rm-btn" onclick="rmPlayer('${g.id}','${p.id}')">✕</button></td></tr>`});
@@ -754,11 +800,11 @@ function renderSettings(){
     return;
   }
   const sn=document.getElementById('settingsNav');sn.innerHTML='';STABS.forEach(t=>{const b=document.createElement('button');b.className='settings-pill'+(settingsSub===t.id?' active':'');b.textContent=t.label;b.onclick=()=>{settingsSub=t.id;renderSettings()};sn.appendChild(b)});const area=document.getElementById('settingsArea');let html='';
-if(settingsSub==='general'){html=`<div class="s-card"><h3>General</h3>`;[['teamName','Team Name'],['seasonLabel','Season Label']].forEach(([k,l])=>{html+=`<div class="s-field"><label class="s-label">${l}</label><input class="s-input" value="${esc(D.cfg[k]||'')}" oninput="D.cfg['${k}']=this.value;renderHome()"></div>`});html+=`<div style="margin-top:16px"><button class="save-btn" onclick="saveNow();alert('Saved!')">Save Changes</button></div></div>`;
+if(settingsSub==='general'){html=`<div class="s-card"><h3>General</h3>`;[['teamName','Team Name'],['seasonLabel','Season Label']].forEach(([k,l])=>{html+=`<div class="s-field"><label class="s-label">${l}</label><input class="s-input" value="${esc(D.cfg[k]||'')}" oninput="D.cfg['${k}']=this.value;renderHome()"></div>`});html+=`<div style="margin-top:16px"><button class="save-btn" onclick="saveNow(this)">Save Changes</button></div></div>`;
 html+=`<div class="s-card"><h3>Admin Allowlist</h3><p style="font-size:12px;color:var(--mut);margin-bottom:8px">Only these Google email addresses can create/edit content. Everyone else gets read-only access. Edit the ADMIN_EMAILS array in the HTML source.</p><div style="font-family:monospace;font-size:12px;background:#f8f7f3;padding:10px;border-radius:6px;color:#666">${ADMIN_EMAILS.length?ADMIN_EMAILS.map(e=>esc(e)).join('<br>'):'<em>No emails configured — edit ADMIN_EMAILS in HTML</em>'}</div></div>`}
-if(settingsSub==='tabs'){html=`<div class="s-card"><h3>Tab Visibility</h3>`;[['showHome','Feed'],['showRoster','Roster'],['showBoxScores','Box Scores'],['showPlayerStats','Player Stats'],['showLeaderboards','Leaderboards'],['showTrendTracker','TrendTracker'],['showStatNotes','Stat Notes']].forEach(([k,l])=>{html+=`<div class="toggle-row"><span>${l}</span><div class="toggle${D.cfg[k]?' on':''}" onclick="D.cfg['${k}']=!D.cfg['${k}'];renderAll()"><div class="knob"></div></div></div>`});html+=`<div style="margin-top:16px"><button class="save-btn" onclick="saveNow();alert('Saved!')">Save</button></div></div>`}
-if(settingsSub==='stats'){html=`<div class="s-card"><h3>Stat Categories</h3>`;(D.cfg.stats||[]).forEach((s,i)=>{html+=`<div class="stat-config-row"><div class="toggle${s.on?' on':''}" onclick="D.cfg.stats[${i}].on=!D.cfg.stats[${i}].on;renderSettings()"><div class="knob"></div></div><input style="width:50px;font-weight:700" value="${esc(s.label)}" oninput="D.cfg.stats[${i}].label=this.value"><input style="flex:1" value="${esc(s.full)}" oninput="D.cfg.stats[${i}].full=this.value"><span class="sid">${esc(s.id)}</span></div>`});html+=`<div style="display:flex;gap:8px;margin-top:12px"><button class="btn btn-sm" onclick="D.cfg.stats.push({id:'c_'+uid(),label:'NEW',full:'New Stat',on:true});renderSettings()">+ Add Stat</button><button class="save-btn" onclick="saveNow();alert('Saved!')">Save</button></div></div>`}
-if(settingsSub==='messages'){html=`<div class="s-card"><h3>Message Board</h3><div class="s-field"><label class="s-label">Message to Claude</label><textarea class="s-textarea" placeholder="Instructions for Claude" oninput="D.cfg.messageToClaude=this.value">${esc(D.cfg.messageToClaude||'')}</textarea></div><div class="s-field"><label class="s-label">Message to Harry</label><textarea class="s-textarea" placeholder="Notes for Harry" oninput="D.cfg.messageToHarry=this.value">${esc(D.cfg.messageToHarry||'')}</textarea></div><div class="s-field"><label class="s-label">Scratchpad</label><textarea class="s-textarea" placeholder="General notes" oninput="D.cfg.customNotes=this.value">${esc(D.cfg.customNotes||'')}</textarea></div><button class="save-btn" onclick="saveNow();alert('Saved!')">Save</button></div>`}
+if(settingsSub==='tabs'){html=`<div class="s-card"><h3>Tab Visibility</h3>`;[['showHome','Feed'],['showRoster','Roster'],['showBoxScores','Box Scores'],['showPlayerStats','Player Stats'],['showLeaderboards','Leaderboards'],['showTrendTracker','TrendTracker'],['showStatNotes','Stat Notes']].forEach(([k,l])=>{html+=`<div class="toggle-row"><span>${l}</span><div class="toggle${D.cfg[k]?' on':''}" onclick="D.cfg['${k}']=!D.cfg['${k}'];renderAll()"><div class="knob"></div></div></div>`});html+=`<div style="margin-top:16px"><button class="save-btn" onclick="saveNow(this)">Save</button></div></div>`}
+if(settingsSub==='stats'){html=`<div class="s-card"><h3>Stat Categories</h3>`;(D.cfg.stats||[]).forEach((s,i)=>{html+=`<div class="stat-config-row"><div class="toggle${s.on?' on':''}" onclick="D.cfg.stats[${i}].on=!D.cfg.stats[${i}].on;renderSettings()"><div class="knob"></div></div><input style="width:50px;font-weight:700" value="${esc(s.label)}" oninput="D.cfg.stats[${i}].label=this.value"><input style="flex:1" value="${esc(s.full)}" oninput="D.cfg.stats[${i}].full=this.value"><span class="sid">${esc(s.id)}</span></div>`});html+=`<div style="display:flex;gap:8px;margin-top:12px"><button class="btn btn-sm" onclick="D.cfg.stats.push({id:'c_'+uid(),label:'NEW',full:'New Stat',on:true});renderSettings()">+ Add Stat</button><button class="save-btn" onclick="saveNow(this)">Save</button></div></div>`}
+if(settingsSub==='messages'){html=`<div class="s-card"><h3>Message Board</h3><div class="s-field"><label class="s-label">Message to Claude</label><textarea class="s-textarea" placeholder="Instructions for Claude" oninput="D.cfg.messageToClaude=this.value">${esc(D.cfg.messageToClaude||'')}</textarea></div><div class="s-field"><label class="s-label">Message to Harry</label><textarea class="s-textarea" placeholder="Notes for Harry" oninput="D.cfg.messageToHarry=this.value">${esc(D.cfg.messageToHarry||'')}</textarea></div><div class="s-field"><label class="s-label">Scratchpad</label><textarea class="s-textarea" placeholder="General notes" oninput="D.cfg.customNotes=this.value">${esc(D.cfg.customNotes||'')}</textarea></div><button class="save-btn" onclick="saveNow(this)">Save</button></div>`}
 if(settingsSub==='backlog'){
   const BACKLOG=[
     {pri:'high',text:'Player tagging — @mention players in write-ups, photo captions; auto-backlink to their roster card'},
