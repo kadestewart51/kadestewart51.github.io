@@ -37,9 +37,11 @@ button{cursor:pointer;font-family:inherit}input,textarea,select{font-family:inhe
 .tab{display:none}.tab.active{display:block}
 /* Hero */
 .hero-section{text-align:center;padding:20px 0 28px}
-.hero-btn{position:relative;padding:18px 56px;font-size:15px;font-weight:800;letter-spacing:1.5px;text-transform:uppercase;color:#fff;background:linear-gradient(135deg,var(--acc) 0%,#d4912a 100%);border:none;border-radius:14px;cursor:pointer;box-shadow:0 6px 28px rgba(232,168,56,0.35);transition:all 0.25s;overflow:hidden;width:100%;max-width:420px}
+.hero-btn{position:relative;padding:18px 56px;font-size:15px;font-weight:800;letter-spacing:1.5px;text-transform:uppercase;color:#fff;background:linear-gradient(135deg,var(--acc) 0%,#d4912a 100%);border:none;border-radius:14px;cursor:pointer;box-shadow:0 6px 28px rgba(232,168,56,0.35);transition:all 0.4s;overflow:hidden;width:100%;max-width:420px}
 .hero-btn:hover{box-shadow:0 8px 36px rgba(232,168,56,0.5);transform:translateY(-2px)}
 .hero-btn:active{transform:translateY(0);box-shadow:0 3px 16px rgba(232,168,56,0.3)}
+.hero-btn.signin{background:linear-gradient(135deg,#e07830 0%,#c4602a 100%);box-shadow:0 6px 28px rgba(224,120,48,0.35);letter-spacing:1px}
+.hero-btn.signin:hover{box-shadow:0 8px 36px rgba(224,120,48,0.5)}
 .hero-btn::before{content:'';position:absolute;top:-50%;left:-50%;width:200%;height:200%;background:linear-gradient(45deg,transparent 30%,rgba(255,255,255,0.12) 50%,transparent 70%);animation:shimmer 3s ease-in-out infinite}
 @keyframes shimmer{0%{transform:translateX(-100%)}100%{transform:translateX(100%)}}
 /* Composer */
@@ -188,7 +190,7 @@ td:first-child{text-align:left;padding-left:12px}tr:nth-child(even){background:#
 <div class="auth-bar" id="authBar"></div>
 <div class="header"><div class="header-inner"><div class="header-left"><span class="header-logo">⚾</span><div><div class="header-team" id="headerTeam">NY Groove</div><div class="header-sub" id="headerSeason">2026</div></div></div></div></div>
 <main class="main">
-<div class="tab" id="tab-home"><div class="hero-section"><button class="hero-btn" onclick="openComposer()">POST SOMETHING</button><div id="authGate"></div></div><div class="feed" id="feedArea"></div></div>
+<div class="tab" id="tab-home"><div class="hero-section"><button class="hero-btn" id="heroBtn" onclick="heroClick()">POST SOMETHING</button></div><div class="feed" id="feedArea"></div></div>
 <div class="tab" id="tab-roster"><h2 class="sec-title">The Roster</h2><p class="sec-hint">The 2026 New York Groove. Headshots coming soon.</p><div style="margin-bottom:12px"><button class="btn" onclick="D.roster.push({id:uid(),name:'',number:''});renderRoster()">+ Add Player</button> <button class="save-btn" style="margin-left:6px" onclick="saveNow();alert('Roster saved!')">Save Roster</button></div><div class="roster-grid" id="rosterGrid"></div></div>
 <div class="tab" id="tab-boxscores"><div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;margin-bottom:6px"><h2 class="sec-title">Box Scores</h2><button class="btn" onclick="addGame()">+ New Game</button></div><div class="game-tabs" id="gameTabs"></div><div id="boxScoreArea"></div></div>
 <div class="tab" id="tab-playerstats"><h2 class="sec-title">Player Stats</h2><p class="sec-hint">The Player Tracker 5000, reborn.</p><div id="playerStatsArea"></div></div>
@@ -224,13 +226,13 @@ td:first-child{text-align:left;padding-left:12px}tr:nth-child(even){background:#
    7. Authentication → Settings → Authorized domains → add your GitHub Pages domain
 */
 const firebaseConfig = {
-  apiKey: "AIzaSyDUXdB_-yK5QwAoheH5lhbJnyQJmP12uwM",
-  authDomain: "groove-stathub.firebaseapp.com",
-  projectId: "groove-stathub",
-  storageBucket: "groove-stathub.firebasestorage.app",
-  messagingSenderId: "611877026399",
-  appId: "1:611877026399:web:233a976cceba5fe35a39ea",
-  measurementId: "G-DGRN12PHP1"
+  // ⬇️ PASTE YOUR FIREBASE CONFIG HERE ⬇️
+  apiKey: "YOUR_API_KEY",
+  authDomain: "YOUR_PROJECT.firebaseapp.com",
+  projectId: "YOUR_PROJECT_ID",
+  storageBucket: "YOUR_PROJECT.appspot.com",
+  messagingSenderId: "000000000000",
+  appId: "YOUR_APP_ID"
 };
 
 const firebaseReady = firebaseConfig.apiKey !== "YOUR_API_KEY";
@@ -502,14 +504,23 @@ function delPost(i,btn){
   setTimeout(()=>{if(btn.isConnected){btn.classList.remove('confirm');btn.innerHTML='<span class="material-symbols-outlined" style="font-size:16px">delete</span>Delete'}},3000);
 }
 
+function heroClick(){
+  if(firebaseReady&&!currentUser){signIn();return}
+  openComposer();
+}
 function renderHome(){
   document.getElementById('headerTeam').textContent=D.cfg.teamName;
   document.getElementById('headerSeason').textContent=D.cfg.seasonLabel;
-  // Auth gate hint
-  const gate=document.getElementById('authGate');
-  if(gate){
-    if(firebaseReady&&!currentUser){gate.innerHTML='<div class="auth-gate"><span class="material-symbols-outlined" style="font-size:16px;vertical-align:-3px;margin-right:4px">lock</span>Sign in with Google to post — or browse the feed below</div>'}
-    else{gate.innerHTML=''}
+  // Hero button state
+  const btn=document.getElementById('heroBtn');
+  if(btn){
+    if(firebaseReady&&!currentUser){
+      btn.className='hero-btn signin';
+      btn.textContent='SIGN IN HERE';
+    }else{
+      btn.className='hero-btn';
+      btn.textContent='POST SOMETHING';
+    }
   }
   renderFeed();
   renderAuthBar();
