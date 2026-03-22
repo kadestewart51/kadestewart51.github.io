@@ -274,6 +274,23 @@ body.season-2024 .admin-signin:hover{color:var(--pri);border-color:var(--pri)}
 @media(max-width:640px){.sidebar{width:44px}.nav-icon{width:34px;height:34px;font-size:20px}.page-wrap,.header{margin-left:44px}.season-bar{margin-left:44px}.main{padding:0 12px 40px}.hero-btn{padding:14px 24px;font-size:13px}.composer{margin:12px;padding:20px}.leaders-grid{grid-template-columns:1fr 1fr}.game-form{grid-template-columns:1fr 1fr}.game-picker{grid-template-columns:repeat(4,1fr)}.roster-grid{grid-template-columns:repeat(auto-fill,minmax(160px,1fr))}.season-tab{font-size:13px;padding:12px 0}}
 @keyframes fadeIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
 .tab.active{animation:fadeIn 0.25s ease}
+/* ═══ UNIFIED SAVE BAR ═══ */
+.save-bar{position:fixed;bottom:0;left:56px;right:0;z-index:250;background:var(--card);border-top:1px solid var(--brd);padding:10px 24px;display:flex;align-items:center;justify-content:space-between;gap:12px;box-shadow:0 -4px 24px rgba(0,0,0,0.08);transform:translateY(100%);opacity:0;transition:transform 0.3s cubic-bezier(0.4,0,0.2,1),opacity 0.25s ease;pointer-events:none}
+.save-bar.visible{transform:translateY(0);opacity:1;pointer-events:auto}
+body.has-save-bar .main{padding-bottom:80px !important}
+.save-bar .sb-left{display:flex;align-items:center;gap:8px;font-size:12px;color:var(--mut);font-weight:600}
+.save-bar .sb-left .material-symbols-outlined{font-size:16px}
+.save-bar .sb-dirty-dot{width:7px;height:7px;border-radius:50%;background:var(--acc);display:none;flex-shrink:0}
+.save-bar.dirty .sb-dirty-dot{display:block;animation:pulse-dot 1.5s ease-in-out infinite}
+.save-bar .sb-label{white-space:nowrap}
+.save-bar .sb-right{display:flex;gap:8px;align-items:center}
+.save-bar .sb-discard{padding:7px 16px;background:transparent;color:var(--mut);border:1px solid var(--brd);border-radius:var(--radius);font-size:12px;font-weight:600;transition:0.15s;font-family:'Sen',sans-serif;cursor:pointer}
+.save-bar .sb-discard:hover{border-color:var(--loss);color:var(--loss)}
+.save-bar .sb-save{padding:7px 20px;background:var(--blue);color:#fff;border:none;border-radius:var(--radius);font-size:12px;font-weight:700;box-shadow:0 2px 10px rgba(37,99,235,0.25);transition:all 0.2s;letter-spacing:0.3px;font-family:'Sen',sans-serif;cursor:pointer}
+.save-bar .sb-save:hover{box-shadow:0 4px 16px rgba(37,99,235,0.35);transform:translateY(-1px)}
+.save-bar .sb-save:disabled{opacity:0.5;cursor:default;transform:none}
+@keyframes pulse-dot{0%,100%{opacity:1}50%{opacity:0.4}}
+@media(max-width:640px){.save-bar{left:44px;padding:8px 12px}}
 </style>
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
@@ -294,10 +311,14 @@ body.season-2024 .admin-signin:hover{color:var(--pri);border-color:var(--pri)}
 <div class="tab" id="tab-playerstats"><h2 class="sec-title">Player Stats</h2><p class="sec-hint">The Player Tracker 5000, reborn.</p><div id="playerStatsArea"></div></div>
 <div class="tab" id="tab-leaderboards"><h2 class="sec-title">Leaderboards</h2><div class="leaders-grid" id="leadersGrid"></div></div>
 <div class="tab" id="tab-trendtracker"><h2 class="sec-title">TrendTracker 5000</h2><div class="trend-pills" id="trendPills"></div><div class="chart-wrap"><canvas id="trendChart" height="260"></canvas></div><div id="trendTable"></div></div>
-<div class="tab" id="tab-statnotes"><h2 class="sec-title">Stat Notes</h2><div class="card card-pad"><textarea class="s-textarea" id="statNotesArea" style="min-height:250px" oninput="D.cfg.statNotes=this.value"></textarea><div style="margin-top:12px"><button class="save-btn" onclick="saveNow(this)">Save Notes</button></div></div></div>
+<div class="tab" id="tab-statnotes"><h2 class="sec-title">Stat Notes</h2><div class="card card-pad"><textarea class="s-textarea" id="statNotesArea" style="min-height:250px" oninput="D.cfg.statNotes=this.value"></textarea></div></div>
 <div class="tab" id="tab-settings"><h2 class="sec-title">⚙ Settings</h2><div class="settings-nav" id="settingsNav"></div><div id="settingsArea"></div></div>
 </main>
 <footer class="footer" id="siteFooter">NY Groove · 2026</footer>
+</div>
+<div class="save-bar" id="saveBar">
+  <div class="sb-left"><span class="sb-dirty-dot"></span><span class="material-symbols-outlined">edit</span><span class="sb-label" id="saveBarLabel">Editing</span></div>
+  <div class="sb-right"><button class="sb-discard" id="saveBarDiscard" onclick="discardEdits()">Discard</button><button class="sb-save" id="saveBarSave" onclick="saveBarSave()">Save</button></div>
 </div>
 <script>
 /* ═══════════════════════════════════════════
@@ -346,6 +367,11 @@ function DOC_ID() { return activeSeason }
 
 function switchSeason(year) {
   if (year === activeSeason) return;
+  if(_editContext && isDirty()){
+    if(!confirm('You have unsaved changes. Discard them?')) return;
+    applySnapshot(JSON.parse(_snapshot));
+  }
+  exitEditContext();
   // Stop listening to old season
   stopRealtimeSync();
   activeSeason = year;
@@ -504,6 +530,7 @@ function saveNow(btn) {
     db.collection('stathub').doc(DOC_ID()).set(payload)
       .then(() => {
         setTimeout(() => { savingInProgress = false }, 500);
+        if(_editContext) takeSnapshot(); // keep save bar in sync
         if (btn) { btn.textContent = '✓ Saved'; btn.disabled = false; btn.style.opacity = '1'; setTimeout(() => { if(btn.isConnected) btn.textContent = origText }, 2000) }
       })
       .catch(e => {
@@ -513,9 +540,115 @@ function saveNow(btn) {
       });
   } else {
     // Local-only: just confirm
+    if(_editContext) takeSnapshot();
     if (btn) { btn.textContent = '✓ Saved locally'; btn.disabled = false; btn.style.opacity = '1'; setTimeout(() => { if(btn.isConnected) btn.textContent = origText }, 2000) }
   }
 }
+
+/* ═══ DIRTY STATE + SAVE BAR ═══ */
+let _snapshot = null; // JSON snapshot taken when entering an edit context
+let _editContext = null; // 'roster' | 'boxscore' | 'statnotes' | 'settings' | null
+
+function takeSnapshot() {
+  _snapshot = JSON.stringify(D);
+}
+function isDirty() {
+  if (!_snapshot) return false;
+  return JSON.stringify(D) !== _snapshot;
+}
+function enterEditContext(ctx) {
+  if (_editContext === ctx) return; // already in this context
+  _editContext = ctx;
+  takeSnapshot();
+  updateSaveBar();
+}
+function exitEditContext() {
+  _editContext = null;
+  _snapshot = null;
+  updateSaveBar();
+}
+function updateSaveBar() {
+  const bar = document.getElementById('saveBar');
+  if (!bar) return;
+  if (!_editContext || !isAdmin()) {
+    bar.classList.remove('visible', 'dirty');
+    document.body.classList.remove('has-save-bar');
+    return;
+  }
+  bar.classList.add('visible');
+  document.body.classList.add('has-save-bar');
+  const dirty = isDirty();
+  bar.classList.toggle('dirty', dirty);
+  const labels = { roster: 'Editing Roster', boxscore: 'Editing Box Score', statnotes: 'Editing Stat Notes', settings: 'Editing Settings' };
+  document.getElementById('saveBarLabel').textContent = labels[_editContext] || 'Editing';
+  const saveBtn = document.getElementById('saveBarSave');
+  saveBtn.textContent = 'Save';
+  saveBtn.disabled = false;
+  saveBtn.style.color = '';
+}
+// Periodic dirty check while editing (for oninput mutations)
+let _dirtyInterval = null;
+function startDirtyWatch() {
+  if (_dirtyInterval) return;
+  _dirtyInterval = setInterval(() => {
+    if (_editContext) updateSaveBar();
+  }, 600);
+}
+function stopDirtyWatch() {
+  if (_dirtyInterval) { clearInterval(_dirtyInterval); _dirtyInterval = null; }
+}
+
+function saveBarSave() {
+  const btn = document.getElementById('saveBarSave');
+  const origText = btn.textContent;
+  btn.textContent = 'Saving...'; btn.disabled = true;
+
+  // Always save to localStorage as backup
+  try { localStorage.setItem(STORE(), JSON.stringify(D)) } catch(e) { console.error(e) }
+
+  if (firebaseReady && db && isAdmin()) {
+    savingInProgress = true;
+    const payload = JSON.parse(JSON.stringify(D));
+    db.collection('stathub').doc(DOC_ID()).set(payload)
+      .then(() => {
+        setTimeout(() => { savingInProgress = false }, 500);
+        takeSnapshot(); // reset snapshot so dirty=false
+        btn.textContent = '✓ Saved'; btn.disabled = false;
+        updateSaveBar();
+        setTimeout(() => { if(btn.isConnected) { btn.textContent = 'Save'; } }, 2000);
+      })
+      .catch(e => {
+        console.error('Firestore save failed:', e);
+        savingInProgress = false;
+        btn.textContent = '✗ Failed'; btn.disabled = false; btn.style.color = 'var(--loss)';
+        setTimeout(() => { if(btn.isConnected) { btn.textContent = 'Save'; btn.style.color = ''; } }, 3000);
+      });
+  } else {
+    takeSnapshot();
+    btn.textContent = '✓ Saved locally'; btn.disabled = false;
+    updateSaveBar();
+    setTimeout(() => { if(btn.isConnected) btn.textContent = 'Save' }, 2000);
+  }
+}
+
+function discardEdits() {
+  if (!_snapshot) { exitEditContext(); return; }
+  if (isDirty()) {
+    applySnapshot(JSON.parse(_snapshot));
+    renderAll();
+  }
+  exitEditContext();
+}
+
+// Guard against accidental navigation
+window.addEventListener('beforeunload', function(e) {
+  if (_editContext && isDirty()) {
+    e.preventDefault();
+    e.returnValue = '';
+  }
+});
+
+startDirtyWatch();
 
 /* ═══ AUTH ═══ */
 function signIn(){
@@ -576,9 +709,19 @@ const TABS=[
 ];
 function renderNav(){
   let html='<div class="sidebar-top">';
-  TABS.forEach(t=>{if(t.cfg&&!D.cfg[t.cfg])return;html+=`<button class="nav-icon${activeTab===t.id?' active':''}" onclick="activeTab='${t.id}';renderAll()"><span class="material-symbols-outlined">${t.icon}</span><span class="tip">${t.label}</span></button>`});
-  html+=`</div><div class="sidebar-bottom"><button class="nav-icon${activeTab==='settings'?' active':''}" onclick="activeTab='settings';renderAll()"><span class="material-symbols-outlined">settings</span><span class="tip">Settings</span></button></div>`;
+  TABS.forEach(t=>{if(t.cfg&&!D.cfg[t.cfg])return;html+=`<button class="nav-icon${activeTab===t.id?' active':''}" onclick="navTo('${t.id}')"><span class="material-symbols-outlined">${t.icon}</span><span class="tip">${t.label}</span></button>`});
+  html+=`</div><div class="sidebar-bottom"><button class="nav-icon${activeTab==='settings'?' active':''}" onclick="navTo('settings')"><span class="material-symbols-outlined">settings</span><span class="tip">Settings</span></button></div>`;
   document.getElementById('sidebar').innerHTML=html;
+}
+function navTo(tab){
+  if(tab===activeTab) return;
+  if(_editContext && isDirty()){
+    if(!confirm('You have unsaved changes. Discard them?')) return;
+    applySnapshot(JSON.parse(_snapshot));
+  }
+  exitEditContext();
+  activeTab=tab;
+  renderAll();
 }
 function renderTabs(){document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));const el=document.getElementById('tab-'+activeTab);if(el)el.classList.add('active')}
 
@@ -601,6 +744,9 @@ function renderRoster(){
   const hint=document.getElementById('rosterHint');
   if(hint) hint.textContent='The '+activeSeason+' New York Groove.';
   let html='';
+
+  // If admin is viewing roster, enter edit context
+  if(admin && activeTab==='roster') enterEditContext('roster');
 
   D.roster.forEach((r,i)=>{
     const expanded=expandedRoster[r.id];
@@ -642,13 +788,9 @@ function renderRoster(){
 
   grid.innerHTML=html;
 
-  // Admin buttons area
+  // Admin buttons area — save is now in the unified save bar
   const adminBtns=document.getElementById('rosterAdminBtns');
-  if(admin){
-    adminBtns.innerHTML=`<button class="save-btn" onclick="saveNow(this)">Save Roster</button>`;
-  }else{
-    adminBtns.innerHTML='';
-  }
+  adminBtns.innerHTML='';
 }
 
 function getPlayerStatsByName(name){
@@ -829,7 +971,9 @@ function renderBoxScores(){
   const g=D.games.find(x=>x.id===activeGame);const gi=D.games.indexOf(g);const es=enabledStats();
 
   if(admin){
-    let html=`<div class="card card-pad"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;flex-wrap:wrap;gap:8px"><h3 style="font-size:18px;font-weight:900">Game ${gi+1}${g.date?' — '+fmtDateShort(g.date):''}</h3><div style="display:flex;gap:6px"><button class="save-btn" onclick="saveNow(this)">Save</button><button class="btn btn-sm btn-danger" id="delgame-${gi}" onclick="delGame(${gi},this)">Delete</button></div></div>`;
+    // Enter edit context for box scores
+    if(activeTab==='boxscores' && activeGame) enterEditContext('boxscore');
+    let html=`<div class="card card-pad"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;flex-wrap:wrap;gap:8px"><h3 style="font-size:18px;font-weight:900">Game ${gi+1}${g.date?' — '+fmtDateShort(g.date):''}</h3><div style="display:flex;gap:6px"><button class="btn btn-sm btn-danger" id="delgame-${gi}" onclick="delGame(${gi},this)">Delete</button></div></div>`;
     // Game form — reordered: Date, Opponent, Location, Weather, Runs For, Runs Against
     const dateMin=activeSeason+'-01-01', dateMax=activeSeason+'-12-31';
     html+=`<div class="game-form">`;
@@ -992,7 +1136,10 @@ function renderLeaderboards(){const pl=getPlayerTotals();const es=enabledStats()
 
 /* ═══ TRENDTRACKER ═══ */
 function renderTrendTracker(){const es=enabledStats();const pp=document.getElementById('trendPills');pp.innerHTML='';es.forEach(s=>{const b=document.createElement('button');b.className='trend-pill'+(trendStat===s.id?' active':'');b.textContent=s.full;b.onclick=()=>{trendStat=s.id;renderTrendTracker()};pp.appendChild(b)});const data=D.games.filter(g=>g.date).map(g=>{let t=0;(g.players||[]).forEach(p=>{t+=n(p[trendStat])});return{label:`G${D.games.indexOf(g)+1}`,date:g.date,opp:g.opponent,val:t}});if(trendChartInstance){trendChartInstance.destroy();trendChartInstance=null}const ctx=document.getElementById('trendChart');if(data.length){trendChartInstance=new Chart(ctx,{type:'line',data:{labels:data.map(d=>d.label),datasets:[{label:(es.find(s=>s.id===trendStat)||{}).full||trendStat,data:data.map(d=>d.val),borderColor:'#e8a838',backgroundColor:'rgba(232,168,56,0.1)',borderWidth:3,pointBackgroundColor:'#1a2744',pointRadius:5,pointHoverRadius:7,tension:0.3,fill:true}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{grid:{display:false},ticks:{font:{family:'Sen',size:11}}},y:{beginAtZero:true,grid:{color:'#f0efe8'},ticks:{font:{family:'Sen',size:11}}}}}})}const sn=(es.find(s=>s.id===trendStat)||{}).full||trendStat;let thtml='';if(data.length){thtml=`<div class="table-wrap"><table><thead><tr><th>Game</th><th>Date</th><th>Opp</th><th>${esc(sn)}</th></tr></thead><tbody>`;data.forEach(d=>{thtml+=`<tr><td>${esc(d.label)}</td><td>${esc(d.date)}</td><td>${esc(d.opp||'TBD')}</td><td class="calc-cell">${d.val}</td></tr>`});thtml+=`</tbody></table></div>`}document.getElementById('trendTable').innerHTML=thtml}
-function renderStatNotes(){document.getElementById('statNotesArea').value=D.cfg.statNotes||''}
+function renderStatNotes(){
+  document.getElementById('statNotesArea').value=D.cfg.statNotes||'';
+  if(isAdmin() && activeTab==='statnotes') enterEditContext('statnotes');
+}
 
 /* ═══ SETTINGS ═══ */
 const STABS=[{id:'general',label:'General'},{id:'tabs',label:'Tabs'},{id:'stats',label:'Stats'},{id:'import',label:'Import CSV'},{id:'backlog',label:'Backlog'}];
@@ -1004,10 +1151,11 @@ function renderSettings(){
     return;
   }
   const sn=document.getElementById('settingsNav');sn.innerHTML='';STABS.forEach(t=>{const b=document.createElement('button');b.className='settings-pill'+(settingsSub===t.id?' active':'');b.textContent=t.label;b.onclick=()=>{settingsSub=t.id;renderSettings()};sn.appendChild(b)});const area=document.getElementById('settingsArea');let html='';
-if(settingsSub==='general'){html=`<div class="s-card"><h3>General</h3>`;[['teamName','Team Name'],['seasonLabel','Season Label']].forEach(([k,l])=>{html+=`<div class="s-field"><label class="s-label">${l}</label><input class="s-input" value="${esc(D.cfg[k]||'')}" oninput="D.cfg['${k}']=this.value;renderHome()"></div>`});html+=`<div style="margin-top:16px"><button class="save-btn" onclick="saveNow(this)">Save Changes</button></div></div>`;
+if(activeTab==='settings') enterEditContext('settings');
+if(settingsSub==='general'){html=`<div class="s-card"><h3>General</h3>`;[['teamName','Team Name'],['seasonLabel','Season Label']].forEach(([k,l])=>{html+=`<div class="s-field"><label class="s-label">${l}</label><input class="s-input" value="${esc(D.cfg[k]||'')}" oninput="D.cfg['${k}']=this.value;renderHome()"></div>`});html+=`</div>`;
 html+=`<div class="s-card"><h3>Admin Allowlist</h3><p style="font-size:12px;color:var(--mut);margin-bottom:8px">Only these Google email addresses can create/edit content. Everyone else gets read-only access. Edit the ADMIN_EMAILS array in the HTML source.</p><div style="font-family:monospace;font-size:12px;background:#f8f7f3;padding:10px;border-radius:6px;color:#666">${ADMIN_EMAILS.length?ADMIN_EMAILS.map(e=>esc(e)).join('<br>'):'<em>No emails configured — edit ADMIN_EMAILS in HTML</em>'}</div></div>`}
-if(settingsSub==='tabs'){html=`<div class="s-card"><h3>Tab Visibility</h3>`;[['showHome','Feed'],['showRoster','Roster'],['showBoxScores','Box Scores'],['showPlayerStats','Player Stats'],['showLeaderboards','Leaderboards'],['showTrendTracker','TrendTracker'],['showStatNotes','Stat Notes']].forEach(([k,l])=>{html+=`<div class="toggle-row"><span>${l}</span><div class="toggle${D.cfg[k]?' on':''}" onclick="D.cfg['${k}']=!D.cfg['${k}'];renderAll()"><div class="knob"></div></div></div>`});html+=`<div style="margin-top:16px"><button class="save-btn" onclick="saveNow(this)">Save</button></div></div>`}
-if(settingsSub==='stats'){html=`<div class="s-card"><h3>Stat Categories</h3>`;(D.cfg.stats||[]).forEach((s,i)=>{html+=`<div class="stat-config-row"><div class="toggle${s.on?' on':''}" onclick="D.cfg.stats[${i}].on=!D.cfg.stats[${i}].on;renderSettings()"><div class="knob"></div></div><input style="width:50px;font-weight:700" value="${esc(s.label)}" oninput="D.cfg.stats[${i}].label=this.value"><input style="flex:1" value="${esc(s.full)}" oninput="D.cfg.stats[${i}].full=this.value"><span class="sid">${esc(s.id)}</span></div>`});html+=`<div style="display:flex;gap:8px;margin-top:12px"><button class="btn btn-sm" onclick="D.cfg.stats.push({id:'c_'+uid(),label:'NEW',full:'New Stat',on:true});renderSettings()">+ Add Stat</button><button class="save-btn" onclick="saveNow(this)">Save</button></div></div>`}
+if(settingsSub==='tabs'){html=`<div class="s-card"><h3>Tab Visibility</h3>`;[['showHome','Feed'],['showRoster','Roster'],['showBoxScores','Box Scores'],['showPlayerStats','Player Stats'],['showLeaderboards','Leaderboards'],['showTrendTracker','TrendTracker'],['showStatNotes','Stat Notes']].forEach(([k,l])=>{html+=`<div class="toggle-row"><span>${l}</span><div class="toggle${D.cfg[k]?' on':''}" onclick="D.cfg['${k}']=!D.cfg['${k}'];renderAll()"><div class="knob"></div></div></div>`});html+=`</div>`}
+if(settingsSub==='stats'){html=`<div class="s-card"><h3>Stat Categories</h3>`;(D.cfg.stats||[]).forEach((s,i)=>{html+=`<div class="stat-config-row"><div class="toggle${s.on?' on':''}" onclick="D.cfg.stats[${i}].on=!D.cfg.stats[${i}].on;renderSettings()"><div class="knob"></div></div><input style="width:50px;font-weight:700" value="${esc(s.label)}" oninput="D.cfg.stats[${i}].label=this.value"><input style="flex:1" value="${esc(s.full)}" oninput="D.cfg.stats[${i}].full=this.value"><span class="sid">${esc(s.id)}</span></div>`});html+=`<div style="display:flex;gap:8px;margin-top:12px"><button class="btn btn-sm" onclick="D.cfg.stats.push({id:'c_'+uid(),label:'NEW',full:'New Stat',on:true});renderSettings()">+ Add Stat</button></div></div>`}
 if(settingsSub==='import'){
   html=`<div class="s-card"><h3>Import Game from CSV</h3>
   <p style="font-size:12px;color:var(--mut);margin-bottom:14px">Drop a game box score CSV exported from the NY Groove Stat Hub Google Sheet. The parser will do its best to extract the date, opponent, score, and player stats. You can clean up anything it gets wrong in the Box Scores tab afterward.</p>
@@ -1205,7 +1353,12 @@ function commitCsvImport(){
   renderAll();
 }
 
-function renderAll(){renderNav();renderTabs();renderHome();renderRoster();renderBoxScores();renderPlayerStats();renderLeaderboards();renderTrendTracker();renderStatNotes();renderSettings()}
+function renderAll(){
+  // Exit edit context if we're on a read-only tab
+  const editTabs = ['roster','boxscores','statnotes','settings'];
+  if(_editContext && !editTabs.includes(activeTab)) exitEditContext();
+  renderNav();renderTabs();renderHome();renderRoster();renderBoxScores();renderPlayerStats();renderLeaderboards();renderTrendTracker();renderStatNotes();renderSettings();
+}
 
 /* ═══ GRASS FIELD ANIMATION ═══ */
 let grassAnimId = null;
