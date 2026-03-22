@@ -199,6 +199,11 @@ button{cursor:pointer;font-family:inherit}input,textarea,select{font-family:inhe
 table{width:100%;border-collapse:collapse;font-size:12px}
 th{padding:8px 6px;background:var(--pri);color:#fff;font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:0.6px;text-align:center;white-space:nowrap}
 th:first-child{text-align:left;padding-left:12px}
+th.sortable{cursor:pointer;user-select:none;position:relative;padding-right:14px}
+th.sortable:hover{background:rgba(255,255,255,0.12)}
+th.sortable::after{content:'';position:absolute;right:3px;top:50%;transform:translateY(-50%);font-size:9px;opacity:0.5}
+th.sort-asc::after{content:'▲';opacity:1}
+th.sort-desc::after{content:'▼';opacity:1}
 td{padding:5px 5px;text-align:center;border-bottom:1px solid #f0efe8;font-size:13px}
 td:first-child{text-align:left;padding-left:12px}tr:nth-child(even){background:#faf9f6}
 .cell-input{border:none;background:transparent;outline:none;font-size:13px;text-align:center;width:36px;padding:2px}
@@ -277,23 +282,25 @@ tr.bs-row .row-check{width:15px;height:15px;accent-color:var(--blue);cursor:poin
 .admin-badge{display:inline-flex;align-items:center;gap:3px;font-size:10px;font-weight:700;color:var(--acc);text-transform:uppercase;letter-spacing:0.5px;padding:2px 8px;background:rgba(232,168,56,0.1);border-radius:4px;margin-left:6px}
 /* Season color schemes — like incognito, you always know where you are */
 body.season-2026{--bg:#f4f2ec;--pri:#1a2744;--acc:#e8a838;--brd:#e0ddd5;--card:#fff;--sec:#3b5998}
-body.season-2024{--bg:#1e2a3a;--pri:#c8d8e8;--acc:#e8a838;--brd:#2d3e52;--card:#243447;--sec:#5a8abd;--txt:#d0dce8;--mut:#7a8fa5;--win:#5cb85c;--loss:#d9534f;--tie:#f0ad4e}
+body.season-2024{--bg:#f5f0e8;--pri:#3b2f1e;--acc:#b8860b;--brd:#d4c9b5;--card:#faf6ef;--sec:#6b5344;--txt:#3b2f1e;--mut:#8c7b6b;--win:#5a7247;--loss:#8b3a3a;--tie:#b8860b}
 body.season-2024 h1,body.season-2024 h2,body.season-2024 h3{color:var(--pri)}
-body.season-2024 .post-body,body.season-2024 .comment-text{color:#a8b8c8}
-body.season-2024 .roster-card-bio{color:#8899aa}
+body.season-2024 .post-body,body.season-2024 .comment-text{color:#5a4e3e}
+body.season-2024 .roster-card-bio{color:#7a6e5e}
 body.season-2024 th{background:var(--sec)}
-body.season-2024 tr:nth-child(even){background:rgba(255,255,255,0.03)}
+body.season-2024 tr:nth-child(even){background:rgba(59,47,30,0.03)}
 body.season-2024 td{border-bottom-color:var(--brd)}
-body.season-2024 .total-row td{border-top-color:var(--pri);background:rgba(200,216,232,0.05)}
+body.season-2024 .total-row td{border-top-color:var(--pri);background:rgba(59,47,30,0.04)}
 body.season-2024 .cell-input{color:var(--pri)}
-body.season-2024 .footer{color:#4a5a6a}
+body.season-2024 .footer{color:#a89880}
+body.season-2024 .hero-btn{background:linear-gradient(135deg,#b8860b 0%,#9a7209 100%);box-shadow:0 6px 28px rgba(184,134,11,0.3)}
+body.season-2024 .nav-icon.active::after{background:var(--acc)}
 /* Season tab bar — hidden during development, toggle in sidebar instead */
 .season-bar{display:none}
 /* Small season toggle in sidebar */
 .season-toggle{width:40px;height:22px;border-radius:11px;border:1px solid var(--brd);background:rgba(26,39,68,0.04);cursor:pointer;position:relative;transition:all 0.3s;display:flex;align-items:center;padding:0 2px;margin:4px 0}
 .season-toggle:hover{border-color:var(--acc)}
 .season-toggle .st-knob{width:16px;height:16px;border-radius:8px;background:var(--pri);transition:all 0.3s;position:relative;flex-shrink:0}
-.season-toggle.on-2024 .st-knob{margin-left:auto;background:#5a8abd}
+.season-toggle.on-2024 .st-knob{margin-left:auto;background:#b8860b}
 .season-toggle-wrap{display:flex;flex-direction:column;align-items:center;gap:2px;padding:4px 0}
 .season-toggle-label{font-size:9px;font-weight:700;color:var(--mut);letter-spacing:0.5px;text-transform:uppercase;user-select:none}
 .season-tab{flex:1;padding:14px 0;text-align:center;font-size:15px;font-weight:800;letter-spacing:2px;text-transform:uppercase;border:none;cursor:pointer;transition:all 0.3s;font-family:'Sen',sans-serif;position:relative}
@@ -301,14 +308,14 @@ body.season-2024 .footer{color:#4a5a6a}
 .season-tab.active:after{background:var(--acc);left:10%;right:10%}
 .season-tab-2026{background:rgba(244,242,236,0.6);color:var(--mut)}
 .season-tab-2026.active{background:#f4f2ec;color:#1a2744}
-.season-tab-2024{background:rgba(30,42,58,0.6);color:#5a6a7a}
-.season-tab-2024.active{background:#1e2a3a;color:#c8d8e8}
-body.season-2024 .season-tab-2026{background:rgba(244,242,236,0.08);color:#5a6a7a}
-body.season-2024 .season-tab-2024.active{background:#1e2a3a;color:#c8d8e8}
-body.season-2024 .sidebar .nav-icon{color:rgba(200,216,232,0.25)}
-body.season-2024 .sidebar .nav-icon:hover{color:var(--pri);background:rgba(200,216,232,0.08)}
-body.season-2024 .sidebar .nav-icon.active{color:var(--pri);background:rgba(200,216,232,0.1)}
-body.season-2024 .admin-signin{color:#5a6a7a;border-color:var(--brd)}
+.season-tab-2024{background:rgba(245,240,232,0.6);color:#8c7b6b}
+.season-tab-2024.active{background:#f5f0e8;color:#3b2f1e}
+body.season-2024 .season-tab-2026{background:rgba(244,242,236,0.5);color:#8c7b6b}
+body.season-2024 .season-tab-2024.active{background:#f5f0e8;color:#3b2f1e}
+body.season-2024 .sidebar .nav-icon{color:rgba(59,47,30,0.25)}
+body.season-2024 .sidebar .nav-icon:hover{color:var(--pri);background:rgba(59,47,30,0.06)}
+body.season-2024 .sidebar .nav-icon.active{color:var(--pri);background:rgba(59,47,30,0.08)}
+body.season-2024 .admin-signin{color:#8c7b6b;border-color:var(--brd)}
 body.season-2024 .admin-signin:hover{color:var(--pri);border-color:var(--pri)}
 /* Auth bar */
 .auth-bar{display:flex;align-items:center;justify-content:flex-end;gap:10px;padding:8px 24px;margin-left:56px;font-size:12px;color:var(--mut)}
@@ -389,6 +396,9 @@ body.season-2024 .admin-signin:hover{color:var(--pri);border-color:var(--pri)}
   .season-toggle-wrap{flex-direction:row;gap:6px;padding:0 8px;align-items:center}
   .season-toggle{margin:0}
 }
+/* Mobile split tables */
+.ps-mobile,.bs-mobile{display:none}
+@media(max-width:640px){.ps-full,.bs-full{display:none}.ps-mobile,.bs-mobile{display:block}}
 @keyframes fadeIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
 .tab.active{animation:fadeIn 0.25s ease}
 /* ═══ UNIFIED SAVE BAR ═══ */
@@ -419,7 +429,7 @@ body.has-save-bar .main{padding-bottom:80px !important}
 <div class="season-bar" id="seasonBar"></div>
 <div class="page-wrap">
 <div class="auth-bar" id="authBar"></div>
-<div class="header"><div class="header-inner"><div class="header-left"><span class="header-logo">⚾</span><div><div class="header-team" id="headerTeam">NY Groove</div></div></div><div class="header-record" id="headerRecord"></div></div></div>
+<div class="header"><div class="header-inner" style="justify-content:center;flex-direction:column;align-items:center;gap:4px"><div class="header-team" id="headerTeam" style="font-size:28px;text-align:center">Welcome to GrooveHub!</div><div class="header-record" id="headerRecord"></div></div></div>
 <main class="main">
 <div class="tab" id="tab-home"><div class="hero-section"><button class="hero-btn" id="heroBtn" onclick="heroClick()">POST SOMETHING</button></div><div class="feed" id="feedArea"></div></div>
 <div class="tab" id="tab-roster"><div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;margin-bottom:6px"><div><h2 class="sec-title">The Roster</h2><p class="sec-hint" id="rosterHint">The 2026 New York Groove.</p></div><div id="rosterAdminBtns"></div></div><div class="roster-grid" id="rosterGrid"></div></div>
@@ -507,6 +517,7 @@ const DEFAULT_CFG={teamName:'NY Groove',seasonLabel:'2026',stats:DEFAULT_STATS,j
 let D={cfg:{...DEFAULT_CFG},games:[],roster:[],posts:[]};
 let activeTab='home',activeGame=null,trendStat='rbi',settingsSub='general',trendChartInstance=null;
 let composerType='recap',composerData={},composerGameId=null,editingPostId=null;
+let playerStatsSort={col:null,dir:'desc'};
 let openComments={};
 let expandedRoster={}; // rosterId -> true
 
@@ -566,6 +577,9 @@ function chipifyText(text){
   if(!text)return '';
   const rm=rosterMap();
   let safe=esc(text);
+  // Bold **text** and italic *text* (bold first to avoid conflict)
+  safe=safe.replace(/\*\*(.+?)\*\*/g,'<strong>$1</strong>');
+  safe=safe.replace(/\*(.+?)\*/g,'<em>$1</em>');
   // Sort names longest-first to avoid partial matches
   const names=Object.values(rm).sort((a,b)=>b.name.length-a.name.length);
   names.forEach(r=>{
@@ -1113,7 +1127,7 @@ function renderComposer(){
     }
     html+=`</div>`;
     html+=`<div class="cf"><label>Title</label><input value="${esc(composerData.title)}" placeholder="e.g. A Slugfest in the Rain" oninput="composerData.title=this.value"></div>`;
-    html+=`<div class="cf"><label>Write-up</label><textarea placeholder="The full story of this game — etched into history..." oninput="composerData.body=this.value" style="min-height:200px">${esc(composerData.body)}</textarea></div>`;
+    html+=`<div class="cf"><label>Write-up</label><textarea placeholder="The full story of this game — etched into history..." oninput="composerData.body=this.value" style="min-height:200px">${esc(composerData.body)}</textarea><span style="font-size:10px;color:var(--mut);margin-top:2px">Use **bold** and *italic* for formatting</span></div>`;
   }else if(composerType==='photo'){
     html+=`<div class="cf"><label>Caption</label><input value="${esc(composerData.title)}" placeholder="What's in the photo?" oninput="composerData.title=this.value"></div>`;
     html+=`<div class="cf"><label>Photos</label><div class="photo-drop" onclick="document.getElementById('photoInput').click()">Click to upload photos</div><input type="file" id="photoInput" accept="image/*" multiple style="display:none" onchange="handlePhotos(this.files)"><div class="photo-preview" id="photoPreview"></div></div>`;
@@ -1124,7 +1138,7 @@ function renderComposer(){
     html+=`<div class="cf"><label>Image (optional)</label><div class="photo-drop" onclick="document.getElementById('photoInput').click()">Upload chart / visualization</div><input type="file" id="photoInput" accept="image/*" multiple style="display:none" onchange="handlePhotos(this.files)"><div class="photo-preview" id="photoPreview"></div></div>`;
   }else{
     html+=`<div class="cf"><label>Title (optional)</label><input value="${esc(composerData.title)}" placeholder="Quick update" oninput="composerData.title=this.value"></div>`;
-    html+=`<div class="cf"><label>Note</label><textarea placeholder="What's on your mind, Groove member?" oninput="composerData.body=this.value" style="min-height:200px">${esc(composerData.body)}</textarea></div>`;
+    html+=`<div class="cf"><label>Note</label><textarea placeholder="What's on your mind, Groove member?" oninput="composerData.body=this.value" style="min-height:200px">${esc(composerData.body)}</textarea><span style="font-size:10px;color:var(--mut);margin-top:2px">Use **bold** and *italic* for formatting</span></div>`;
   }
   html+=`<div style="display:flex;gap:10px;justify-content:flex-end;margin-top:20px"><button class="cancel-btn" onclick="closeComposer()">Cancel</button><button class="save-btn" onclick="publishPost()">${isEditing?'Update Post':'Save & Publish'}</button></div>`;
   document.getElementById('composerInner').innerHTML=html;
@@ -1226,7 +1240,7 @@ function heroClick(){
 }
 
 function renderHome(){
-  document.getElementById('headerTeam').textContent=D.cfg.teamName;
+  document.getElementById('headerTeam').textContent='Welcome to GrooveHub!';
   // Apply season body class for color scheme
   SEASONS.forEach(y=>document.body.classList.remove('season-'+y));
   document.body.classList.add('season-'+activeSeason);
@@ -1311,10 +1325,21 @@ function renderBoxScores(){
       const w=n(g.runsFor)>n(g.runsAgainst),l=n(g.runsFor)<n(g.runsAgainst),r=w?'W':l?'L':'T',bg=w?'var(--win)':l?'var(--loss)':'var(--tie)';
       html+=`<div style="margin-bottom:12px"><span class="result-tag" style="background:${bg};font-size:14px;padding:4px 12px">${r} ${esc(g.runsFor)} – ${esc(g.runsAgainst)}</span></div>`;
     }
-    html+=`<div class="table-wrap"><table><thead><tr><th>Player</th>`;es.forEach(s=>{html+=`<th title="${esc(s.full)}">${esc(s.label)}</th>`});html+=`</tr></thead><tbody>`;
+    const bsMid=Math.ceil(es.length/2);const bsA=es.slice(0,bsMid),bsB=es.slice(bsMid);
+    // Full table (desktop)
+    html+=`<div class="table-wrap bs-full"><table><thead><tr><th>Player</th>`;es.forEach(s=>{html+=`<th title="${esc(s.full)}">${esc(s.label)}</th>`});html+=`</tr></thead><tbody>`;
     (g.players||[]).forEach(p=>{const dn=playerDisplayName(p);if(!dn)return;html+=`<tr><td style="font-weight:600">${playerChip(dn)}</td>`;es.forEach(s=>{html+=`<td>${p[s.id]||0}</td>`});html+=`</tr>`});
     if((g.players||[]).length){html+=`<tr class="total-row"><td>TEAM</td>`;es.forEach(s=>{html+=`<td>${(g.players||[]).reduce((sum,p)=>sum+n(p[s.id]),0)}</td>`});html+=`</tr>`}
     html+=`</tbody></table></div>`;
+    // Mobile split tables
+    html+=`<div class="bs-mobile"><div class="table-wrap"><table><thead><tr><th>Player</th>`;bsA.forEach(s=>{html+=`<th title="${esc(s.full)}">${esc(s.label)}</th>`});html+=`</tr></thead><tbody>`;
+    (g.players||[]).forEach(p=>{const dn=playerDisplayName(p);if(!dn)return;html+=`<tr><td style="font-weight:600">${playerChip(dn)}</td>`;bsA.forEach(s=>{html+=`<td>${p[s.id]||0}</td>`});html+=`</tr>`});
+    if((g.players||[]).length){html+=`<tr class="total-row"><td>TEAM</td>`;bsA.forEach(s=>{html+=`<td>${(g.players||[]).reduce((sum,p)=>sum+n(p[s.id]),0)}</td>`});html+=`</tr>`}
+    html+=`</tbody></table></div>`;
+    html+=`<div class="table-wrap" style="margin-top:12px"><table><thead><tr><th>Player</th>`;bsB.forEach(s=>{html+=`<th title="${esc(s.full)}">${esc(s.label)}</th>`});html+=`</tr></thead><tbody>`;
+    (g.players||[]).forEach(p=>{const dn=playerDisplayName(p);if(!dn)return;html+=`<tr><td style="font-weight:600">${playerChip(dn)}</td>`;bsB.forEach(s=>{html+=`<td>${p[s.id]||0}</td>`});html+=`</tr>`});
+    if((g.players||[]).length){html+=`<tr class="total-row"><td>TEAM</td>`;bsB.forEach(s=>{html+=`<td>${(g.players||[]).reduce((sum,p)=>sum+n(p[s.id]),0)}</td>`});html+=`</tr>`}
+    html+=`</tbody></table></div></div>`;
     if(g.notes)html+=`<div style="margin-top:12px;padding:10px 14px;background:rgba(26,39,68,0.02);border-radius:var(--radius);font-size:13px;color:#666;line-height:1.6;white-space:pre-wrap">${esc(g.notes)}</div>`;
     html+=`</div>`;
     area.innerHTML=html;
@@ -1449,7 +1474,32 @@ function getPlayerTotals(){
   })});
   return Object.values(map).sort((a,b)=>(b.h||0)-(a.h||0));
 }
-function renderPlayerStats(){const pl=getPlayerTotals();const es=enabledStats();if(!pl.length){document.getElementById('playerStatsArea').innerHTML='<div class="empty"><div class="empty-text">No player data yet.</div></div>';return}let html=`<div class="table-wrap"><table><thead><tr><th>Player</th><th>GP</th>`;es.forEach(s=>{html+=`<th title="${esc(s.full)}">${esc(s.label)}</th>`});html+=`<th>AVG</th></tr></thead><tbody>`;pl.forEach(p=>{html+=`<tr><td style="font-weight:600">${esc(p.name)}</td><td style="text-align:center">${p.gp}</td>`;es.forEach(s=>{html+=`<td>${p[s.id]||0}</td>`});html+=`<td class="calc-cell">${avg3(p.h||0,p.ab||0)}</td></tr>`});html+=`</tbody></table></div>`;document.getElementById('playerStatsArea').innerHTML=html}
+function sortPlayerStats(col){
+  if(playerStatsSort.col===col){playerStatsSort.dir=playerStatsSort.dir==='desc'?'asc':'desc'}
+  else{playerStatsSort.col=col;playerStatsSort.dir=col==='name'?'asc':'desc'}
+  renderPlayerStats();
+}
+function renderPlayerStats(){const pl=getPlayerTotals();const es=enabledStats();if(!pl.length){document.getElementById('playerStatsArea').innerHTML='<div class="empty"><div class="empty-text">No player data yet.</div></div>';return}
+  // Sort
+  if(playerStatsSort.col){
+    const c=playerStatsSort.col,d=playerStatsSort.dir==='asc'?1:-1;
+    pl.sort((a,b)=>{
+      let va,vb;
+      if(c==='name'){va=(a.name||'').toLowerCase();vb=(b.name||'').toLowerCase();return va<vb?-d:va>vb?d:0}
+      if(c==='gp'){va=a.gp||0;vb=b.gp||0}
+      else if(c==='avg'){va=a.ab?a.h/a.ab:0;vb=b.ab?b.h/b.ab:0}
+      else{va=a[c]||0;vb=b[c]||0}
+      return (va-vb)*d;
+    });
+  }
+  function sc(col){return playerStatsSort.col===col?(playerStatsSort.dir==='asc'?' sort-asc':' sort-desc'):''}
+  let html=`<div class="table-wrap ps-full"><table><thead><tr><th class="sortable${sc('name')}" onclick="sortPlayerStats('name')">Player</th><th class="sortable${sc('gp')}" onclick="sortPlayerStats('gp')">GP</th>`;es.forEach(s=>{html+=`<th class="sortable${sc(s.id)}" title="${esc(s.full)}" onclick="sortPlayerStats('${s.id}')">${esc(s.label)}</th>`});html+=`<th class="sortable${sc('avg')}" onclick="sortPlayerStats('avg')">AVG</th></tr></thead><tbody>`;pl.forEach(p=>{html+=`<tr><td style="font-weight:600">${esc(p.name)}</td><td style="text-align:center">${p.gp}</td>`;es.forEach(s=>{html+=`<td>${p[s.id]||0}</td>`});html+=`<td class="calc-cell">${avg3(p.h||0,p.ab||0)}</td></tr>`});html+=`</tbody></table></div>`;
+  // Mobile split tables
+  const midIdx=Math.ceil(es.length/2);
+  const esA=es.slice(0,midIdx),esB=es.slice(midIdx);
+  html+=`<div class="ps-mobile"><div class="table-wrap"><table><thead><tr><th class="sortable${sc('name')}" onclick="sortPlayerStats('name')">Player</th><th class="sortable${sc('gp')}" onclick="sortPlayerStats('gp')">GP</th>`;esA.forEach(s=>{html+=`<th class="sortable${sc(s.id)}" title="${esc(s.full)}" onclick="sortPlayerStats('${s.id}')">${esc(s.label)}</th>`});html+=`<th class="sortable${sc('avg')}" onclick="sortPlayerStats('avg')">AVG</th></tr></thead><tbody>`;pl.forEach(p=>{html+=`<tr><td style="font-weight:600">${esc(p.name)}</td><td style="text-align:center">${p.gp}</td>`;esA.forEach(s=>{html+=`<td>${p[s.id]||0}</td>`});html+=`<td class="calc-cell">${avg3(p.h||0,p.ab||0)}</td></tr>`});html+=`</tbody></table></div>`;
+  html+=`<div class="table-wrap" style="margin-top:12px"><table><thead><tr><th class="sortable${sc('name')}" onclick="sortPlayerStats('name')">Player</th>`;esB.forEach(s=>{html+=`<th class="sortable${sc(s.id)}" title="${esc(s.full)}" onclick="sortPlayerStats('${s.id}')">${esc(s.label)}</th>`});html+=`</tr></thead><tbody>`;pl.forEach(p=>{html+=`<tr><td style="font-weight:600">${esc(p.name)}</td>`;esB.forEach(s=>{html+=`<td>${p[s.id]||0}</td>`});html+=`</tr>`});html+=`</tbody></table></div></div>`;
+  document.getElementById('playerStatsArea').innerHTML=html}
 
 /* ═══ LEADERBOARDS ═══ */
 function renderLeaderboards(){const pl=getPlayerTotals();const es=enabledStats();const grid=document.getElementById('leadersGrid');if(!pl.length){grid.innerHTML='<div class="empty" style="grid-column:1/-1"><div class="empty-text">No data yet.</div></div>';return}let html='';es.forEach(s=>{const top=[...pl].sort((a,b)=>(b[s.id]||0)-(a[s.id]||0)).slice(0,5);if(!top.length||!top[0][s.id])return;html+=`<div class="card" style="padding:14px 16px"><div class="leader-title">${esc(s.full)}</div>`;top.forEach((p,i)=>{html+=`<div class="leader-row"><span class="leader-name${i===0?' top':''}">${i===0?'👑 ':(i+1)+'. '}${esc(p.name)}</span><span class="leader-val">${p[s.id]||0}</span></div>`});html+=`</div>`});grid.innerHTML=html||'<div class="empty" style="grid-column:1/-1"><div class="empty-text">No data yet.</div></div>'}
