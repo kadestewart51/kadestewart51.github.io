@@ -533,6 +533,31 @@ function playerChip(name){
   }
   return esc(name);
 }
+
+/* ═══ ROSTER MATCHING ═══ */
+// Resolve a player name to a roster entry, returns {rosterId, name} or null
+function matchRoster(inputName){
+  if(!inputName)return null;
+  const q=inputName.trim().toLowerCase();
+  // 1. Exact match on full name
+  const exact=D.roster.find(r=>r.name&&r.name.trim().toLowerCase()===q);
+  if(exact)return {rosterId:exact.id,name:exact.name};
+  // 2. First-name match (input is a first name, roster has full name)
+  const firstMatches=D.roster.filter(r=>r.name&&r.name.trim().toLowerCase().split(/\s+/)[0]===q);
+  if(firstMatches.length===1)return {rosterId:firstMatches[0].id,name:firstMatches[0].name};
+  // 3. Roster name starts with input or input starts with roster name
+  const partial=D.roster.filter(r=>r.name&&(r.name.trim().toLowerCase().startsWith(q)||q.startsWith(r.name.trim().toLowerCase())));
+  if(partial.length===1)return {rosterId:partial[0].id,name:partial[0].name};
+  return null;
+}
+// Get the display name for a box score player — prefer linked roster name
+function playerDisplayName(p){
+  if(p.rosterId){
+    const r=D.roster.find(x=>x.id===p.rosterId);
+    if(r&&r.name)return r.name;
+  }
+  return p.name||'';
+}
 // Replace roster player names in free text with chips
 function chipifyText(text){
   if(!text)return '';
@@ -1232,7 +1257,7 @@ function renderBoxScores(){
     // Selection toolbar + stat table
     html+=`<div class="bs-toolbar" id="bsToolbar-${g.id}"></div>`;
     html+=`<div class="table-wrap"><table><thead><tr><th style="width:24px"></th><th style="width:24px"></th><th>Player</th>`;es.forEach(s=>{html+=`<th title="${esc(s.full)}">${esc(s.label)}</th>`});html+=`</tr></thead><tbody id="bsBody-${g.id}">`;
-    (g.players||[]).forEach((p,pi)=>{html+=`<tr class="bs-row" draggable="true" data-pid="${p.id}" data-gid="${g.id}" data-idx="${pi}"><td><input type="checkbox" class="row-check" data-pid="${p.id}" onchange="updateBsToolbar('${g.id}')"></td><td><span class="drag-handle material-symbols-outlined">drag_indicator</span></td><td><input class="cell-input wide" value="${esc(p.name||'')}" placeholder="Name" oninput="updPlayer('${g.id}','${p.id}','name',this.value)"></td>`;es.forEach(s=>{html+=`<td><input class="cell-input" type="number" min="0" value="${esc(p[s.id]||'')}" oninput="updPlayer('${g.id}','${p.id}','${s.id}',this.value)"></td>`});html+=`</tr>`});
+    (g.players||[]).forEach((p,pi)=>{const dn=playerDisplayName(p);html+=`<tr class="bs-row" draggable="true" data-pid="${p.id}" data-gid="${g.id}" data-idx="${pi}"><td><input type="checkbox" class="row-check" data-pid="${p.id}" onchange="updateBsToolbar('${g.id}')"></td><td><span class="drag-handle material-symbols-outlined">drag_indicator</span></td><td><input class="cell-input wide" value="${esc(dn)}" placeholder="Name" oninput="updPlayer('${g.id}','${p.id}','name',this.value)"></td>`;es.forEach(s=>{html+=`<td><input class="cell-input" type="number" min="0" value="${esc(p[s.id]||'')}" oninput="updPlayer('${g.id}','${p.id}','${s.id}',this.value)"></td>`});html+=`</tr>`});
     if((g.players||[]).length){html+=`<tr class="total-row"><td></td><td></td><td>TEAM</td>`;es.forEach(s=>{html+=`<td>${(g.players||[]).reduce((sum,p)=>sum+n(p[s.id]),0)}</td>`});html+=`</tr>`}
     html+=`</tbody></table></div>`;
     // Notes
@@ -1249,7 +1274,7 @@ function renderBoxScores(){
       html+=`<div style="margin-bottom:12px"><span class="result-tag" style="background:${bg};font-size:14px;padding:4px 12px">${r} ${esc(g.runsFor)} – ${esc(g.runsAgainst)}</span></div>`;
     }
     html+=`<div class="table-wrap"><table><thead><tr><th>Player</th>`;es.forEach(s=>{html+=`<th title="${esc(s.full)}">${esc(s.label)}</th>`});html+=`</tr></thead><tbody>`;
-    (g.players||[]).forEach(p=>{if(!p.name)return;html+=`<tr><td style="font-weight:600">${playerChip(p.name)}</td>`;es.forEach(s=>{html+=`<td>${p[s.id]||0}</td>`});html+=`</tr>`});
+    (g.players||[]).forEach(p=>{const dn=playerDisplayName(p);if(!dn)return;html+=`<tr><td style="font-weight:600">${playerChip(dn)}</td>`;es.forEach(s=>{html+=`<td>${p[s.id]||0}</td>`});html+=`</tr>`});
     if((g.players||[]).length){html+=`<tr class="total-row"><td>TEAM</td>`;es.forEach(s=>{html+=`<td>${(g.players||[]).reduce((sum,p)=>sum+n(p[s.id]),0)}</td>`});html+=`</tr>`}
     html+=`</tbody></table></div>`;
     if(g.notes)html+=`<div style="margin-top:12px;padding:10px 14px;background:rgba(26,39,68,0.02);border-radius:var(--radius);font-size:13px;color:#666;line-height:1.6;white-space:pre-wrap">${esc(g.notes)}</div>`;
@@ -1271,7 +1296,20 @@ function updateGameTab(gid,v){
   const heading=document.querySelector('#boxScoreArea h3');
   if(heading)heading.textContent=`Game ${gi+1}${v?' — '+fmtDateShort(v):''}`;
 }
-function updPlayer(gid,pid,k,v){const g=D.games.find(x=>x.id===gid);if(g)(g.players||[]).forEach(p=>{if(p.id===pid)p[k]=v})}
+function updPlayer(gid,pid,k,v){
+  const g=D.games.find(x=>x.id===gid);
+  if(!g)return;
+  (g.players||[]).forEach(p=>{
+    if(p.id===pid){
+      p[k]=v;
+      // Auto-link to roster when name changes
+      if(k==='name'){
+        const m=matchRoster(v);
+        p.rosterId=m?m.rosterId:'';
+      }
+    }
+  });
+}
 // Add a named roster player to the game (chip click)
 function addNamedPlayerToGame(gid,name){
   const g=D.games.find(x=>x.id===gid);if(!g)return;
@@ -1358,7 +1396,21 @@ function initBoxScoreDrag(gid){
 }
 
 /* ═══ PLAYER STATS ═══ */
-function getPlayerTotals(){const map={};D.games.forEach(g=>{(g.players||[]).forEach(p=>{const key=(p.name||'').trim().toLowerCase();if(!key)return;if(!map[key])map[key]={name:p.name,gp:0};map[key].gp++;enabledStats().forEach(s=>{map[key][s.id]=(map[key][s.id]||0)+n(p[s.id])})})});return Object.values(map).sort((a,b)=>(b.h||0)-(a.h||0))}
+function getPlayerTotals(){
+  const map={};
+  D.games.forEach(g=>{(g.players||[]).forEach(p=>{
+    const dn=playerDisplayName(p);
+    if(!dn)return;
+    // Key by rosterId if linked, otherwise by lowercase name
+    const key=p.rosterId||dn.trim().toLowerCase();
+    if(!map[key])map[key]={name:dn,gp:0};
+    // Prefer the longer/fuller name
+    if(dn.length>map[key].name.length)map[key].name=dn;
+    map[key].gp++;
+    enabledStats().forEach(s=>{map[key][s.id]=(map[key][s.id]||0)+n(p[s.id])});
+  })});
+  return Object.values(map).sort((a,b)=>(b.h||0)-(a.h||0));
+}
 function renderPlayerStats(){const pl=getPlayerTotals();const es=enabledStats();if(!pl.length){document.getElementById('playerStatsArea').innerHTML='<div class="empty"><div class="empty-text">No player data yet.</div></div>';return}let html=`<div class="table-wrap"><table><thead><tr><th>Player</th><th>GP</th>`;es.forEach(s=>{html+=`<th title="${esc(s.full)}">${esc(s.label)}</th>`});html+=`<th>AVG</th></tr></thead><tbody>`;pl.forEach(p=>{html+=`<tr><td style="font-weight:600">${esc(p.name)}</td><td style="text-align:center">${p.gp}</td>`;es.forEach(s=>{html+=`<td>${p[s.id]||0}</td>`});html+=`<td class="calc-cell">${avg3(p.h||0,p.ab||0)}</td></tr>`});html+=`</tbody></table></div>`;document.getElementById('playerStatsArea').innerHTML=html}
 
 /* ═══ LEADERBOARDS ═══ */
@@ -1562,6 +1614,9 @@ function parseCsvToGame(rows){
     if(['PITCHING','BATTING','Player','Note:','Note'].includes(name.toUpperCase()))break;
 
     const player={id:uid(),name,rosterId:''};
+    // Auto-link to roster
+    const rm=matchRoster(name);
+    if(rm){player.rosterId=rm.rosterId;player.name=rm.name}
     for(const[sk,ci]of Object.entries(colMap)){
       if(['name','number','position'].includes(sk))continue;
       if(ci<row.length){const v=pn(row[ci]);if(v)player[sk]=v}
