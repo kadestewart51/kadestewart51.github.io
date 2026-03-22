@@ -506,7 +506,7 @@ const DEFAULT_STATS=[{id:'pa',label:'PA',full:'Plate Appearances',on:true},{id:'
 const DEFAULT_CFG={teamName:'NY Groove',seasonLabel:'2026',stats:DEFAULT_STATS,journalSections:[],statNotes:"Note: Does not count rainouts.\n\nRBIs may be incomplete for early-season games.",showHome:true,showRoster:true,showBoxScores:true,showPlayerStats:true,showLeaderboards:true,showTrendTracker:true,showStatNotes:true,messageToClaude:'',messageToHarry:'',customNotes:''};
 let D={cfg:{...DEFAULT_CFG},games:[],roster:[],posts:[]};
 let activeTab='home',activeGame=null,trendStat='rbi',settingsSub='general',trendChartInstance=null;
-let composerType='recap',composerData={},composerGameId=null;
+let composerType='recap',composerData={},composerGameId=null,editingPostId=null;
 let openComments={};
 let expandedRoster={}; // rosterId -> true
 
@@ -542,10 +542,13 @@ function matchRoster(inputName){
   // 1. Exact match on full name
   const exact=D.roster.find(r=>r.name&&r.name.trim().toLowerCase()===q);
   if(exact)return {rosterId:exact.id,name:exact.name};
-  // 2. First-name match (input is a first name, roster has full name)
+  // 2. Alias match — check each roster entry's aliases array
+  const aliasMatch=D.roster.filter(r=>(r.aliases||[]).some(a=>a.trim().toLowerCase()===q));
+  if(aliasMatch.length===1)return {rosterId:aliasMatch[0].id,name:aliasMatch[0].name};
+  // 3. First-name match (input is a first name, roster has full name)
   const firstMatches=D.roster.filter(r=>r.name&&r.name.trim().toLowerCase().split(/\s+/)[0]===q);
   if(firstMatches.length===1)return {rosterId:firstMatches[0].id,name:firstMatches[0].name};
-  // 3. Roster name starts with input or input starts with roster name
+  // 4. Roster name starts with input or input starts with roster name
   const partial=D.roster.filter(r=>r.name&&(r.name.trim().toLowerCase().startsWith(q)||q.startsWith(r.name.trim().toLowerCase())));
   if(partial.length===1)return {rosterId:partial[0].id,name:partial[0].name};
   return null;
@@ -658,6 +661,7 @@ function applySnapshot(d) {
     if (!r.height) r.height = '';
     if (!r.hometown) r.hometown = '';
     if (!r.walkupSong) r.walkupSong = '';
+    if (!r.aliases) r.aliases = [];
   });
 }
 
@@ -966,6 +970,7 @@ function renderRoster(){
         html+=`<div class="pd-edit-row"><div class="pd-edit-field-wide"><label>Name</label><input value="${esc(r.name)}" placeholder="Full name" oninput="D.roster[${i}].name=this.value"></div><div class="pd-edit-field" style="max-width:70px"><label>#</label><input value="${esc(r.number||'')}" placeholder="00" oninput="D.roster[${i}].number=this.value.replace('#','')"></div><div class="pd-edit-field" style="max-width:90px"><label>Pos</label><input value="${esc(r.position||'')}" placeholder="C/1B" oninput="D.roster[${i}].position=this.value" style="text-transform:uppercase"></div></div>`;
         html+=`<div class="pd-edit-row"><div class="pd-edit-field"><label>Throws</label><input value="${esc(r.throws||'')}" placeholder="R / L / S" oninput="D.roster[${i}].throws=this.value"></div><div class="pd-edit-field"><label>Bats</label><input value="${esc(r.bats||'')}" placeholder="R / L / S" oninput="D.roster[${i}].bats=this.value"></div><div class="pd-edit-field"><label>Height</label><input value="${esc(r.height||'')}" placeholder="6'2&quot;" oninput="D.roster[${i}].height=this.value"></div><div class="pd-edit-field"><label>Hometown</label><input value="${esc(r.hometown||'')}" placeholder="City, ST" oninput="D.roster[${i}].hometown=this.value"></div></div>`;
         html+=`<div class="pd-edit-row"><div style="flex:1"><label>Walkup Song (Spotify link)</label><input value="${esc(r.walkupSong||'')}" placeholder="https://open.spotify.com/track/..." oninput="D.roster[${i}].walkupSong=this.value"></div></div>`;
+        html+=`<div class="pd-edit-row"><div style="flex:1"><label>Aliases (comma-separated nicknames for CSV matching)</label><input value="${esc((r.aliases||[]).join(', '))}" placeholder="e.g. Ruvo, E.R." oninput="D.roster[${i}].aliases=this.value.split(',').map(s=>s.trim()).filter(Boolean)"></div></div>`;
         html+=`</div></div>`;
         // Bio
         html+=`<div style="padding:0 24px 16px"><label style="display:block;font-size:10px;font-weight:600;color:var(--mut);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:4px">Bio</label><textarea style="width:100%;padding:10px 12px;border:1px solid var(--brd);border-radius:6px;font-size:14px;line-height:1.6;resize:vertical;min-height:80px;font-family:'Sen',sans-serif" oninput="D.roster[${i}].bio=this.value">${esc(r.bio||'')}</textarea></div>`;
@@ -1041,7 +1046,7 @@ function renderRoster(){
 
   // Add player card (admin only)
   if(admin){
-    html+=`<div class="roster-card-add" onclick="D.roster.push({id:uid(),name:'',number:'',position:'',bio:'',photo:'',throws:'',bats:'',height:'',hometown:'',walkupSong:''});renderRoster()"><span class="material-symbols-outlined">person_add</span><span>Add Player</span></div>`;
+    html+=`<div class="roster-card-add" onclick="D.roster.push({id:uid(),name:'',number:'',position:'',bio:'',photo:'',throws:'',bats:'',height:'',hometown:'',walkupSong:'',aliases:[]});renderRoster()"><span class="material-symbols-outlined">person_add</span><span>Add Player</span></div>`;
   }
 
   grid.innerHTML=html;
@@ -1065,12 +1070,24 @@ function delRosterPlayer(i,btn){
 }
 
 /* ═══ COMPOSER ═══ */
-function openComposer(){composerType='recap';composerData={title:'',body:'',author:currentUser?currentUser.displayName||'':'',photos:[]};composerGameId=null;renderComposer();document.getElementById('composerOverlay').classList.add('open')}
-function closeComposer(){document.getElementById('composerOverlay').classList.remove('open')}
+function openComposer(){composerType='recap';composerData={title:'',body:'',author:currentUser?currentUser.displayName||'':'',photos:[]};composerGameId=null;editingPostId=null;renderComposer();document.getElementById('composerOverlay').classList.add('open')}
+function closeComposer(){document.getElementById('composerOverlay').classList.remove('open');editingPostId=null}
+
+function editPost(postId){
+  const post=D.posts.find(p=>p.id===postId);
+  if(!post)return;
+  editingPostId=postId;
+  composerType=post.type||'note';
+  composerData={title:post.title||'',body:post.body||'',author:post.author||'',photos:post.photos||[]};
+  composerGameId=post.gameId||null;
+  renderComposer();
+  document.getElementById('composerOverlay').classList.add('open');
+}
 
 function renderComposer(){
+  const isEditing=!!editingPostId;
   const types=[{id:'recap',label:'Game Recap',icon:'scoreboard'},{id:'photo',label:'Photos',icon:'photo_camera'},{id:'dataviz',label:'Data / Stats',icon:'bar_chart'},{id:'note',label:'Note',icon:'edit_note'}];
-  let html=`<h2>Post Something</h2><div class="composer-type-row">`;
+  let html=`<h2>${isEditing?'Edit Post':'Post Something'}</h2><div class="composer-type-row">`;
   types.forEach(t=>{html+=`<button class="type-btn${composerType===t.id?' active':''}" onclick="composerType='${t.id}';composerGameId=null;renderComposer()"><span class="material-symbols-outlined" style="font-size:16px">${t.icon}</span>${t.label}</button>`});
   html+=`</div>`;
   html+=`<div class="cf"><label>Author</label><input value="${esc(composerData.author)}" placeholder="Your name" oninput="composerData.author=this.value"></div>`;
@@ -1109,7 +1126,7 @@ function renderComposer(){
     html+=`<div class="cf"><label>Title (optional)</label><input value="${esc(composerData.title)}" placeholder="Quick update" oninput="composerData.title=this.value"></div>`;
     html+=`<div class="cf"><label>Note</label><textarea placeholder="What's on your mind, Groove member?" oninput="composerData.body=this.value" style="min-height:200px">${esc(composerData.body)}</textarea></div>`;
   }
-  html+=`<div style="display:flex;gap:10px;justify-content:flex-end;margin-top:20px"><button class="cancel-btn" onclick="closeComposer()">Cancel</button><button class="save-btn" onclick="publishPost()">Save & Publish</button></div>`;
+  html+=`<div style="display:flex;gap:10px;justify-content:flex-end;margin-top:20px"><button class="cancel-btn" onclick="closeComposer()">Cancel</button><button class="save-btn" onclick="publishPost()">${isEditing?'Update Post':'Save & Publish'}</button></div>`;
   document.getElementById('composerInner').innerHTML=html;
   if(composerData.photos&&composerData.photos.length){const pp=document.getElementById('photoPreview');if(pp)pp.innerHTML=composerData.photos.map(p=>`<img src="${p}">`).join('')}
 }
@@ -1121,13 +1138,34 @@ function publishPost(){
     const g=D.games.find(x=>x.id===composerGameId);
     if(g){opponent=g.opponent||'';runsFor=g.runsFor||'';runsAgainst=g.runsAgainst||'';gameDate=g.date||''}
   }
-  const post={id:uid(),type:composerType,title:composerData.title||'',body:composerData.body||'',
-    author:composerData.author||'Anonymous Groover',
-    date:composerType==='recap'&&gameDate?gameDate:new Date().toISOString().slice(0,10),
-    createdAt:Date.now(),photos:composerData.photos||[],
-    opponent,runsFor,runsAgainst,gameId:composerGameId||'',
-    comments:[]};
-  D.posts.unshift(post);saveNow();closeComposer();activeTab='home';renderAll();
+
+  if(editingPostId){
+    // Update existing post
+    const post=D.posts.find(p=>p.id===editingPostId);
+    if(post){
+      post.type=composerType;
+      post.title=composerData.title||'';
+      post.body=composerData.body||'';
+      post.author=composerData.author||post.author;
+      post.photos=composerData.photos||[];
+      post.gameId=composerGameId||'';
+      if(composerType==='recap'){
+        post.opponent=opponent;post.runsFor=runsFor;post.runsAgainst=runsAgainst;
+        if(gameDate)post.date=gameDate;
+      }
+    }
+    editingPostId=null;
+  } else {
+    // Create new post
+    const post={id:uid(),type:composerType,title:composerData.title||'',body:composerData.body||'',
+      author:composerData.author||'Anonymous Groover',
+      date:composerType==='recap'&&gameDate?gameDate:new Date().toISOString().slice(0,10),
+      createdAt:Date.now(),photos:composerData.photos||[],
+      opponent,runsFor,runsAgainst,gameId:composerGameId||'',
+      comments:[]};
+    D.posts.unshift(post);
+  }
+  saveNow();closeComposer();activeTab='home';renderAll();
 }
 
 /* ═══ FEED ═══ */
@@ -1160,7 +1198,7 @@ function renderFeed(){
     }
     html+=`</div>`;
     html+=`<div class="post-footer"><div></div>`;
-    if(admin){html+=`<button class="del-btn" id="del-${p.id}" onclick="delPost(${i},this)"><span class="material-symbols-outlined" style="font-size:16px">delete</span>Delete</button>`}
+    if(admin){html+=`<div style="display:flex;gap:8px"><button class="del-btn" onclick="editPost('${p.id}')"><span class="material-symbols-outlined" style="font-size:16px">edit</span>Edit</button><button class="del-btn" id="del-${p.id}" onclick="delPost(${i},this)"><span class="material-symbols-outlined" style="font-size:16px">delete</span>Delete</button></div>`}
     html+=`</div>`;
     html+=`</div>`;
   });
