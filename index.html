@@ -244,8 +244,15 @@ body.season-2024 td{border-bottom-color:var(--brd)}
 body.season-2024 .total-row td{border-top-color:var(--pri);background:rgba(200,216,232,0.05)}
 body.season-2024 .cell-input{color:var(--pri)}
 body.season-2024 .footer{color:#4a5a6a}
-/* Season tab bar */
-.season-bar{display:flex;margin-left:56px;border-bottom:1px solid var(--brd)}
+/* Season tab bar — hidden during development, toggle in sidebar instead */
+.season-bar{display:none}
+/* Small season toggle in sidebar */
+.season-toggle{width:40px;height:22px;border-radius:11px;border:1px solid var(--brd);background:rgba(26,39,68,0.04);cursor:pointer;position:relative;transition:all 0.3s;display:flex;align-items:center;padding:0 2px;margin:4px 0}
+.season-toggle:hover{border-color:var(--acc)}
+.season-toggle .st-knob{width:16px;height:16px;border-radius:8px;background:var(--pri);transition:all 0.3s;position:relative;flex-shrink:0}
+.season-toggle.on-2024 .st-knob{margin-left:auto;background:#5a8abd}
+.season-toggle-wrap{display:flex;flex-direction:column;align-items:center;gap:2px;padding:4px 0}
+.season-toggle-label{font-size:9px;font-weight:700;color:var(--mut);letter-spacing:0.5px;text-transform:uppercase;user-select:none}
 .season-tab{flex:1;padding:14px 0;text-align:center;font-size:15px;font-weight:800;letter-spacing:2px;text-transform:uppercase;border:none;cursor:pointer;transition:all 0.3s;font-family:'Sen',sans-serif;position:relative}
 .season-tab:after{content:'';position:absolute;bottom:0;left:20%;right:20%;height:3px;border-radius:2px 2px 0 0;background:transparent;transition:all 0.3s}
 .season-tab.active:after{background:var(--acc);left:10%;right:10%}
@@ -271,7 +278,74 @@ body.season-2024 .admin-signin:hover{color:var(--pri);border-color:var(--pri)}
 .auth-btn.signout{border:none;background:transparent;box-shadow:none;color:var(--mut);font-weight:500;padding:4px 8px}
 .auth-btn.signout:hover{color:var(--loss)}
 .auth-gate{text-align:center;padding:16px;color:var(--mut);font-size:13px;margin-bottom:12px;background:rgba(37,99,235,0.04);border-radius:8px}
-@media(max-width:640px){.sidebar{width:44px}.nav-icon{width:34px;height:34px;font-size:20px}.page-wrap,.header{margin-left:44px}.season-bar{margin-left:44px}.main{padding:0 12px 40px}.hero-btn{padding:14px 24px;font-size:13px}.composer{margin:12px;padding:20px}.leaders-grid{grid-template-columns:1fr 1fr}.game-form{grid-template-columns:1fr 1fr}.game-picker{grid-template-columns:repeat(4,1fr)}.roster-grid{grid-template-columns:repeat(auto-fill,minmax(160px,1fr))}.season-tab{font-size:13px;padding:12px 0}}
+@media(max-width:640px){
+  /* ═══ MOBILE: Sidebar → Top horizontal nav ═══ */
+  nav.sidebar{
+    position:fixed !important;
+    left:0 !important;top:0 !important;right:0 !important;bottom:auto !important;
+    width:100% !important;height:48px !important;
+    flex-direction:row !important;
+    padding:0 !important;
+    overflow-x:auto;overflow-y:hidden;
+    -webkit-overflow-scrolling:touch;scrollbar-width:none;
+    border-bottom:1px solid var(--brd);
+    background:var(--card);
+    gap:0
+  }
+  nav.sidebar::-webkit-scrollbar{display:none}
+  .sidebar-top{flex-direction:row;gap:0;padding:0 4px}
+  .sidebar-bottom{margin-top:0;margin-left:auto;flex-direction:row;gap:0;padding:0 4px 0 0}
+  .nav-icon{
+    width:auto !important;height:48px !important;
+    border-radius:0 !important;margin:0 !important;
+    padding:0 10px !important;
+    flex-shrink:0;
+    flex-direction:column;
+    font-size:18px
+  }
+  .nav-icon .tip{
+    position:static !important;
+    transform:none !important;
+    background:transparent !important;
+    color:inherit !important;
+    padding:0 !important;
+    border-radius:0 !important;
+    font-size:10px;font-weight:700;letter-spacing:0.2px;
+    opacity:1 !important;
+    pointer-events:auto !important;
+    box-shadow:none !important;
+    white-space:nowrap;
+    display:block !important
+  }
+  .nav-icon:hover .tip{transform:none !important;opacity:1 !important}
+  .nav-icon.active::after{
+    left:8px;right:8px;top:auto !important;bottom:0 !important;
+    width:auto !important;height:3px !important;
+    border-radius:2px 2px 0 0
+  }
+  /* Remove left margins, clear fixed nav */
+  .page-wrap,.header{margin-left:0 !important}
+  .page-wrap{padding-top:48px}
+  .header{padding-top:12px}
+  .season-bar{margin-left:0 !important}
+  .auth-bar{margin-left:0 !important}
+  /* Content */
+  .main{padding:0 12px 40px}
+  .hero-btn{padding:14px 24px;font-size:13px}
+  .composer{margin:12px;padding:20px}
+  .leaders-grid{grid-template-columns:1fr 1fr}
+  .game-form{grid-template-columns:1fr 1fr}
+  .game-picker{grid-template-columns:repeat(4,1fr)}
+  .roster-grid{grid-template-columns:repeat(auto-fill,minmax(160px,1fr))}
+  .season-tab{font-size:13px;padding:12px 0}
+  /* Save bar full-width on mobile */
+  .save-bar{left:0 !important;padding:8px 12px}
+  /* Grass canvas below nav */
+  #grassCanvas{top:48px}
+  /* Season toggle in mobile horizontal bar */
+  .season-toggle-wrap{flex-direction:row;gap:6px;padding:0 8px;align-items:center}
+  .season-toggle{margin:0}
+}
 @keyframes fadeIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
 .tab.active{animation:fadeIn 0.25s ease}
 /* ═══ UNIFIED SAVE BAR ═══ */
@@ -290,7 +364,6 @@ body.has-save-bar .main{padding-bottom:80px !important}
 .save-bar .sb-save:hover{box-shadow:0 4px 16px rgba(37,99,235,0.35);transform:translateY(-1px)}
 .save-bar .sb-save:disabled{opacity:0.5;cursor:default;transform:none}
 @keyframes pulse-dot{0%,100%{opacity:1}50%{opacity:0.4}}
-@media(max-width:640px){.save-bar{left:44px;padding:8px 12px}}
 </style>
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
@@ -710,7 +783,11 @@ const TABS=[
 function renderNav(){
   let html='<div class="sidebar-top">';
   TABS.forEach(t=>{if(t.cfg&&!D.cfg[t.cfg])return;html+=`<button class="nav-icon${activeTab===t.id?' active':''}" onclick="navTo('${t.id}')"><span class="material-symbols-outlined">${t.icon}</span><span class="tip">${t.label}</span></button>`});
-  html+=`</div><div class="sidebar-bottom"><button class="nav-icon${activeTab==='settings'?' active':''}" onclick="navTo('settings')"><span class="material-symbols-outlined">settings</span><span class="tip">Settings</span></button></div>`;
+  html+=`</div><div class="sidebar-bottom">`;
+  // Small season toggle
+  const otherSeason = activeSeason === '2026' ? '2024' : '2026';
+  html+=`<div class="season-toggle-wrap" onclick="switchSeason('${otherSeason}')" title="Switch to ${otherSeason} season"><div class="season-toggle${activeSeason==='2024'?' on-2024':''}"><div class="st-knob"></div></div><span class="season-toggle-label">${activeSeason}</span></div>`;
+  html+=`<button class="nav-icon${activeTab==='settings'?' active':''}" onclick="navTo('settings')"><span class="material-symbols-outlined">settings</span><span class="tip">Settings</span></button></div>`;
   document.getElementById('sidebar').innerHTML=html;
 }
 function navTo(tab){
@@ -931,9 +1008,6 @@ function heroClick(){
 
 function renderHome(){
   document.getElementById('headerTeam').textContent=D.cfg.teamName;
-  // Season bar — large tabs at top
-  const sb=document.getElementById('seasonBar');
-  sb.innerHTML=SEASONS.map(y=>`<button class="season-tab season-tab-${y}${activeSeason===y?' active':''}" onclick="switchSeason('${y}')">${y} Season</button>`).join('');
   // Apply season body class for color scheme
   SEASONS.forEach(y=>document.body.classList.remove('season-'+y));
   document.body.classList.add('season-'+activeSeason);
