@@ -68,7 +68,7 @@ button{cursor:pointer;font-family:inherit}input,textarea,select{font-family:inhe
 .cf{margin-bottom:14px}.cf label{display:block;font-size:11px;font-weight:700;color:var(--mut);text-transform:uppercase;letter-spacing:0.6px;margin-bottom:4px}
 .cf input,.cf textarea{width:100%;padding:12px 14px;border:1px solid var(--brd);border-radius:8px;font-size:15px;transition:border-color 0.2s}
 .cf input:focus,.cf textarea:focus{outline:none;border-color:var(--acc)}
-.cf textarea{min-height:160px;resize:vertical;line-height:1.7}
+.cf textarea{min-height:160px;resize:vertical;line-height:1.7;overflow:hidden}
 .photo-drop{border:2px dashed var(--brd);border-radius:10px;padding:24px;text-align:center;color:var(--mut);font-size:13px;cursor:pointer;transition:0.2s}
 .photo-drop:hover{border-color:var(--acc);color:var(--acc)}
 .photo-preview{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
@@ -250,6 +250,7 @@ tr.bs-row .row-check{width:15px;height:15px;accent-color:var(--blue);cursor:poin
 /* Player name chip — used in posts, box scores, everywhere a Groove player appears */
 .player-chip{display:inline;font-weight:700;color:var(--pri);background:linear-gradient(135deg,rgba(232,168,56,0.1),rgba(232,168,56,0.05));padding:1px 7px;border-radius:4px;font-size:inherit;white-space:nowrap}
 .player-chip .pc-num{font-size:0.8em;color:var(--acc);font-weight:800;margin-left:2px}
+.pc-avatar{width:18px;height:18px;border-radius:50%;object-fit:cover;vertical-align:middle;margin-right:3px;display:inline-block;border:1px solid rgba(26,39,68,0.12)}
 /* Box score notes */
 .box-notes{margin-top:12px}
 .box-notes label{display:block;font-size:10px;font-weight:700;color:var(--mut);text-transform:uppercase;letter-spacing:0.6px;margin-bottom:4px}
@@ -421,6 +422,7 @@ body.has-save-bar .main{padding-bottom:80px !important}
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-storage-compat.js"></script>
 </head>
 <body>
 <canvas id="grassCanvas"></canvas>
@@ -461,12 +463,13 @@ const firebaseConfig = {
 };
 
 const firebaseReady = firebaseConfig.apiKey !== "YOUR_API_KEY";
-let fb, auth, db, currentUser = null;
+let fb, auth, db, storage = null, currentUser = null;
 
 if (firebaseReady) {
   fb = firebase.initializeApp(firebaseConfig);
   auth = firebase.auth();
   db = firebase.firestore();
+  storage = firebase.storage();
 }
 
 /* ═══ ADMIN ALLOWLIST ═══
@@ -526,12 +529,48 @@ function n(v){const p=parseFloat(v);return isNaN(p)?0:p}
 function avg3(h,ab){return ab>0?(h/ab).toFixed(3):'—'}
 function esc(s){const d=document.createElement('div');d.textContent=s||'';return d.innerHTML}
 function enabledStats(){return(D.cfg.stats||[]).filter(s=>s.on)}
+function autoResize(el){el.style.height='auto';el.style.height=el.scrollHeight+'px'}
+
+/* ═══ IMAGE RESIZE + UPLOAD ═══ */
+let pendingUploads=0;
+function resizeImage(file,maxDim){
+  return new Promise(resolve=>{
+    const reader=new FileReader();
+    reader.onload=e=>{
+      const img=new Image();
+      img.onload=()=>{
+        let w=img.width,h=img.height;
+        if(w>maxDim||h>maxDim){
+          if(w>h){h=Math.round(h*(maxDim/w));w=maxDim}
+          else{w=Math.round(w*(maxDim/h));h=maxDim}
+        }
+        const c=document.createElement('canvas');c.width=w;c.height=h;
+        c.getContext('2d').drawImage(img,0,0,w,h);
+        c.toBlob(blob=>resolve(blob),'image/jpeg',0.8);
+      };
+      img.src=e.target.result;
+    };
+    reader.readAsDataURL(file);
+  });
+}
+async function uploadPhoto(blob,filename){
+  if(!storage){
+    // Fallback to base64 for local dev
+    return new Promise(resolve=>{
+      const r=new FileReader();r.onload=e=>resolve(e.target.result);r.readAsDataURL(blob);
+    });
+  }
+  const path=`photos/${activeSeason}/${uid()}-${filename.replace(/[^a-zA-Z0-9._-]/g,'_')}`;
+  const ref=storage.ref(path);
+  const snap=await ref.put(blob);
+  return snap.ref.getDownloadURL();
+}
 
 /* ═══ PLAYER NAME CHIPS ═══ */
-// Build a lookup: lowercase name -> {name, number}
+// Build a lookup: lowercase name -> {name, number, photo}
 function rosterMap(){
   const m={};
-  D.roster.forEach(r=>{if(r.name)m[r.name.trim().toLowerCase()]={name:r.name,number:r.number||''}});
+  D.roster.forEach(r=>{if(r.name)m[r.name.trim().toLowerCase()]={name:r.name,number:r.number||'',photo:r.photo||''}});
   return m;
 }
 // Render a player name as a highlighted chip if they're on the roster
@@ -540,7 +579,8 @@ function playerChip(name){
   const rm=rosterMap();
   const entry=rm[name.trim().toLowerCase()];
   if(entry){
-    return `<span class="player-chip">${esc(entry.name)}${entry.number?'<span class="pc-num">#'+esc(entry.number)+'</span>':''}</span>`;
+    const avatar=entry.photo?`<img class="pc-avatar" src="${entry.photo}">`:'';
+    return `<span class="player-chip">${avatar}${esc(entry.name)}${entry.number?'<span class="pc-num">#'+esc(entry.number)+'</span>':''}</span>`;
   }
   return esc(name);
 }
@@ -584,7 +624,8 @@ function chipifyText(text){
   const names=Object.values(rm).sort((a,b)=>b.name.length-a.name.length);
   names.forEach(r=>{
     const escaped=esc(r.name);
-    const chip=`<span class="player-chip">${escaped}${r.number?'<span class="pc-num">#'+esc(r.number)+'</span>':''}</span>`;
+    const avatar=r.photo?`<img class="pc-avatar" src="${r.photo}">`:'';
+    const chip=`<span class="player-chip">${avatar}${escaped}${r.number?'<span class="pc-num">#'+esc(r.number)+'</span>':''}</span>`;
     // Case-insensitive replace, word boundary aware
     const re=new RegExp('\\b'+escaped.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')+'\\b','gi');
     safe=safe.replace(re,chip);
@@ -922,26 +963,13 @@ function spotifyEmbed(url){
   return `<iframe src="https://open.spotify.com/embed/track/${id}?utm_source=generator&theme=0" allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" loading="lazy"></iframe>`;
 }
 // Photo upload handler for roster headshots
-function handleRosterPhoto(idx,files){
+async function handleRosterPhoto(idx,files){
   if(!files||!files.length)return;
   const f=files[0];
-  const reader=new FileReader();
-  reader.onload=function(e){
-    // Resize to max 300px wide for Firestore friendliness
-    const img=new Image();
-    img.onload=function(){
-      const max=300;
-      let w=img.width,h=img.height;
-      if(w>max){h=Math.round(h*(max/w));w=max}
-      if(h>max){w=Math.round(w*(max/h));h=max}
-      const c=document.createElement('canvas');c.width=w;c.height=h;
-      const ctx=c.getContext('2d');ctx.drawImage(img,0,0,w,h);
-      D.roster[idx].photo=c.toDataURL('image/jpeg',0.75);
-      renderRoster();
-    };
-    img.src=e.target.result;
-  };
-  reader.readAsDataURL(f);
+  const blob=await resizeImage(f,300);
+  const url=await uploadPhoto(blob,'roster-'+D.roster[idx].id+'.jpg');
+  D.roster[idx].photo=url;
+  renderRoster();
 }
 
 function renderRoster(){
@@ -1127,26 +1155,48 @@ function renderComposer(){
     }
     html+=`</div>`;
     html+=`<div class="cf"><label>Title</label><input value="${esc(composerData.title)}" placeholder="e.g. A Slugfest in the Rain" oninput="composerData.title=this.value"></div>`;
-    html+=`<div class="cf"><label>Write-up</label><textarea placeholder="The full story of this game — etched into history..." oninput="composerData.body=this.value" style="min-height:200px">${esc(composerData.body)}</textarea><span style="font-size:10px;color:var(--mut);margin-top:2px">Use **bold** and *italic* for formatting</span></div>`;
+    html+=`<div class="cf"><label>Write-up</label><textarea placeholder="The full story of this game — etched into history..." oninput="composerData.body=this.value;autoResize(this)" style="min-height:200px">${esc(composerData.body)}</textarea><span style="font-size:10px;color:var(--mut);margin-top:2px">Use **bold** and *italic* for formatting</span></div>`;
   }else if(composerType==='photo'){
     html+=`<div class="cf"><label>Caption</label><input value="${esc(composerData.title)}" placeholder="What's in the photo?" oninput="composerData.title=this.value"></div>`;
     html+=`<div class="cf"><label>Photos</label><div class="photo-drop" onclick="document.getElementById('photoInput').click()">Click to upload photos</div><input type="file" id="photoInput" accept="image/*" multiple style="display:none" onchange="handlePhotos(this.files)"><div class="photo-preview" id="photoPreview"></div></div>`;
-    html+=`<div class="cf"><label>Description</label><textarea placeholder="Story behind these photos..." oninput="composerData.body=this.value" style="min-height:160px">${esc(composerData.body)}</textarea></div>`;
+    html+=`<div class="cf"><label>Description</label><textarea placeholder="Story behind these photos..." oninput="composerData.body=this.value;autoResize(this)" style="min-height:160px">${esc(composerData.body)}</textarea></div>`;
   }else if(composerType==='dataviz'){
     html+=`<div class="cf"><label>Title</label><input value="${esc(composerData.title)}" placeholder="e.g. RBI Trends Through Game 10" oninput="composerData.title=this.value"></div>`;
-    html+=`<div class="cf"><label>Analysis</label><textarea placeholder="What does the data show?" oninput="composerData.body=this.value" style="min-height:160px">${esc(composerData.body)}</textarea></div>`;
+    html+=`<div class="cf"><label>Analysis</label><textarea placeholder="What does the data show?" oninput="composerData.body=this.value;autoResize(this)" style="min-height:160px">${esc(composerData.body)}</textarea></div>`;
     html+=`<div class="cf"><label>Image (optional)</label><div class="photo-drop" onclick="document.getElementById('photoInput').click()">Upload chart / visualization</div><input type="file" id="photoInput" accept="image/*" multiple style="display:none" onchange="handlePhotos(this.files)"><div class="photo-preview" id="photoPreview"></div></div>`;
   }else{
     html+=`<div class="cf"><label>Title (optional)</label><input value="${esc(composerData.title)}" placeholder="Quick update" oninput="composerData.title=this.value"></div>`;
-    html+=`<div class="cf"><label>Note</label><textarea placeholder="What's on your mind, Groove member?" oninput="composerData.body=this.value" style="min-height:200px">${esc(composerData.body)}</textarea><span style="font-size:10px;color:var(--mut);margin-top:2px">Use **bold** and *italic* for formatting</span></div>`;
+    html+=`<div class="cf"><label>Note</label><textarea placeholder="What's on your mind, Groove member?" oninput="composerData.body=this.value;autoResize(this)" style="min-height:200px">${esc(composerData.body)}</textarea><span style="font-size:10px;color:var(--mut);margin-top:2px">Use **bold** and *italic* for formatting</span></div>`;
   }
   html+=`<div style="display:flex;gap:10px;justify-content:flex-end;margin-top:20px"><button class="cancel-btn" onclick="closeComposer()">Cancel</button><button class="save-btn" onclick="publishPost()">${isEditing?'Update Post':'Save & Publish'}</button></div>`;
   document.getElementById('composerInner').innerHTML=html;
-  if(composerData.photos&&composerData.photos.length){const pp=document.getElementById('photoPreview');if(pp)pp.innerHTML=composerData.photos.map(p=>`<img src="${p}">`).join('')}
+  if(composerData.photos&&composerData.photos.length){const pp=document.getElementById('photoPreview');if(pp)pp.innerHTML=composerData.photos.map(p=>p==='uploading'?`<div style="width:80px;height:80px;border-radius:6px;background:var(--brd);display:flex;align-items:center;justify-content:center;font-size:10px;color:var(--mut)">Uploading…</div>`:`<img src="${p}">`).join('')}
+  // Auto-expand pre-filled textareas (e.g. editing an existing post)
+  document.querySelectorAll('#composerInner textarea').forEach(el=>{if(el.value)autoResize(el)});
 }
-function handlePhotos(files){Array.from(files).forEach(f=>{const r=new FileReader();r.onload=e=>{composerData.photos.push(e.target.result);renderComposer()};r.readAsDataURL(f)})}
+function handlePhotos(files){
+  Array.from(files).forEach(async f=>{
+    const idx=composerData.photos.length;
+    composerData.photos.push('uploading');
+    pendingUploads++;
+    updatePublishBtn();
+    renderComposer();
+    const blob=await resizeImage(f,1200);
+    const url=await uploadPhoto(blob,f.name||'photo.jpg');
+    composerData.photos[idx]=url;
+    pendingUploads--;
+    updatePublishBtn();
+    renderComposer();
+  });
+}
+function updatePublishBtn(){
+  const btn=document.querySelector('#composerInner .save-btn');
+  if(btn){btn.disabled=pendingUploads>0;btn.textContent=pendingUploads>0?'Uploading...':'Save & Publish'}
+}
 
 function publishPost(){
+  // Filter out any still-uploading placeholders
+  composerData.photos=(composerData.photos||[]).filter(p=>p&&p!=='uploading');
   let opponent='',runsFor='',runsAgainst='',gameDate='';
   if(composerType==='recap'&&composerGameId){
     const g=D.games.find(x=>x.id===composerGameId);
