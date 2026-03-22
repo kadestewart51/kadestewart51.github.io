@@ -142,6 +142,49 @@ button{cursor:pointer;font-family:inherit}input,textarea,select{font-family:inhe
 .roster-card .rnum-input{font-size:12px;font-weight:700;color:var(--acc);width:50px;text-align:center}
 .roster-card .rpos-input{font-size:11px;font-weight:600;color:var(--mut);width:80px;text-align:center;text-transform:uppercase}
 .roster-card .rbio-input{font-size:12px;color:#666;width:100%;text-align:center;resize:vertical;min-height:50px;line-height:1.4}
+/* ═══ EXPANDED PLAYER CARD ═══ */
+.player-detail{background:var(--card);border:1px solid var(--brd);border-radius:var(--radius);overflow:hidden;grid-column:1/-1;animation:fadeIn 0.25s ease}
+.pd-header{display:flex;gap:20px;padding:24px;align-items:flex-start}
+.pd-photo{width:140px;height:170px;border-radius:8px;background:linear-gradient(135deg,#e0ddd5,#d0cdc5);flex-shrink:0;display:flex;align-items:center;justify-content:center;overflow:hidden;position:relative}
+.pd-photo img{width:100%;height:100%;object-fit:cover}
+.pd-photo .material-symbols-outlined{font-size:48px;color:var(--mut)}
+.pd-photo-upload{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,0.4);opacity:0;transition:opacity 0.2s;cursor:pointer;border-radius:8px}
+.pd-photo:hover .pd-photo-upload{opacity:1}
+.pd-photo-upload .material-symbols-outlined{font-size:28px;color:#fff}
+.pd-info{flex:1;min-width:0}
+.pd-name-row{display:flex;justify-content:space-between;align-items:baseline;gap:12px;margin-bottom:8px}
+.pd-name{font-size:24px;font-weight:900;color:var(--pri);letter-spacing:-0.5px}
+.pd-pos{font-size:18px;font-weight:800;color:var(--mut);text-transform:uppercase;letter-spacing:0.5px}
+.pd-vitals{font-size:12px;color:var(--mut);line-height:2;font-weight:600}
+.pd-vitals span{margin-right:14px;white-space:nowrap}
+.pd-bio{padding:0 24px 20px;font-size:14px;line-height:1.8;color:#555}
+/* Walkup song embed */
+.pd-song{padding:0 24px 20px}
+.pd-song-label{font-size:10px;font-weight:700;color:var(--mut);text-transform:uppercase;letter-spacing:0.6px;margin-bottom:6px}
+.pd-song iframe{border-radius:8px;width:100%;height:80px;border:none}
+/* Stats table in expanded card */
+.pd-stats{padding:0 24px 20px}
+.pd-stats-label{font-size:10px;font-weight:700;color:var(--mut);text-transform:uppercase;letter-spacing:0.6px;margin-bottom:6px}
+/* Admin edit fields in expanded card */
+.pd-edit-row{display:flex;gap:8px;margin-bottom:8px;flex-wrap:wrap}
+.pd-edit-row label{display:block;font-size:10px;font-weight:600;color:var(--mut);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:2px}
+.pd-edit-row input{width:100%;padding:6px 8px;border:1px solid var(--brd);border-radius:4px;font-size:13px;font-family:'Sen',sans-serif}
+.pd-edit-row input:focus{outline:none;border-color:var(--acc)}
+.pd-edit-field{flex:1;min-width:80px}
+.pd-edit-field-wide{flex:2;min-width:140px}
+.pd-edit-song{display:flex;gap:8px;align-items:flex-end}
+.pd-edit-song input{flex:1}
+.pd-actions{padding:12px 24px 16px;border-top:1px solid var(--brd);display:flex;justify-content:space-between;align-items:center}
+@media(max-width:640px){
+  .pd-header{flex-direction:column;align-items:center;text-align:center;padding:20px 16px}
+  .pd-photo{width:120px;height:150px}
+  .pd-name-row{justify-content:center;flex-wrap:wrap}
+  .pd-vitals{text-align:center}
+  .pd-bio{text-align:center;padding:0 16px 16px}
+  .pd-song{padding:0 16px 16px}
+  .pd-stats{padding:0 16px 16px}
+  .pd-edit-row{flex-direction:column}
+}
 /* Add player card */
 .roster-card-add{background:transparent;border:2px dashed var(--brd);border-radius:var(--radius);display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:180px;cursor:pointer;transition:all 0.2s;color:var(--mut)}
 .roster-card-add:hover{border-color:var(--acc);color:var(--acc);background:rgba(232,168,56,0.03)}
@@ -581,7 +624,16 @@ function applySnapshot(d) {
   D.roster = d.roster || [];
   D.posts = d.posts || [];
   D.posts.forEach(p => { if (!p.comments) p.comments = [] });
-  D.roster.forEach(r => { if (!r.position) r.position = ''; if (!r.bio) r.bio = '' });
+  D.roster.forEach(r => {
+    if (!r.position) r.position = '';
+    if (!r.bio) r.bio = '';
+    if (!r.photo) r.photo = '';
+    if (!r.throws) r.throws = '';
+    if (!r.bats) r.bats = '';
+    if (!r.height) r.height = '';
+    if (!r.hometown) r.hometown = '';
+    if (!r.walkupSong) r.walkupSong = '';
+  });
 }
 
 function loadFromLocalStorage(){
@@ -815,6 +867,40 @@ function renderRecord(){
 }
 
 /* ═══ ROSTER PAGE ═══ */
+// Extract Spotify track ID from various URL formats
+function spotifyTrackId(url){
+  if(!url)return null;
+  const m=url.match(/track[\/:]([a-zA-Z0-9]+)/);
+  return m?m[1]:null;
+}
+function spotifyEmbed(url){
+  const id=spotifyTrackId(url);
+  if(!id)return '';
+  return `<iframe src="https://open.spotify.com/embed/track/${id}?utm_source=generator&theme=0" allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" loading="lazy"></iframe>`;
+}
+// Photo upload handler for roster headshots
+function handleRosterPhoto(idx,files){
+  if(!files||!files.length)return;
+  const f=files[0];
+  const reader=new FileReader();
+  reader.onload=function(e){
+    // Resize to max 300px wide for Firestore friendliness
+    const img=new Image();
+    img.onload=function(){
+      const max=300;
+      let w=img.width,h=img.height;
+      if(w>max){h=Math.round(h*(max/w));w=max}
+      if(h>max){w=Math.round(w*(max/h));h=max}
+      const c=document.createElement('canvas');c.width=w;c.height=h;
+      const ctx=c.getContext('2d');ctx.drawImage(img,0,0,w,h);
+      D.roster[idx].photo=c.toDataURL('image/jpeg',0.75);
+      renderRoster();
+    };
+    img.src=e.target.result;
+  };
+  reader.readAsDataURL(f);
+}
+
 function renderRoster(){
   const grid=document.getElementById('rosterGrid');
   const admin=isAdmin();
@@ -827,40 +913,110 @@ function renderRoster(){
 
   D.roster.forEach((r,i)=>{
     const expanded=expandedRoster[r.id];
+    const photoHtml=r.photo?`<img src="${r.photo}">`:`<span class="material-symbols-outlined" style="font-size:28px">person</span>`;
+    const bigPhotoHtml=r.photo?`<img src="${r.photo}">`:`<span class="material-symbols-outlined">person</span>`;
+
     if(admin){
-      // Editable cards
-      html+=`<div class="roster-card"><div class="roster-card-top"><div class="roster-avatar"><span class="material-symbols-outlined" style="font-size:28px">person</span></div><input class="rn-input" value="${esc(r.name)}" placeholder="Name" oninput="D.roster[${i}].name=this.value"><div style="display:flex;gap:4px;justify-content:center;margin-top:4px"><input class="rnum-input" value="${esc(r.number?'#'+r.number:'')}" placeholder="#00" oninput="D.roster[${i}].number=this.value.replace('#','')"><input class="rpos-input" value="${esc(r.position||'')}" placeholder="POS" oninput="D.roster[${i}].position=this.value"></div></div><div style="padding:0 12px 8px"><textarea class="rbio-input" placeholder="Bio / hometown / fun fact..." oninput="D.roster[${i}].bio=this.value">${esc(r.bio||'')}</textarea></div><div style="padding:0 12px 10px;text-align:center"><button class="rm-btn" style="font-size:11px" onclick="delRosterPlayer(${i},this)">Remove</button></div></div>`;
-    } else {
-      // Read-only rich cards
-      html+=`<div class="roster-card"><div class="roster-card-top"><div class="roster-avatar"><span class="material-symbols-outlined" style="font-size:28px">person</span></div><div class="rname">${esc(r.name)||'—'}</div>`;
-      if(r.number)html+=`<div class="rnumber">#${esc(r.number)}</div>`;
-      if(r.position)html+=`<div class="rposition">${esc(r.position)}</div>`;
-      html+=`</div>`;
-      if(r.bio)html+=`<div class="roster-card-bio">${esc(r.bio)}</div>`;
-      // Expandable stats summary
-      html+=`<div class="roster-card-expand"><button onclick="expandedRoster['${r.id}']=!expandedRoster['${r.id}'];renderRoster()"><span class="material-symbols-outlined" style="font-size:16px">${expanded?'expand_less':'expand_more'}</span>${expanded?'Less':'Stats'}</button></div>`;
-      if(expanded){
-        const stats=getPlayerStatsByName(r.name);
-        html+=`<div class="roster-card-detail">`;
-        if(stats){
-          html+=`<div class="detail-row"><span class="detail-label">GP</span><span class="detail-val">${stats.gp}</span></div>`;
-          html+=`<div class="detail-row"><span class="detail-label">AVG</span><span class="detail-val">${avg3(stats.h||0,stats.ab||0)}</span></div>`;
-          ['h','hr','rbi','r','bb','sb'].forEach(k=>{
-            const s=enabledStats().find(x=>x.id===k);
-            if(s&&stats[k])html+=`<div class="detail-row"><span class="detail-label">${esc(s.label)}</span><span class="detail-val">${stats[k]}</span></div>`;
-          });
-        }else{
-          html+=`<div style="padding:8px 0;font-size:12px;color:var(--mut);text-align:center">No stats yet</div>`;
+      // ─── ADMIN: Collapsed card (compact edit) ───
+      if(!expanded){
+        html+=`<div class="roster-card"><div class="roster-card-top">`;
+        html+=`<div class="roster-avatar">${photoHtml}</div>`;
+        html+=`<input class="rn-input" value="${esc(r.name)}" placeholder="Name" oninput="D.roster[${i}].name=this.value">`;
+        html+=`<div style="display:flex;gap:4px;justify-content:center;margin-top:4px"><input class="rnum-input" value="${esc(r.number?'#'+r.number:'')}" placeholder="#00" oninput="D.roster[${i}].number=this.value.replace('#','')"><input class="rpos-input" value="${esc(r.position||'')}" placeholder="POS" oninput="D.roster[${i}].position=this.value"></div>`;
+        html+=`</div>`;
+        html+=`<div class="roster-card-expand"><button onclick="expandedRoster['${r.id}']=true;renderRoster()"><span class="material-symbols-outlined" style="font-size:16px">expand_more</span>Edit details</button></div>`;
+        html+=`</div>`;
+      } else {
+        // ─── ADMIN: Expanded card (full edit) ───
+        html+=`<div class="player-detail">`;
+        html+=`<div class="pd-header">`;
+        // Photo with upload overlay
+        html+=`<div class="pd-photo" onclick="document.getElementById('photoUp-${i}').click()">`;
+        html+=bigPhotoHtml;
+        html+=`<div class="pd-photo-upload"><span class="material-symbols-outlined">photo_camera</span></div>`;
+        html+=`<input type="file" id="photoUp-${i}" accept="image/*" style="display:none" onchange="handleRosterPhoto(${i},this.files)">`;
+        html+=`</div>`;
+        // Info fields
+        html+=`<div class="pd-info">`;
+        html+=`<div class="pd-edit-row"><div class="pd-edit-field-wide"><label>Name</label><input value="${esc(r.name)}" placeholder="Full name" oninput="D.roster[${i}].name=this.value"></div><div class="pd-edit-field" style="max-width:70px"><label>#</label><input value="${esc(r.number||'')}" placeholder="00" oninput="D.roster[${i}].number=this.value.replace('#','')"></div><div class="pd-edit-field" style="max-width:90px"><label>Pos</label><input value="${esc(r.position||'')}" placeholder="C/1B" oninput="D.roster[${i}].position=this.value" style="text-transform:uppercase"></div></div>`;
+        html+=`<div class="pd-edit-row"><div class="pd-edit-field"><label>Throws</label><input value="${esc(r.throws||'')}" placeholder="R / L / S" oninput="D.roster[${i}].throws=this.value"></div><div class="pd-edit-field"><label>Bats</label><input value="${esc(r.bats||'')}" placeholder="R / L / S" oninput="D.roster[${i}].bats=this.value"></div><div class="pd-edit-field"><label>Height</label><input value="${esc(r.height||'')}" placeholder="6'2&quot;" oninput="D.roster[${i}].height=this.value"></div><div class="pd-edit-field"><label>Hometown</label><input value="${esc(r.hometown||'')}" placeholder="City, ST" oninput="D.roster[${i}].hometown=this.value"></div></div>`;
+        html+=`<div class="pd-edit-row"><div style="flex:1"><label>Walkup Song (Spotify link)</label><input value="${esc(r.walkupSong||'')}" placeholder="https://open.spotify.com/track/..." oninput="D.roster[${i}].walkupSong=this.value"></div></div>`;
+        html+=`</div></div>`;
+        // Bio
+        html+=`<div style="padding:0 24px 16px"><label style="display:block;font-size:10px;font-weight:600;color:var(--mut);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:4px">Bio</label><textarea style="width:100%;padding:10px 12px;border:1px solid var(--brd);border-radius:6px;font-size:14px;line-height:1.6;resize:vertical;min-height:80px;font-family:'Sen',sans-serif" oninput="D.roster[${i}].bio=this.value">${esc(r.bio||'')}</textarea></div>`;
+        // Walkup song preview
+        if(spotifyTrackId(r.walkupSong)){
+          html+=`<div class="pd-song"><div class="pd-song-label">Walkup Song</div>${spotifyEmbed(r.walkupSong)}</div>`;
         }
+        // Stats
+        const stats=getPlayerStatsByName(r.name);
+        if(stats){
+          const es=enabledStats();
+          html+=`<div class="pd-stats"><div class="pd-stats-label">Season Stats</div><div class="table-wrap"><table><thead><tr><th>GP</th>`;
+          es.forEach(s=>{html+=`<th title="${esc(s.full)}">${esc(s.label)}</th>`});
+          html+=`<th>AVG</th></tr></thead><tbody><tr><td>${stats.gp}</td>`;
+          es.forEach(s=>{html+=`<td>${stats[s.id]||0}</td>`});
+          html+=`<td class="calc-cell">${avg3(stats.h||0,stats.ab||0)}</td></tr></tbody></table></div></div>`;
+        }
+        // Actions
+        html+=`<div class="pd-actions"><button class="rm-btn" onclick="delRosterPlayer(${i},this)">Remove player</button><button style="border:none;background:transparent;color:var(--mut);font-size:12px;font-weight:600;cursor:pointer;display:flex;align-items:center;gap:3px" onclick="expandedRoster['${r.id}']=false;renderRoster()"><span class="material-symbols-outlined" style="font-size:16px">expand_less</span>Collapse</button></div>`;
         html+=`</div>`;
       }
-      html+=`</div>`;
+    } else {
+      // ─── VISITOR: Collapsed card (read-only) ───
+      if(!expanded){
+        html+=`<div class="roster-card"><div class="roster-card-top"><div class="roster-avatar">${photoHtml}</div><div class="rname">${esc(r.name)||'—'}</div>`;
+        if(r.number)html+=`<div class="rnumber">#${esc(r.number)}</div>`;
+        if(r.position)html+=`<div class="rposition">${esc(r.position)}</div>`;
+        html+=`</div>`;
+        html+=`<div class="roster-card-expand"><button onclick="expandedRoster['${r.id}']=true;renderRoster()"><span class="material-symbols-outlined" style="font-size:16px">expand_more</span>Read more</button></div>`;
+        html+=`</div>`;
+      } else {
+        // ─── VISITOR: Expanded baseball card (read-only) ───
+        html+=`<div class="player-detail">`;
+        html+=`<div class="pd-header">`;
+        html+=`<div class="pd-photo">${bigPhotoHtml}</div>`;
+        html+=`<div class="pd-info">`;
+        html+=`<div class="pd-name-row"><span class="pd-name">${esc(r.name)}</span>`;
+        if(r.position)html+=`<span class="pd-pos">${esc(r.position)}</span>`;
+        html+=`</div>`;
+        // Vitals line — only show fields that have values
+        const vitals=[];
+        if(r.throws)vitals.push('Throws: '+esc(r.throws));
+        if(r.bats)vitals.push('Bats: '+esc(r.bats));
+        if(r.height)vitals.push(esc(r.height));
+        if(r.hometown)vitals.push(esc(r.hometown));
+        if(r.number)vitals.push('#'+esc(r.number));
+        if(vitals.length){
+          html+=`<div class="pd-vitals">${vitals.map(v=>'<span>'+v+'</span>').join('')}</div>`;
+        }
+        html+=`</div></div>`;
+        // Bio
+        if(r.bio)html+=`<div class="pd-bio">${esc(r.bio)}</div>`;
+        // Walkup song
+        if(spotifyTrackId(r.walkupSong)){
+          html+=`<div class="pd-song"><div class="pd-song-label">Walkup Song</div>${spotifyEmbed(r.walkupSong)}</div>`;
+        }
+        // Stats
+        const stats=getPlayerStatsByName(r.name);
+        if(stats){
+          const es=enabledStats();
+          html+=`<div class="pd-stats"><div class="pd-stats-label">Season Stats</div><div class="table-wrap"><table><thead><tr><th>GP</th>`;
+          es.forEach(s=>{html+=`<th title="${esc(s.full)}">${esc(s.label)}</th>`});
+          html+=`<th>AVG</th></tr></thead><tbody><tr><td>${stats.gp}</td>`;
+          es.forEach(s=>{html+=`<td>${stats[s.id]||0}</td>`});
+          html+=`<td class="calc-cell">${avg3(stats.h||0,stats.ab||0)}</td></tr></tbody></table></div></div>`;
+        }
+        // Collapse
+        html+=`<div style="padding:8px 24px 16px;display:flex;justify-content:center"><button style="border:none;background:transparent;color:var(--mut);font-size:11px;font-weight:600;display:flex;align-items:center;gap:3px;cursor:pointer" onclick="expandedRoster['${r.id}']=false;renderRoster()"><span class="material-symbols-outlined" style="font-size:16px">expand_less</span>Show less</button></div>`;
+        html+=`</div>`;
+      }
     }
   });
 
   // Add player card (admin only)
   if(admin){
-    html+=`<div class="roster-card-add" onclick="D.roster.push({id:uid(),name:'',number:'',position:'',bio:''});renderRoster()"><span class="material-symbols-outlined">person_add</span><span>Add Player</span></div>`;
+    html+=`<div class="roster-card-add" onclick="D.roster.push({id:uid(),name:'',number:'',position:'',bio:'',photo:'',throws:'',bats:'',height:'',hometown:'',walkupSong:''});renderRoster()"><span class="material-symbols-outlined">person_add</span><span>Add Player</span></div>`;
   }
 
   grid.innerHTML=html;
