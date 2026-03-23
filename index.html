@@ -75,7 +75,7 @@ button{cursor:pointer;font-family:inherit}input,textarea,select{font-family:inhe
 .photo-preview img{width:80px;height:80px;object-fit:cover;border-radius:6px;border:1px solid var(--brd)}
 /* Game picker grid */
 .game-picker{display:grid;grid-template-columns:repeat(5,1fr);gap:6px;margin-bottom:14px}
-.gp-cell{padding:10px 6px;border:1px solid var(--brd);border-radius:8px;text-align:center;font-size:11px;font-weight:600;color:var(--mut);transition:0.15s;background:var(--card)}
+.gp-cell{padding:10px 6px;border:1px solid var(--brd);border-radius:8px;text-align:center;font-size:11px;font-weight:600;color:var(--mut);transition:0.15s;background:var(--card);display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:56px}
 .gp-cell.available{color:var(--pri);cursor:pointer;border-color:var(--pri);border-style:dashed}
 .gp-cell.available:hover{background:rgba(26,39,68,0.04);box-shadow:0 2px 8px rgba(26,39,68,0.1)}
 .gp-cell.selected{background:var(--pri);color:#fff;border-color:var(--pri);border-style:solid;box-shadow:0 2px 8px rgba(26,39,68,0.2)}
@@ -94,9 +94,9 @@ button{cursor:pointer;font-family:inherit}input,textarea,select{font-family:inhe
 .post{background:var(--card);border:1px solid var(--brd);border-radius:var(--radius);margin-bottom:16px;overflow:hidden;box-shadow:0 2px 12px rgba(0,0,0,0.05);transition:box-shadow 0.2s}
 .post:hover{box-shadow:0 4px 20px rgba(0,0,0,0.08)}
 .post-header{padding:18px 24px 8px;display:flex;justify-content:space-between;align-items:flex-start}
-.post-author{font-weight:700;font-size:14px;color:var(--pri)}.post-date{font-size:11px;color:var(--mut)}
+.post-author{font-weight:700;font-size:14px;color:var(--pri)}.post-date{font-size:13px;color:var(--mut);margin-top:2px}
 .post-title{font-size:22px;font-weight:800;color:var(--pri);padding:4px 24px 0}
-.post-body{padding:10px 24px 20px;font-size:15px;line-height:1.8;color:#444;white-space:pre-wrap}
+.post-body{padding:10px 24px 20px;font-size:15px;line-height:2;color:#444;white-space:pre-wrap}
 .post-photos{padding:0 24px 20px;display:flex;gap:8px;flex-wrap:wrap}
 .post-photos img{max-width:100%;border-radius:8px;border:1px solid var(--brd)}
 .post-score{padding:12px 22px;margin:4px 24px 12px;background:rgba(26,39,68,0.03);border-radius:8px;display:flex;align-items:center;gap:10px;font-weight:800;color:var(--pri);font-size:16px}
@@ -248,9 +248,17 @@ tr.bs-row .row-check{width:15px;height:15px;accent-color:var(--blue);cursor:poin
 .roster-picker-chip.selected{background:var(--pri);color:#fff;border-color:var(--pri)}
 .roster-picker-chip .rp-num{font-size:9px;opacity:0.6}
 /* Player name chip — used in posts, box scores, everywhere a Groove player appears */
-.player-chip{display:inline;font-weight:700;color:var(--pri);background:linear-gradient(135deg,rgba(232,168,56,0.1),rgba(232,168,56,0.05));padding:1px 7px;border-radius:4px;font-size:inherit;white-space:nowrap}
-.player-chip .pc-num{font-size:0.8em;color:var(--acc);font-weight:800;margin-left:2px}
-.pc-avatar{width:18px;height:18px;border-radius:50%;object-fit:cover;vertical-align:middle;margin-right:3px;display:inline-block;border:1px solid rgba(26,39,68,0.12)}
+.player-chip{display:inline-flex;align-items:center;font-weight:700;color:var(--pri);background:linear-gradient(135deg,rgba(232,168,56,0.12),rgba(232,168,56,0.05));padding:3px 9px;border-radius:6px;font-size:0.95em;white-space:nowrap;line-height:1.4;vertical-align:middle;position:relative;cursor:default}
+.player-chip .pc-num{font-size:0.8em;color:var(--acc);font-weight:800;margin-left:3px}
+.pc-avatar{width:20px;height:20px;border-radius:50%;object-fit:cover;margin-right:5px;flex-shrink:0;border:1px solid rgba(26,39,68,0.12)}
+/* Player chip hover card */
+.pc-hover{display:none;position:absolute;bottom:calc(100% + 8px);left:50%;transform:translateX(-50%);background:var(--card);border:1px solid var(--brd);border-radius:10px;box-shadow:0 8px 32px rgba(0,0,0,0.15);padding:14px 16px;width:220px;z-index:500;text-align:center;pointer-events:none}
+.player-chip:hover .pc-hover{display:block}
+.pc-hover::after{content:'';position:absolute;top:100%;left:50%;transform:translateX(-50%);border:6px solid transparent;border-top-color:var(--card)}
+.pc-hover-photo{width:56px;height:56px;border-radius:50%;object-fit:cover;margin:0 auto 8px;display:block;border:2px solid var(--brd)}
+.pc-hover-name{font-size:14px;font-weight:800;color:var(--pri);margin-bottom:2px}
+.pc-hover-meta{font-size:11px;color:var(--mut);font-weight:600;text-transform:uppercase;letter-spacing:0.5px}
+.pc-hover-song{font-size:10px;color:var(--acc);margin-top:6px;font-weight:600;white-space:normal}
 /* Box score notes */
 .box-notes{margin-top:12px}
 .box-notes label{display:block;font-size:10px;font-weight:700;color:var(--mut);text-transform:uppercase;letter-spacing:0.6px;margin-bottom:4px}
@@ -529,7 +537,7 @@ function n(v){const p=parseFloat(v);return isNaN(p)?0:p}
 function avg3(h,ab){return ab>0?(h/ab).toFixed(3):'—'}
 function esc(s){const d=document.createElement('div');d.textContent=s||'';return d.innerHTML}
 function enabledStats(){return(D.cfg.stats||[]).filter(s=>s.on)}
-function autoResize(el){el.style.height='auto';el.style.height=el.scrollHeight+'px'}
+function autoResize(el){el.style.height='0';el.style.height=Math.max(el.scrollHeight,parseInt(el.style.minHeight||'160'))+'px'}
 
 /* ═══ IMAGE RESIZE + UPLOAD ═══ */
 let pendingUploads=0;
@@ -567,11 +575,23 @@ async function uploadPhoto(blob,filename){
 }
 
 /* ═══ PLAYER NAME CHIPS ═══ */
-// Build a lookup: lowercase name -> {name, number, photo}
+// Build a lookup: lowercase name -> {name, number, photo, position, walkupSong}
 function rosterMap(){
   const m={};
-  D.roster.forEach(r=>{if(r.name)m[r.name.trim().toLowerCase()]={name:r.name,number:r.number||'',photo:r.photo||''}});
+  D.roster.forEach(r=>{if(r.name)m[r.name.trim().toLowerCase()]={name:r.name,number:r.number||'',photo:r.photo||'',position:r.position||'',walkupSong:r.walkupSong||''}});
   return m;
+}
+function chipHoverHtml(entry){
+  let h='<div class="pc-hover">';
+  if(entry.photo)h+=`<img class="pc-hover-photo" src="${entry.photo}">`;
+  h+=`<div class="pc-hover-name">${esc(entry.name)}</div>`;
+  const meta=[];
+  if(entry.position)meta.push(entry.position);
+  if(entry.number)meta.push('#'+entry.number);
+  if(meta.length)h+=`<div class="pc-hover-meta">${esc(meta.join(' · '))}</div>`;
+  if(entry.walkupSong)h+=`<div class="pc-hover-song">🎵 ${esc(entry.walkupSong)}</div>`;
+  h+='</div>';
+  return h;
 }
 // Render a player name as a highlighted chip if they're on the roster
 function playerChip(name){
@@ -580,7 +600,7 @@ function playerChip(name){
   const entry=rm[name.trim().toLowerCase()];
   if(entry){
     const avatar=entry.photo?`<img class="pc-avatar" src="${entry.photo}">`:'';
-    return `<span class="player-chip">${avatar}${esc(entry.name)}${entry.number?'<span class="pc-num">#'+esc(entry.number)+'</span>':''}</span>`;
+    return `<span class="player-chip">${avatar}${esc(entry.name)}${entry.number?'<span class="pc-num">#'+esc(entry.number)+'</span>':''}${chipHoverHtml(entry)}</span>`;
   }
   return esc(name);
 }
@@ -625,7 +645,7 @@ function chipifyText(text){
   names.forEach(r=>{
     const escaped=esc(r.name);
     const avatar=r.photo?`<img class="pc-avatar" src="${r.photo}">`:'';
-    const chip=`<span class="player-chip">${avatar}${escaped}${r.number?'<span class="pc-num">#'+esc(r.number)+'</span>':''}</span>`;
+    const chip=`<span class="player-chip">${avatar}${escaped}${r.number?'<span class="pc-num">#'+esc(r.number)+'</span>':''}${chipHoverHtml(r)}</span>`;
     // Case-insensitive replace, word boundary aware
     const re=new RegExp('\\b'+escaped.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')+'\\b','gi');
     safe=safe.replace(re,chip);
@@ -1240,11 +1260,11 @@ function renderFeed(){
   let html='';
   D.posts.forEach((p,i)=>{
     html+=`<div class="post">`;
-    html+=`<div class="post-header"><div><div class="post-author">${playerChip(p.author)}</div><div class="post-date">${fmtDate(p.createdAt||p.date)}</div></div></div>`;
-    if(p.title)html+=`<div class="post-title">${chipifyText(p.title)}</div>`;
     if(p.type==='recap'&&p.runsFor){
       const w=n(p.runsFor)>n(p.runsAgainst),l=n(p.runsFor)<n(p.runsAgainst),r=w?'W':l?'L':'T',bg=w?'var(--win)':l?'var(--loss)':'var(--tie)';
-      html+=`<div class="post-score"><span class="result-tag" style="background:${bg}">${r}</span><span>${esc(p.runsFor)} – ${esc(p.runsAgainst)}</span><span style="font-weight:400;font-size:13px;color:var(--mut)">vs ${esc(p.opponent)}</span></div>`;
+      html+=`<div class="post-header"><div><div style="display:flex;align-items:center;gap:8px"><div class="post-author">${playerChip(p.author)}</div><span style="font-size:9px;font-weight:700;color:var(--acc);text-transform:uppercase;letter-spacing:1px;background:rgba(232,168,56,0.1);padding:2px 8px;border-radius:4px">Official Game Recap</span></div><div class="post-date">${fmtDate(p.createdAt||p.date)}</div></div><div style="text-align:right"><span class="result-tag" style="background:${bg};font-size:16px;padding:6px 14px">${r}</span><div style="font-size:18px;font-weight:900;color:var(--pri);margin-top:4px">${esc(p.runsFor)} – ${esc(p.runsAgainst)}</div><div style="font-size:11px;color:var(--mut);font-weight:600">vs ${esc(p.opponent)}</div></div></div>`;
+    }else{
+      html+=`<div class="post-header"><div><div class="post-author">${playerChip(p.author)}</div><div class="post-date">${fmtDate(p.createdAt||p.date)}</div></div></div>`;
     }
     if(p.body)html+=`<div class="post-body">${chipifyText(p.body)}</div>`;
     if(p.photos&&p.photos.length){html+=`<div class="post-photos">`;p.photos.forEach(ph=>{html+=`<img src="${ph}" style="max-height:360px">`});html+=`</div>`}
