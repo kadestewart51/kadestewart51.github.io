@@ -114,7 +114,16 @@ button{cursor:pointer;font-family:inherit}input,textarea,select{font-family:inhe
 .recap-banner .rb-result{font-size:14px;font-weight:800;text-transform:uppercase;letter-spacing:1.5px;margin-bottom:4px}
 .recap-banner .rb-result.win{color:#d4ffd4}.recap-banner .rb-result.loss{color:#ffd4d4}.recap-banner .rb-result.tie{color:#fff8d4}
 
-@media(max-width:640px){.recap-banner{flex-direction:column;align-items:flex-start;gap:12px}.recap-banner .rb-right{text-align:left;display:flex;align-items:center;gap:12px;flex-direction:row-reverse}}
+@media(max-width:640px){
+  .recap-banner{flex-direction:column;gap:10px;padding:16px 18px 14px}
+  .recap-banner .rb-left{width:100%}
+  .recap-banner .rb-author{font-size:11px;flex-wrap:wrap}
+  .recap-banner .rb-meta{font-size:11px}
+  .recap-banner .rb-right{width:100%;display:flex;align-items:baseline;justify-content:space-between;gap:8px}
+  .recap-banner .rb-result{font-size:12px;letter-spacing:1px}
+  .recap-banner .rb-opponent{display:block;font-size:13px;margin-top:1px}
+  .recap-banner .rb-score{font-size:26px}
+}
 .result-tag{font-size:12px;font-weight:800;color:#fff;padding:3px 10px;border-radius:4px}
 /* Comments */
 .comments-section{padding:0 24px 12px}
@@ -267,7 +276,8 @@ tr.bs-row .row-check{width:15px;height:15px;accent-color:var(--blue);cursor:poin
 .player-chip .pc-num{font-size:0.8em;color:var(--acc);font-weight:800;margin-left:3px}
 .pc-avatar{width:20px;height:20px;border-radius:50%;object-fit:cover;margin-right:5px;flex-shrink:0;border:1px solid rgba(26,39,68,0.12)}
 /* Player chip hover card */
-.pc-hover{display:none;position:absolute;bottom:calc(100% + 8px);left:50%;transform:translateX(-50%);background:var(--card);border:1px solid var(--brd);border-radius:12px;box-shadow:0 8px 32px rgba(0,0,0,0.15);padding:14px 16px;width:280px;z-index:500;text-align:center;pointer-events:auto}
+.pc-hover{display:none;position:absolute;bottom:calc(100% + 8px);left:50%;transform:translateX(-50%);background:var(--card);border:1px solid var(--brd);border-radius:12px;box-shadow:0 8px 32px rgba(0,0,0,0.15);padding:14px 16px;width:320px;z-index:500;text-align:center;pointer-events:auto}
+@media(max-width:640px){.pc-hover{position:fixed;bottom:auto;top:50%;left:50%;transform:translate(-50%,-50%);width:calc(100vw - 32px);max-width:360px;border-radius:16px;box-shadow:0 12px 48px rgba(0,0,0,0.25)}}
 .player-chip:hover .pc-hover,.pc-hover:hover{display:block}
 .pc-hover::after{content:'';position:absolute;top:100%;left:50%;transform:translateX(-50%);border:8px solid transparent;border-top-color:var(--card)}
 .pc-hover-photo{width:56px;height:56px;border-radius:50%;object-fit:cover;margin:0 auto 8px;display:block;border:2px solid var(--brd)}
@@ -361,11 +371,11 @@ body.season-2024 .admin-signin:hover{color:var(--pri);border-color:var(--pri)}
     width:100% !important;height:48px !important;
     flex-direction:row !important;
     padding:0 !important;
-    overflow-x:auto;overflow-y:hidden;
-    -webkit-overflow-scrolling:touch;scrollbar-width:none;
+    overflow:hidden;
     border-bottom:1px solid var(--brd);
     background:var(--card);
-    gap:0
+    gap:0;
+    justify-content:space-around
   }
   nav.sidebar::-webkit-scrollbar{display:none}
   .sidebar-top{flex-direction:row;gap:0;padding:0 4px}
@@ -378,21 +388,8 @@ body.season-2024 .admin-signin:hover{color:var(--pri);border-color:var(--pri)}
     flex-direction:column;
     font-size:18px
   }
-  .nav-icon .tip{
-    position:static !important;
-    transform:none !important;
-    background:transparent !important;
-    color:inherit !important;
-    padding:0 !important;
-    border-radius:0 !important;
-    font-size:10px;font-weight:700;letter-spacing:0.2px;
-    opacity:1 !important;
-    pointer-events:auto !important;
-    box-shadow:none !important;
-    white-space:nowrap;
-    display:block !important
-  }
-  .nav-icon:hover .tip{transform:none !important;opacity:1 !important}
+  .nav-icon .tip{display:none !important}
+  .nav-icon{padding:0 8px !important;font-size:20px}
   .nav-icon.active::after{
     left:8px;right:8px;top:auto !important;bottom:0 !important;
     width:auto !important;height:3px !important;
@@ -418,10 +415,11 @@ body.season-2024 .admin-signin:hover{color:var(--pri);border-color:var(--pri)}
   .save-bar{left:0 !important;padding:8px 12px}
   /* Grass canvas below nav */
   #grassCanvas{top:48px}
-  /* Season toggle in mobile horizontal bar */
-  .season-toggle-wrap{flex-direction:row;gap:6px;padding:0 8px;align-items:center}
-  .season-toggle{margin:0}
+  /* Season toggle — move to header area on mobile */
+  .sidebar .season-toggle-wrap{display:none !important}
+  .mobile-season-toggle{display:flex !important}
 }
+.mobile-season-toggle{display:none;align-items:center;justify-content:center;gap:8px;padding:6px 0}
 /* Mobile split tables */
 .ps-mobile,.bs-mobile{display:none}
 @media(max-width:640px){.ps-full,.bs-full{display:none}.ps-mobile,.bs-mobile{display:block}}
@@ -457,13 +455,14 @@ body.has-save-bar .main{padding-bottom:80px !important}
 <div class="page-wrap">
 <div class="auth-bar" id="authBar"></div>
 <div class="header"><div class="header-inner" style="justify-content:center;flex-direction:column;align-items:center;gap:4px;position:relative;left:-28px"><div class="header-team" id="headerTeam" style="font-size:28px;text-align:center">Welcome to GrooveHub!</div><div class="header-record" id="headerRecord"></div></div></div>
+<div class="mobile-season-toggle" id="mobileSeasonToggle"></div>
 <main class="main">
 <div class="tab" id="tab-home"><div class="hero-section"><button class="hero-btn" id="heroBtn" onclick="heroClick()">POST SOMETHING</button></div><div class="feed" id="feedArea"></div></div>
 <div class="tab" id="tab-roster"><div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;margin-bottom:6px"><div><h2 class="sec-title">The Roster</h2><p class="sec-hint" id="rosterHint">The 2026 New York Groove.</p></div><div id="rosterAdminBtns"></div></div><div class="roster-grid" id="rosterGrid"></div></div>
 <div class="tab" id="tab-boxscores"><div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;margin-bottom:6px"><h2 class="sec-title">Box Scores</h2><div id="boxAdminBtns"></div></div><div class="game-tabs" id="gameTabs"></div><div id="boxScoreArea"></div></div>
 <div class="tab" id="tab-playerstats"><h2 class="sec-title">Player Stats</h2><p class="sec-hint">The Player Tracker 5000, reborn.</p><div id="playerStatsArea"></div></div>
 <div class="tab" id="tab-leaderboards"><h2 class="sec-title">Leaderboards</h2><div class="leaders-grid" id="leadersGrid"></div></div>
-<div class="tab" id="tab-trendtracker"><h2 class="sec-title">TrendTracker 5000</h2><div class="trend-pills" id="trendPills"></div><div class="chart-wrap"><canvas id="trendChart" height="260"></canvas></div><div id="trendTable"></div></div>
+<div class="tab" id="tab-trendtracker"><h2 class="sec-title">TrendTracker 5000</h2><div class="trend-pills" id="trendPills"></div><div class="trend-pills" id="trendPlayerPills" style="margin-top:6px"></div><div class="chart-wrap"><canvas id="trendChart" height="260"></canvas></div><div id="trendTable"></div></div>
 <div class="tab" id="tab-statnotes"><h2 class="sec-title">Stat Notes</h2><div class="card card-pad"><textarea class="s-textarea" id="statNotesArea" style="min-height:250px" oninput="D.cfg.statNotes=this.value"></textarea></div></div>
 <div class="tab" id="tab-settings"><h2 class="sec-title">⚙ Settings</h2><div class="settings-nav" id="settingsNav"></div><div id="settingsArea"></div></div>
 </main>
@@ -543,7 +542,7 @@ function switchSeason(year) {
 const DEFAULT_STATS=[{id:'pa',label:'PA',full:'Plate Appearances',on:true},{id:'ab',label:'AB',full:'At Bats',on:true},{id:'r',label:'R',full:'Runs',on:true},{id:'h',label:'H',full:'Hits',on:true},{id:'singles',label:'1B',full:'Singles',on:true},{id:'doubles',label:'2B',full:'Doubles',on:true},{id:'triples',label:'3B',full:'Triples',on:true},{id:'hr',label:'HR',full:'Home Runs',on:true},{id:'rbi',label:'RBI',full:'RBI',on:true},{id:'bb',label:'BB',full:'Walks',on:true},{id:'so',label:'K',full:'Strikeouts',on:true},{id:'hbp',label:'HBP',full:'Hit-by-Pitch',on:true},{id:'sf',label:'SF',full:'Sac Flies',on:true},{id:'sb',label:'SB',full:'Stolen Bases',on:true},{id:'cs',label:'CS',full:'Caught Stealing',on:true},{id:'gidp',label:'GIDP',full:'Grounded Into DP',on:true}];
 const DEFAULT_CFG={teamName:'NY Groove',seasonLabel:'2026',stats:DEFAULT_STATS,journalSections:[],statNotes:"Note: Does not count rainouts.\n\nRBIs may be incomplete for early-season games.",showHome:true,showRoster:true,showBoxScores:true,showPlayerStats:true,showLeaderboards:true,showTrendTracker:true,showStatNotes:true,messageToClaude:'',messageToHarry:'',customNotes:''};
 let D={cfg:{...DEFAULT_CFG},games:[],roster:[],posts:[]};
-let activeTab='home',activeGame=null,trendStat='rbi',settingsSub='general',trendChartInstance=null;
+let activeTab='home',activeGame=null,trendStats=new Set(['rbi']),trendPlayer='team',settingsSub='general',trendChartInstance=null;
 let composerType='recap',composerData={},composerGameId=null,editingPostId=null;
 let playerStatsSort={col:null,dir:'desc'};
 let openComments={};
@@ -1145,6 +1144,23 @@ function renderRoster(){
           es.forEach(s=>{html+=`<td>${stats[s.id]||0}</td>`});
           html+=`<td class="calc-cell">${avg3(stats.h||0,stats.ab||0)}</td></tr></tbody></table></div></div>`;
         }
+        // Post backlinks
+        const mentions=D.posts.filter(post=>{
+          const text=((post.title||'')+' '+(post.body||'')+' '+(post.author||'')).toLowerCase();
+          const nameLC=r.name.trim().toLowerCase();
+          if(text.includes(nameLC))return true;
+          const aliases=(r.aliases||[]).map(a=>a.trim().toLowerCase()).filter(Boolean);
+          return aliases.some(a=>text.includes(a));
+        });
+        if(mentions.length){
+          html+=`<div style="padding:0 24px 16px"><div style="font-size:10px;font-weight:700;color:var(--mut);text-transform:uppercase;letter-spacing:0.6px;margin-bottom:6px">Mentioned In</div>`;
+          mentions.forEach(post=>{
+            const label=post.title||post.type==='recap'?('Game Recap'+(post.opponent?' vs '+esc(post.opponent):'')):(post.type||'Post');
+            const date=fmtDateShort(post.date||post.createdAt);
+            html+=`<div style="display:flex;align-items:center;gap:8px;padding:5px 0;border-bottom:1px solid #f5f3ed;cursor:pointer;font-size:13px" onclick="activeTab='home';renderAll();setTimeout(()=>{const el=document.querySelector('[data-postid=&quot;${post.id}&quot;]');if(el)el.scrollIntoView({behavior:'smooth',block:'center'})},100)"><span class="material-symbols-outlined" style="font-size:14px;color:var(--acc)">article</span><span style="font-weight:600;color:var(--pri)">${post.title?esc(post.title):esc(label)}</span><span style="color:var(--mut);font-size:11px;margin-left:auto">${date}</span></div>`;
+          });
+          html+=`</div>`;
+        }
         // Collapse
         html+=`<div style="padding:8px 24px 16px;display:flex;justify-content:center"><button style="border:none;background:transparent;color:var(--mut);font-size:11px;font-weight:600;display:flex;align-items:center;gap:3px;cursor:pointer" onclick="expandedRoster['${r.id}']=false;renderRoster()"><span class="material-symbols-outlined" style="font-size:16px">expand_less</span>Show less</button></div>`;
         html+=`</div>`;
@@ -1307,7 +1323,7 @@ function renderFeed(){
   const admin=isAdmin();
   let html='';
   D.posts.forEach((p,i)=>{
-    html+=`<div class="post">`;
+    html+=`<div class="post" data-postid="${p.id}">`;
     if(p.type==='recap'&&p.runsFor){
       const w=n(p.runsFor)>n(p.runsAgainst),l=n(p.runsFor)<n(p.runsAgainst),r=w?'W':l?'L':'T',rc=w?'win':l?'loss':'tie';
       const rl=w?'WIN':l?'LOSS':'TIE';
@@ -1334,7 +1350,7 @@ function renderFeed(){
     }
     html+=`</div>`;
     html+=`<div class="post-footer"><div></div>`;
-    if(admin){html+=`<div style="display:flex;gap:8px"><button class="del-btn" onclick="editPost('${p.id}')"><span class="material-symbols-outlined" style="font-size:16px">edit</span>Edit</button><button class="del-btn" id="del-${p.id}" onclick="delPost(${i},this)"><span class="material-symbols-outlined" style="font-size:16px">delete</span>Delete</button></div>`}
+    if(admin){html+=`<div style="display:flex;gap:8px;align-items:center">${i>0?`<button class="del-btn" onclick="movePost(${i},-1)" title="Move up"><span class="material-symbols-outlined" style="font-size:16px">arrow_upward</span></button>`:''}${i<D.posts.length-1?`<button class="del-btn" onclick="movePost(${i},1)" title="Move down"><span class="material-symbols-outlined" style="font-size:16px">arrow_downward</span></button>`:''}<button class="del-btn" onclick="editPost('${p.id}')"><span class="material-symbols-outlined" style="font-size:16px">edit</span>Edit</button><button class="del-btn" id="del-${p.id}" onclick="delPost(${i},this)"><span class="material-symbols-outlined" style="font-size:16px">delete</span>Delete</button></div>`}
     html+=`</div>`;
     html+=`</div>`;
   });
@@ -1350,6 +1366,7 @@ function addComment(postId){
   saveNow();renderFeed();
 }
 
+function movePost(i,dir){const j=i+dir;if(j<0||j>=D.posts.length)return;[D.posts[i],D.posts[j]]=[D.posts[j],D.posts[i]];renderFeed()}
 function delPost(i,btn){
   if(btn.classList.contains('confirm')){D.posts.splice(i,1);saveNow();renderFeed();return}
   btn.classList.add('confirm');btn.innerHTML='<span class="material-symbols-outlined" style="font-size:16px">warning</span>Click again to delete';
@@ -1379,7 +1396,15 @@ function renderHome(){
   }
   renderFeed();
   renderAuthBar();
-  const ft=document.getElementById('siteFooter');if(ft)ft.textContent='NY Groove · '+activeSeason;
+  const ft=document.getElementById('siteFooter');
+  if(ft){
+    let fhtml='NY Groove · '+activeSeason;
+    if(activeSeason==='2024')fhtml+=` · <a href="https://docs.google.com/spreadsheets/d/1" target="_blank" rel="noopener" style="color:var(--mut);text-decoration:underline;font-size:11px" id="sheetLink">See original StatHub 2024</a>`;
+    ft.innerHTML=fhtml;
+  }
+  // Mobile season toggle
+  const mst=document.getElementById('mobileSeasonToggle');
+  if(mst){const other=activeSeason==='2026'?'2024':'2026';mst.innerHTML=`<div class="season-toggle-wrap" onclick="switchSeason('${other}')" style="flex-direction:row;gap:8px;cursor:pointer"><div class="season-toggle${activeSeason==='2024'?' on-2024':''}"><div class="st-knob"></div></div><span class="season-toggle-label">${activeSeason}</span></div>`}
 }
 
 /* ═══ BOX SCORES ═══ */
@@ -1666,7 +1691,56 @@ function renderPlayerStats(){const pl=getPlayerTotals();const es=enabledStats();
 function renderLeaderboards(){const pl=getPlayerTotals();const es=enabledStats();const grid=document.getElementById('leadersGrid');if(!pl.length){grid.innerHTML='<div class="empty" style="grid-column:1/-1"><div class="empty-text">No data yet.</div></div>';return}let html='';es.forEach(s=>{const top=[...pl].sort((a,b)=>(b[s.id]||0)-(a[s.id]||0)).slice(0,5);if(!top.length||!top[0][s.id])return;html+=`<div class="card" style="padding:14px 16px"><div class="leader-title">${esc(s.full)}</div>`;top.forEach((p,i)=>{html+=`<div class="leader-row"><span class="leader-name${i===0?' top':''}">${i===0?'👑 ':(i+1)+'. '}${esc(p.name)}</span><span class="leader-val">${p[s.id]||0}</span></div>`});html+=`</div>`});grid.innerHTML=html||'<div class="empty" style="grid-column:1/-1"><div class="empty-text">No data yet.</div></div>'}
 
 /* ═══ TRENDTRACKER ═══ */
-function renderTrendTracker(){const es=enabledStats();const pp=document.getElementById('trendPills');pp.innerHTML='';es.forEach(s=>{const b=document.createElement('button');b.className='trend-pill'+(trendStat===s.id?' active':'');b.textContent=s.full;b.onclick=()=>{trendStat=s.id;renderTrendTracker()};pp.appendChild(b)});const data=D.games.filter(g=>g.date).map(g=>{let t=0;(g.players||[]).forEach(p=>{t+=n(p[trendStat])});return{label:`G${D.games.indexOf(g)+1}`,date:g.date,opp:g.opponent,val:t}});if(trendChartInstance){trendChartInstance.destroy();trendChartInstance=null}const ctx=document.getElementById('trendChart');if(data.length){trendChartInstance=new Chart(ctx,{type:'line',data:{labels:data.map(d=>d.label),datasets:[{label:(es.find(s=>s.id===trendStat)||{}).full||trendStat,data:data.map(d=>d.val),borderColor:'#e8a838',backgroundColor:'rgba(232,168,56,0.1)',borderWidth:3,pointBackgroundColor:'#1a2744',pointRadius:5,pointHoverRadius:7,tension:0.3,fill:true}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{grid:{display:false},ticks:{font:{family:'Sen',size:11}}},y:{beginAtZero:true,grid:{color:'#f0efe8'},ticks:{font:{family:'Sen',size:11}}}}}})}const sn=(es.find(s=>s.id===trendStat)||{}).full||trendStat;let thtml='';if(data.length){thtml=`<div class="table-wrap"><table><thead><tr><th>Game</th><th>Date</th><th>Opp</th><th>${esc(sn)}</th></tr></thead><tbody>`;data.forEach(d=>{thtml+=`<tr><td>${esc(d.label)}</td><td>${esc(d.date)}</td><td>${esc(d.opp||'TBD')}</td><td class="calc-cell">${d.val}</td></tr>`});thtml+=`</tbody></table></div>`}document.getElementById('trendTable').innerHTML=thtml}
+function toggleTrendStat(id){if(trendStats.has(id)){if(trendStats.size>1)trendStats.delete(id)}else{trendStats.add(id)}renderTrendTracker()}
+function renderTrendTracker(){
+  const es=enabledStats();
+  // Stat pills (multi-select)
+  const pp=document.getElementById('trendPills');pp.innerHTML='';
+  es.forEach(s=>{const b=document.createElement('button');b.className='trend-pill'+(trendStats.has(s.id)?' active':'');b.textContent=s.full;b.onclick=()=>toggleTrendStat(s.id);pp.appendChild(b)});
+  // Player pills
+  const plp=document.getElementById('trendPlayerPills');plp.innerHTML='';
+  const players=getPlayerTotals().filter(p=>p.gp>0);
+  const tb=document.createElement('button');tb.className='trend-pill'+(trendPlayer==='team'?' active':'');tb.textContent='Team Total';tb.onclick=()=>{trendPlayer='team';renderTrendTracker()};plp.appendChild(tb);
+  players.forEach(p=>{const b=document.createElement('button');b.className='trend-pill'+(trendPlayer===p.name?' active':'');b.textContent=p.name;b.onclick=()=>{trendPlayer=p.name;renderTrendTracker()};plp.appendChild(b)});
+  // Build datasets
+  const COLORS=['#e8a838','#3b5998','#2d6a2e','#b22','#8b5cf6','#0891b2','#c2410c','#6d28d9'];
+  const games=D.games.filter(g=>g.date);
+  const labels=games.map((g,i)=>`G${i+1}`);
+  const datasets=[];
+  let ci=0;
+  trendStats.forEach(statId=>{
+    const sInfo=es.find(s=>s.id===statId)||{full:statId};
+    const color=COLORS[ci%COLORS.length];ci++;
+    const data=games.map(g=>{
+      if(trendPlayer==='team'){return(g.players||[]).reduce((sum,p)=>sum+n(p[statId]),0)}
+      else{const pl=(g.players||[]).find(p=>{const dn=playerDisplayName(p);return dn.toLowerCase()===trendPlayer.toLowerCase()});return pl?n(pl[statId]):0}
+    });
+    datasets.push({label:sInfo.full+(trendPlayer!=='team'?' ('+trendPlayer+')':''),data,borderColor:color,backgroundColor:color+'1a',borderWidth:2,pointBackgroundColor:color,pointRadius:4,pointHoverRadius:6,tension:0.3,fill:false});
+  });
+  if(trendChartInstance){trendChartInstance.destroy();trendChartInstance=null}
+  const ctx=document.getElementById('trendChart');
+  if(games.length&&datasets.length){trendChartInstance=new Chart(ctx,{type:'line',data:{labels,datasets},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:datasets.length>1,labels:{font:{family:'Sen',size:11}}}},scales:{x:{grid:{display:false},ticks:{font:{family:'Sen',size:11}}},y:{beginAtZero:true,grid:{color:'#f0efe8'},ticks:{font:{family:'Sen',size:11}}}}}})}
+  // Table
+  const selStats=[...trendStats].map(id=>es.find(s=>s.id===id)||{id,full:id,label:id});
+  let thtml='';
+  if(games.length){
+    thtml=`<div class="table-wrap"><table><thead><tr><th>Game</th><th>Date</th><th>Opp</th>`;
+    selStats.forEach(s=>{thtml+=`<th>${esc(s.label)}</th>`});
+    thtml+=`</tr></thead><tbody>`;
+    games.forEach((g,i)=>{
+      thtml+=`<tr><td>G${i+1}</td><td>${esc(g.date)}</td><td>${esc(g.opponent||'TBD')}</td>`;
+      selStats.forEach(s=>{
+        let val;
+        if(trendPlayer==='team'){val=(g.players||[]).reduce((sum,p)=>sum+n(p[s.id]),0)}
+        else{const pl=(g.players||[]).find(p=>playerDisplayName(p).toLowerCase()===trendPlayer.toLowerCase());val=pl?n(pl[s.id]):0}
+        thtml+=`<td class="calc-cell">${val}</td>`;
+      });
+      thtml+=`</tr>`;
+    });
+    thtml+=`</tbody></table></div>`;
+  }
+  document.getElementById('trendTable').innerHTML=thtml;
+}
 function renderStatNotes(){
   document.getElementById('statNotesArea').value=D.cfg.statNotes||'';
   if(isAdmin() && activeTab==='statnotes') enterEditContext('statnotes');
