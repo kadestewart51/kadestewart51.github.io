@@ -280,6 +280,7 @@ tr.bs-row .row-check{width:15px;height:15px;accent-color:var(--blue);cursor:poin
 @media(max-width:640px){.pc-hover{position:fixed;bottom:auto;top:50%;left:50%;transform:translate(-50%,-50%);width:calc(100vw - 32px);max-width:360px;border-radius:16px;box-shadow:0 12px 48px rgba(0,0,0,0.25)}}
 .player-chip:hover .pc-hover,.pc-hover:hover{display:block}
 .pc-hover::after{content:'';position:absolute;top:100%;left:50%;transform:translateX(-50%);border:8px solid transparent;border-top-color:var(--card)}
+.pc-hover::before{content:'';position:absolute;top:100%;left:0;right:0;height:16px;background:transparent}
 .pc-hover-photo{width:56px;height:56px;border-radius:50%;object-fit:cover;margin:0 auto 8px;display:block;border:2px solid var(--brd)}
 .pc-hover-name{font-size:14px;font-weight:800;color:var(--pri);margin-bottom:2px}
 .pc-hover-meta{font-size:11px;color:var(--mut);font-weight:600;text-transform:uppercase;letter-spacing:0.5px}
@@ -504,11 +505,43 @@ const ADMIN_EMAILS = [
   'harry.breault@gmail.com'
 ];
 
+const PLAYER_EMAILS = [
+  'dtk0329@gmail.com',
+  'harry.breault@gmail.com',
+  'erlis.martinez@gmail.com',
+  'zacharylodato5@gmail.com',
+  'christopher.joseph.han@gmail.com',
+  'daleh242@gmail.com',
+  'ericjjemba@gmail.com',
+  'montanaleonard@gmail.com',
+  'ryanbaez722@gmail.com',
+  'charles.manfredi92@gmail.com',
+  'chrislung8@gmail.com',
+  'arikaputkin@gmail.com',
+  'tmarchetti95@gmail.com',
+  'emilio_lara02@hotmail.com',
+  'velozjeury@gmail.com',
+  'egoldfisch@gmail.com',
+  'kadeastewart@gmail.com',
+  'pbavasi@mac.com',
+  'melissa.carmody@gmail.com'
+];
+
 function isAdmin(){
-  // In local mode (no Firebase), allow editing
   if(!firebaseReady) return true;
   if(!currentUser) return false;
   return ADMIN_EMAILS.includes(currentUser.email);
+}
+function isPlayer(){
+  if(!currentUser) return false;
+  return PLAYER_EMAILS.includes(currentUser.email.toLowerCase());
+}
+function isSignedIn(){return !!currentUser}
+function ownRosterIndex(){
+  // Find the roster entry linked to the current user's email
+  if(!currentUser)return -1;
+  const email=currentUser.email.toLowerCase();
+  return D.roster.findIndex(r=>r.email&&r.email.toLowerCase()===email);
 }
 
 /* ═══ SEASON MANAGEMENT ═══ */
@@ -782,6 +815,7 @@ function applySnapshot(d) {
     if (!r.hometown) r.hometown = '';
     if (!r.walkupSong) r.walkupSong = '';
     if (!r.aliases) r.aliases = [];
+    if (!r.email) r.email = '';
   });
 }
 
@@ -1078,6 +1112,7 @@ function renderRoster(){
         html+=`<div class="pd-edit-row"><div class="pd-edit-field"><label>Throws</label><input value="${esc(r.throws||'')}" placeholder="R / L / S" oninput="D.roster[${i}].throws=this.value"></div><div class="pd-edit-field"><label>Bats</label><input value="${esc(r.bats||'')}" placeholder="R / L / S" oninput="D.roster[${i}].bats=this.value"></div><div class="pd-edit-field"><label>Height</label><input value="${esc(r.height||'')}" placeholder="6'2&quot;" oninput="D.roster[${i}].height=this.value"></div><div class="pd-edit-field"><label>Hometown</label><input value="${esc(r.hometown||'')}" placeholder="City, ST" oninput="D.roster[${i}].hometown=this.value"></div></div>`;
         html+=`<div class="pd-edit-row"><div style="flex:1"><label>Walkup Song (Spotify link)</label><input value="${esc(r.walkupSong||'')}" placeholder="https://open.spotify.com/track/..." oninput="D.roster[${i}].walkupSong=this.value"></div></div>`;
         html+=`<div class="pd-edit-row"><div style="flex:1"><label>Aliases (comma-separated nicknames for CSV matching)</label><input value="${esc((r.aliases||[]).join(', '))}" placeholder="e.g. Ruvo, E.R." oninput="D.roster[${i}].aliases=this.value.split(',').map(s=>s.trim()).filter(Boolean)"></div></div>`;
+        html+=`<div class="pd-edit-row"><div style="flex:1"><label>Player Email (links sign-in to this card)</label><input value="${esc(r.email||'')}" placeholder="player@gmail.com" oninput="D.roster[${i}].email=this.value"></div></div>`;
         html+=`</div></div>`;
         // Bio
         html+=`<div style="padding:0 24px 16px"><label style="display:block;font-size:10px;font-weight:600;color:var(--mut);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:4px">Bio</label><textarea style="width:100%;padding:10px 12px;border:1px solid var(--brd);border-radius:6px;font-size:14px;line-height:1.6;resize:vertical;min-height:80px;font-family:'Sen',sans-serif" oninput="D.roster[${i}].bio=this.value">${esc(r.bio||'')}</textarea></div>`;
@@ -1109,27 +1144,44 @@ function renderRoster(){
         html+=`<div class="roster-card-expand"><button onclick="expandedRoster['${r.id}']=true;renderRoster()"><span class="material-symbols-outlined" style="font-size:16px">expand_more</span>Read more</button></div>`;
         html+=`</div>`;
       } else {
-        // ─── VISITOR: Expanded baseball card (read-only) ───
+        // ─── VISITOR: Expanded baseball card ───
+        const isOwn=ownRosterIndex()===i;
         html+=`<div class="player-detail">`;
         html+=`<div class="pd-header">`;
-        html+=`<div class="pd-photo">${bigPhotoHtml}</div>`;
+        if(isOwn){
+          html+=`<div class="pd-photo" onclick="document.getElementById('photoUp-${i}').click()">`;
+          html+=bigPhotoHtml;
+          html+=`<div class="pd-photo-upload"><span class="material-symbols-outlined">photo_camera</span></div>`;
+          html+=`<input type="file" id="photoUp-${i}" accept="image/*" style="display:none" onchange="handleRosterPhoto(${i},this.files)">`;
+          html+=`</div>`;
+        }else{
+          html+=`<div class="pd-photo">${bigPhotoHtml}</div>`;
+        }
         html+=`<div class="pd-info">`;
         html+=`<div class="pd-name-row"><span class="pd-name">${esc(r.name)}</span>`;
         if(r.position)html+=`<span class="pd-pos">${esc(r.position)}</span>`;
         html+=`</div>`;
-        // Vitals line — only show fields that have values
-        const vitals=[];
-        if(r.throws)vitals.push('Throws: '+esc(r.throws));
-        if(r.bats)vitals.push('Bats: '+esc(r.bats));
-        if(r.height)vitals.push(esc(r.height));
-        if(r.hometown)vitals.push(esc(r.hometown));
-        if(r.number)vitals.push('#'+esc(r.number));
-        if(vitals.length){
-          html+=`<div class="pd-vitals">${vitals.map(v=>'<span>'+v+'</span>').join('')}</div>`;
+        if(isOwn){
+          html+=`<div class="pd-edit-row"><div class="pd-edit-field"><label>Throws</label><input value="${esc(r.throws||'')}" placeholder="R / L / S" oninput="D.roster[${i}].throws=this.value"></div><div class="pd-edit-field"><label>Bats</label><input value="${esc(r.bats||'')}" placeholder="R / L / S" oninput="D.roster[${i}].bats=this.value"></div><div class="pd-edit-field"><label>Height</label><input value="${esc(r.height||'')}" placeholder="6'2&quot;" oninput="D.roster[${i}].height=this.value"></div><div class="pd-edit-field"><label>Hometown</label><input value="${esc(r.hometown||'')}" placeholder="City, ST" oninput="D.roster[${i}].hometown=this.value"></div></div>`;
+          html+=`<div class="pd-edit-row"><div style="flex:1"><label>Walkup Song (Spotify link)</label><input value="${esc(r.walkupSong||'')}" placeholder="https://open.spotify.com/track/..." oninput="D.roster[${i}].walkupSong=this.value"></div></div>`;
+        }else{
+          const vitals=[];
+          if(r.throws)vitals.push('Throws: '+esc(r.throws));
+          if(r.bats)vitals.push('Bats: '+esc(r.bats));
+          if(r.height)vitals.push(esc(r.height));
+          if(r.hometown)vitals.push(esc(r.hometown));
+          if(r.number)vitals.push('#'+esc(r.number));
+          if(vitals.length){
+            html+=`<div class="pd-vitals">${vitals.map(v=>'<span>'+v+'</span>').join('')}</div>`;
+          }
         }
         html+=`</div></div>`;
         // Bio
-        if(r.bio)html+=`<div class="pd-bio">${esc(r.bio)}</div>`;
+        if(isOwn){
+          html+=`<div style="padding:0 24px 16px"><label style="display:block;font-size:10px;font-weight:600;color:var(--mut);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:4px">Bio</label><textarea style="width:100%;padding:10px 12px;border:1px solid var(--brd);border-radius:6px;font-size:14px;line-height:1.6;resize:vertical;min-height:80px;font-family:'Sen',sans-serif" oninput="D.roster[${i}].bio=this.value">${esc(r.bio||'')}</textarea></div>`;
+        }else{
+          if(r.bio)html+=`<div class="pd-bio">${esc(r.bio)}</div>`;
+        }
         // Walkup song
         if(spotifyTrackId(r.walkupSong)){
           html+=`<div class="pd-song"><div class="pd-song-label">Walkup Song</div>${spotifyEmbed(r.walkupSong)}</div>`;
@@ -1161,8 +1213,12 @@ function renderRoster(){
           });
           html+=`</div>`;
         }
-        // Collapse
-        html+=`<div style="padding:8px 24px 16px;display:flex;justify-content:center"><button style="border:none;background:transparent;color:var(--mut);font-size:11px;font-weight:600;display:flex;align-items:center;gap:3px;cursor:pointer" onclick="expandedRoster['${r.id}']=false;renderRoster()"><span class="material-symbols-outlined" style="font-size:16px">expand_less</span>Show less</button></div>`;
+        // Own-card save + collapse
+        if(isOwn){
+          html+=`<div style="padding:12px 24px 16px;display:flex;justify-content:space-between;align-items:center"><button class="save-btn" onclick="saveNow();renderRoster()" style="font-size:12px;padding:7px 18px">Save My Card</button><button style="border:none;background:transparent;color:var(--mut);font-size:11px;font-weight:600;display:flex;align-items:center;gap:3px;cursor:pointer" onclick="expandedRoster['${r.id}']=false;renderRoster()"><span class="material-symbols-outlined" style="font-size:16px">expand_less</span>Show less</button></div>`;
+        }else{
+          html+=`<div style="padding:8px 24px 16px;display:flex;justify-content:center"><button style="border:none;background:transparent;color:var(--mut);font-size:11px;font-weight:600;display:flex;align-items:center;gap:3px;cursor:pointer" onclick="expandedRoster['${r.id}']=false;renderRoster()"><span class="material-symbols-outlined" style="font-size:16px">expand_less</span>Show less</button></div>`;
+        }
         html+=`</div>`;
       }
     }
@@ -1346,7 +1402,8 @@ function renderFeed(){
         html+=`<div class="comment"><div><span class="comment-author">${playerChip(c.author)}</span><span class="comment-date">${fmtDate(c.createdAt)}</span></div><div class="comment-text">${chipifyText(c.text)}</div></div>`;
       });
       html+=`</div>`;
-      html+=`<div class="comment-form"><input id="cmt-${p.id}" placeholder="Write a comment..." onkeydown="if(event.key==='Enter')addComment('${p.id}')"><button onclick="addComment('${p.id}')">Post</button></div>`;
+      if(isSignedIn()){html+=`<div class="comment-form"><input id="cmt-${p.id}" placeholder="Write a comment..." onkeydown="if(event.key==='Enter')addComment('${p.id}')"><button onclick="addComment('${p.id}')">Post</button></div>`}
+      else{html+=`<div style="font-size:11px;color:var(--mut);margin-top:6px">Sign in to comment</div>`}
     }
     html+=`</div>`;
     html+=`<div class="post-footer"><div></div>`;
