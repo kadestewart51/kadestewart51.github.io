@@ -91,7 +91,8 @@ button{cursor:pointer;font-family:inherit}input,textarea,select{font-family:inhe
 .del-btn.confirm{color:#fff;background:var(--loss);border-radius:4px}
 /* Feed & Posts — full width */
 .feed{max-width:100%;margin:0 auto}
-.post{background:var(--card);border:1px solid var(--brd);border-radius:var(--radius);margin-bottom:16px;overflow:hidden;box-shadow:0 2px 12px rgba(0,0,0,0.05);transition:box-shadow 0.2s}
+.post{background:var(--card);border:1px solid var(--brd);border-radius:var(--radius);margin-bottom:16px;box-shadow:0 2px 12px rgba(0,0,0,0.05);transition:box-shadow 0.2s}
+.post>.recap-banner{margin:-1px -1px 0;border-radius:var(--radius) var(--radius) 0 0}
 .post:hover{box-shadow:0 4px 20px rgba(0,0,0,0.08)}
 .post-header{padding:18px 24px 8px;display:flex;justify-content:space-between;align-items:flex-start}
 .post-author{font-weight:700;font-size:14px;color:var(--pri)}.post-date{font-size:13px;color:var(--mut);margin-top:2px}
@@ -99,7 +100,23 @@ button{cursor:pointer;font-family:inherit}input,textarea,select{font-family:inhe
 .post-body{padding:10px 24px 20px;font-size:15px;line-height:2;color:#444;white-space:pre-wrap}
 .post-photos{padding:0 24px 20px;display:flex;gap:8px;flex-wrap:wrap}
 .post-photos img{max-width:100%;border-radius:8px;border:1px solid var(--brd)}
-.post-score{padding:12px 22px;margin:4px 24px 12px;background:rgba(26,39,68,0.03);border-radius:8px;display:flex;align-items:center;gap:10px;font-weight:800;color:var(--pri);font-size:16px}
+/* Gold recap banner */
+.recap-banner{background:linear-gradient(135deg,#b8960f 0%,#8a6e08 40%,#a6880e 70%,#c9a82c 100%);padding:20px 24px 18px;color:#fff;display:flex;justify-content:space-between;align-items:center;position:relative;overflow:hidden}
+.recap-banner::before{content:'';position:absolute;inset:0;background:linear-gradient(180deg,rgba(255,255,255,0.08) 0%,transparent 40%,rgba(0,0,0,0.15) 100%);pointer-events:none}
+.recap-banner *{position:relative}
+.recap-banner .rb-left{display:flex;flex-direction:column;gap:4px}
+.recap-banner .rb-opponent{font-size:22px;font-weight:900;letter-spacing:-0.5px;text-shadow:0 1px 4px rgba(0,0,0,0.2)}
+.recap-banner .rb-opponent span{font-weight:400;font-size:16px;opacity:0.8;margin-right:4px}
+.recap-banner .rb-meta{font-size:11px;opacity:0.75;font-weight:600;display:flex;align-items:center;gap:8px}
+.recap-banner .rb-author{display:flex;align-items:center;gap:6px;font-size:12px;font-weight:600;opacity:0.85}
+.recap-banner .rb-author .player-chip{background:rgba(255,255,255,0.15);color:#fff}
+.recap-banner .rb-author .player-chip .pc-num{color:rgba(255,255,255,0.7)}
+.recap-banner .rb-right{text-align:right;flex-shrink:0}
+.recap-banner .rb-score{font-size:32px;font-weight:900;letter-spacing:-1px;text-shadow:0 2px 6px rgba(0,0,0,0.2)}
+.recap-banner .rb-result{font-size:13px;font-weight:800;text-transform:uppercase;letter-spacing:2px;margin-bottom:2px}
+.recap-banner .rb-result.win{color:#d4ffd4}.recap-banner .rb-result.loss{color:#ffd4d4}.recap-banner .rb-result.tie{color:#fff8d4}
+.recap-badge{display:inline-flex;align-items:center;gap:4px;font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:1.2px;background:rgba(255,255,255,0.15);padding:3px 10px;border-radius:4px;backdrop-filter:blur(4px)}
+@media(max-width:640px){.recap-banner{flex-direction:column;align-items:flex-start;gap:12px}.recap-banner .rb-right{text-align:left;display:flex;align-items:center;gap:12px;flex-direction:row-reverse}}
 .result-tag{font-size:12px;font-weight:800;color:#fff;padding:3px 10px;border-radius:4px}
 /* Comments */
 .comments-section{padding:0 24px 12px}
@@ -642,13 +659,28 @@ function chipifyText(text){
   safe=safe.replace(/\*(.+?)\*/g,'<em>$1</em>');
   // Sort names longest-first to avoid partial matches
   const names=Object.values(rm).sort((a,b)=>b.name.length-a.name.length);
+  // First occurrence only, and skip names inside <strong> or <em> tags
+  const chipped=new Set();
   names.forEach(r=>{
     const escaped=esc(r.name);
+    const reStr=escaped.replace(/[.*+?^${}()|[\]\\]/g,'\\$&');
+    const re=new RegExp('\\b'+reStr+'\\b','gi');
     const avatar=r.photo?`<img class="pc-avatar" src="${r.photo}">`:'';
     const chip=`<span class="player-chip">${avatar}${escaped}${r.number?'<span class="pc-num">#'+esc(r.number)+'</span>':''}${chipHoverHtml(r)}</span>`;
-    // Case-insensitive replace, word boundary aware
-    const re=new RegExp('\\b'+escaped.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')+'\\b','gi');
-    safe=safe.replace(re,chip);
+    const key=r.name.toLowerCase();
+    safe=safe.replace(re,(match,offset)=>{
+      if(chipped.has(key))return match;
+      // Check if inside <strong>...</strong> or <em>...</em>
+      const before=safe.substring(0,offset);
+      const strongOpen=(before.match(/<strong>/g)||[]).length;
+      const strongClose=(before.match(/<\/strong>/g)||[]).length;
+      if(strongOpen>strongClose)return match;
+      const emOpen=(before.match(/<em>/g)||[]).length;
+      const emClose=(before.match(/<\/em>/g)||[]).length;
+      if(emOpen>emClose)return match;
+      chipped.add(key);
+      return chip;
+    });
   });
   return safe;
 }
@@ -1144,6 +1176,8 @@ function editPost(postId){
   composerGameId=post.gameId||null;
   renderComposer();
   document.getElementById('composerOverlay').classList.add('open');
+  // Auto-resize after overlay is visible so scrollHeight is accurate
+  setTimeout(()=>{document.querySelectorAll('#composerInner textarea').forEach(el=>{if(el.value)autoResize(el)})},0);
 }
 
 function renderComposer(){
@@ -1261,10 +1295,13 @@ function renderFeed(){
   D.posts.forEach((p,i)=>{
     html+=`<div class="post">`;
     if(p.type==='recap'&&p.runsFor){
-      const w=n(p.runsFor)>n(p.runsAgainst),l=n(p.runsFor)<n(p.runsAgainst),r=w?'W':l?'L':'T',bg=w?'var(--win)':l?'var(--loss)':'var(--tie)';
-      html+=`<div class="post-header"><div><div style="display:flex;align-items:center;gap:8px"><div class="post-author">${playerChip(p.author)}</div><span style="font-size:9px;font-weight:700;color:var(--acc);text-transform:uppercase;letter-spacing:1px;background:rgba(232,168,56,0.1);padding:2px 8px;border-radius:4px">Official Game Recap</span></div><div class="post-date">${fmtDate(p.createdAt||p.date)}</div></div><div style="text-align:right"><span class="result-tag" style="background:${bg};font-size:16px;padding:6px 14px">${r}</span><div style="font-size:18px;font-weight:900;color:var(--pri);margin-top:4px">${esc(p.runsFor)} – ${esc(p.runsAgainst)}</div><div style="font-size:11px;color:var(--mut);font-weight:600">vs ${esc(p.opponent)}</div></div></div>`;
+      const w=n(p.runsFor)>n(p.runsAgainst),l=n(p.runsFor)<n(p.runsAgainst),r=w?'W':l?'L':'T',rc=w?'win':l?'loss':'tie';
+      const rl=w?'WIN':l?'LOSS':'TIE';
+      html+=`<div class="recap-banner"><div class="rb-left"><div class="rb-opponent"><span>@</span>${esc(p.opponent||'TBD')}</div><div class="rb-meta"><span class="recap-badge">Official Game Recap</span><span>${fmtDate(p.createdAt||p.date)}</span></div><div class="rb-author">by ${playerChip(p.author)}</div></div><div class="rb-right"><div class="rb-result ${rc}">${rl}</div><div class="rb-score">${esc(p.runsFor)} – ${esc(p.runsAgainst)}</div></div></div>`;
+      if(p.title)html+=`<div class="post-title">${chipifyText(p.title)}</div>`;
     }else{
       html+=`<div class="post-header"><div><div class="post-author">${playerChip(p.author)}</div><div class="post-date">${fmtDate(p.createdAt||p.date)}</div></div></div>`;
+      if(p.title)html+=`<div class="post-title">${chipifyText(p.title)}</div>`;
     }
     if(p.body)html+=`<div class="post-body">${chipifyText(p.body)}</div>`;
     if(p.photos&&p.photos.length){html+=`<div class="post-photos">`;p.photos.forEach(ph=>{html+=`<img src="${ph}" style="max-height:360px">`});html+=`</div>`}
