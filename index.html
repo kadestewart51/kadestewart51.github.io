@@ -100,8 +100,8 @@ button{cursor:pointer;font-family:inherit}input,textarea,select{font-family:inhe
 .post-photos{padding:0 24px 20px;display:flex;gap:8px;flex-wrap:wrap}
 .post-photos img{max-width:100%;border-radius:8px;border:1px solid var(--brd)}
 /* Gold recap banner */
-.recap-banner{background:linear-gradient(135deg,#c4a035 0%,#a07828 40%,#b8922e 70%,#d4ad3c 100%);padding:20px 24px 18px;color:#fff;display:flex;justify-content:space-between;align-items:center;position:relative;overflow:hidden}
-.recap-banner::before{content:'';position:absolute;inset:0;background:linear-gradient(180deg,rgba(255,255,255,0.08) 0%,transparent 40%,rgba(0,0,0,0.15) 100%);pointer-events:none}
+.recap-banner{background:linear-gradient(135deg,#c4a035 0%,#a07828 40%,#b8922e 70%,#d4ad3c 100%);padding:20px 24px 18px;color:#fff;display:flex;justify-content:space-between;align-items:center;position:relative;overflow:visible}
+.recap-banner::before{content:'';position:absolute;inset:0;background:linear-gradient(180deg,rgba(255,255,255,0.08) 0%,transparent 40%,rgba(0,0,0,0.15) 100%);pointer-events:none;border-radius:var(--radius) var(--radius) 0 0}
 .recap-banner *{position:relative}
 .recap-banner .rb-left{display:flex;flex-direction:column;gap:4px}
 .recap-banner .rb-opponent{font-weight:900;letter-spacing:-0.3px}
@@ -1941,9 +1941,11 @@ loadData(()=>{
   }
 });
 
-// Lazy-load Spotify embeds in hover cards on first hover
+// Lazy-load Spotify embeds in hover cards when chip is hovered
 document.addEventListener('mouseover',function(e){
-  const song=e.target.closest('.pc-hover-song[data-spotify]');
+  const chip=e.target.closest('.player-chip');
+  if(!chip)return;
+  const song=chip.querySelector('.pc-hover-song[data-spotify]');
   if(!song)return;
   const id=song.dataset.spotify;
   delete song.dataset.spotify;
