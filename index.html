@@ -1390,6 +1390,8 @@ function renderBoxScores(){
   const adminBtns=document.getElementById('boxAdminBtns');
   adminBtns.innerHTML='';
 
+  // Sort games by date
+  D.games.sort((a,b)=>(a.date||'9999').localeCompare(b.date||'9999'));
   // Game tabs + new game chip
   const gt=document.getElementById('gameTabs');gt.innerHTML='';
   D.games.forEach((g,i)=>{const b=document.createElement('button');b.className='game-tab'+(activeGame===g.id?' active':'');b.textContent=g.date?fmtDateShort(g.date):`Game ${i+1}`;b.onclick=()=>{activeGame=g.id;renderBoxScores()};gt.appendChild(b)});
@@ -1430,10 +1432,33 @@ function renderBoxScores(){
     }
     // Selection toolbar + stat table
     html+=`<div class="bs-toolbar" id="bsToolbar-${g.id}"></div>`;
-    html+=`<div class="table-wrap"><table><thead><tr><th style="width:24px"></th><th style="width:24px"></th><th>Player</th>`;es.forEach(s=>{html+=`<th title="${esc(s.full)}">${esc(s.label)}</th>`});html+=`</tr></thead><tbody id="bsBody-${g.id}">`;
-    (g.players||[]).forEach((p,pi)=>{const dn=playerDisplayName(p);html+=`<tr class="bs-row" draggable="true" data-pid="${p.id}" data-gid="${g.id}" data-idx="${pi}"><td><input type="checkbox" class="row-check" data-pid="${p.id}" onchange="updateBsToolbar('${g.id}')"></td><td><span class="drag-handle material-symbols-outlined">drag_indicator</span></td><td><input class="cell-input wide" value="${esc(dn)}" placeholder="Name" oninput="updPlayer('${g.id}','${p.id}','name',this.value)"></td>`;es.forEach(s=>{html+=`<td><input class="cell-input" type="number" min="0" value="${esc(p[s.id]||'')}" oninput="updPlayer('${g.id}','${p.id}','${s.id}',this.value)"></td>`});html+=`</tr>`});
-    if((g.players||[]).length){html+=`<tr class="total-row"><td></td><td></td><td>TEAM</td>`;es.forEach(s=>{html+=`<td>${(g.players||[]).reduce((sum,p)=>sum+n(p[s.id]),0)}</td>`});html+=`</tr>`}
+    html+=`<div style="font-size:10px;font-weight:700;color:var(--mut);text-transform:uppercase;letter-spacing:0.6px;margin-bottom:4px">Hitting</div>`;
+    html+=`<div class="table-wrap"><table><thead><tr><th style="width:24px"></th><th style="width:24px"></th><th>Player</th><th>Pos</th>`;es.forEach(s=>{html+=`<th title="${esc(s.full)}">${esc(s.label)}</th>`});html+=`</tr></thead><tbody id="bsBody-${g.id}">`;
+    (g.players||[]).forEach((p,pi)=>{const dn=playerDisplayName(p);html+=`<tr class="bs-row" draggable="true" data-pid="${p.id}" data-gid="${g.id}" data-idx="${pi}"><td><input type="checkbox" class="row-check" data-pid="${p.id}" onchange="updateBsToolbar('${g.id}')"></td><td><span class="drag-handle material-symbols-outlined">drag_indicator</span></td><td><input class="cell-input wide" value="${esc(dn)}" placeholder="Name" oninput="updPlayer('${g.id}','${p.id}','name',this.value)"></td><td><input class="cell-input" style="width:44px" value="${esc(p.pos||'')}" placeholder="—" oninput="updPlayer('${g.id}','${p.id}','pos',this.value)"></td>`;es.forEach(s=>{html+=`<td><input class="cell-input" type="number" min="0" value="${esc(p[s.id]||'')}" oninput="updPlayer('${g.id}','${p.id}','${s.id}',this.value)"></td>`});html+=`</tr>`});
+    if((g.players||[]).length){html+=`<tr class="total-row"><td></td><td></td><td>TEAM</td><td></td>`;es.forEach(s=>{html+=`<td>${(g.players||[]).reduce((sum,p)=>sum+n(p[s.id]),0)}</td>`});html+=`</tr>`}
     html+=`</tbody></table></div>`;
+    // Pitching lines
+    if(!g.pitching)g.pitching=[];
+    const PSTATS=[{id:'ip',label:'IP',full:'Innings Pitched'},{id:'ph',label:'H',full:'Hits'},{id:'pr',label:'R',full:'Runs'},{id:'per',label:'ER',full:'Earned Runs'},{id:'pbb',label:'BB',full:'Walks'},{id:'pk',label:'K',full:'Strikeouts'}];
+    html+=`<div style="font-size:10px;font-weight:700;color:var(--mut);text-transform:uppercase;letter-spacing:0.6px;margin:16px 0 4px">Pitching</div>`;
+    // Pitcher picker
+    const pitcherNames=new Set((g.pitching||[]).map(p=>(p.name||'').trim().toLowerCase()));
+    const availPitchers=D.roster.filter(r=>r.name&&!pitcherNames.has(r.name.trim().toLowerCase())).sort((a,b)=>a.name.localeCompare(b.name));
+    html+=`<div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center;margin-bottom:8px">`;
+    availPitchers.forEach(r=>{
+      html+=`<button class="roster-picker-chip" onclick="addPitcher('${g.id}','${esc(r.name.replace(/'/g,"\\'"))}')">${esc(r.name)}${r.number?' <span class="rp-num">#'+esc(r.number)+'</span>':''}</button>`;
+    });
+    html+=`<button class="roster-picker-chip" style="border-style:dashed;color:var(--mut)" onclick="addPitcher('${g.id}','')"><span class="material-symbols-outlined" style="font-size:13px">person_add</span>Guest</button>`;
+    html+=`</div>`;
+    if(g.pitching.length){
+      html+=`<div class="table-wrap"><table><thead><tr><th>Pitcher</th>`;PSTATS.forEach(s=>{html+=`<th title="${esc(s.full)}">${esc(s.label)}</th>`});html+=`<th style="width:24px"></th></tr></thead><tbody>`;
+      g.pitching.forEach((p,pi)=>{
+        html+=`<tr><td><input class="cell-input wide" value="${esc(p.name||'')}" placeholder="Name" oninput="updPitcher('${g.id}',${pi},'name',this.value)"></td>`;
+        PSTATS.forEach(s=>{html+=`<td><input class="cell-input" type="number" min="0" step="${s.id==='ip'?'0.1':'1'}" value="${esc(p[s.id]||'')}" oninput="updPitcher('${g.id}',${pi},'${s.id}',this.value)"></td>`});
+        html+=`<td><button class="rm-btn" onclick="rmPitcher('${g.id}',${pi})">✕</button></td></tr>`;
+      });
+      html+=`</tbody></table></div>`;
+    }
     // Notes
     html+=`<div class="box-notes"><label>Game Notes</label><textarea placeholder="Anything notable — weather delays, highlights, lineup changes, umpire rulings..." oninput="updGameNoRerender('${g.id}','notes',this.value)">${esc(g.notes||'')}</textarea></div>`;
     html+=`</div>`;
@@ -1448,20 +1473,30 @@ function renderBoxScores(){
       html+=`<div style="margin-bottom:12px"><span class="result-tag" style="background:${bg};font-size:14px;padding:4px 12px">${r} ${esc(g.runsFor)} – ${esc(g.runsAgainst)}</span></div>`;
     }
     const bsMid=Math.ceil(es.length/2);const bsA=es.slice(0,bsMid),bsB=es.slice(bsMid);
+    const hasPos=(g.players||[]).some(p=>p.pos);
     // Full table (desktop)
-    html+=`<div class="table-wrap bs-full"><table><thead><tr><th>Player</th>`;es.forEach(s=>{html+=`<th title="${esc(s.full)}">${esc(s.label)}</th>`});html+=`</tr></thead><tbody>`;
-    (g.players||[]).forEach(p=>{const dn=playerDisplayName(p);if(!dn)return;html+=`<tr><td style="font-weight:600">${playerChip(dn)}</td>`;es.forEach(s=>{html+=`<td>${p[s.id]||0}</td>`});html+=`</tr>`});
-    if((g.players||[]).length){html+=`<tr class="total-row"><td>TEAM</td>`;es.forEach(s=>{html+=`<td>${(g.players||[]).reduce((sum,p)=>sum+n(p[s.id]),0)}</td>`});html+=`</tr>`}
+    html+=`<div style="font-size:10px;font-weight:700;color:var(--mut);text-transform:uppercase;letter-spacing:0.6px;margin-bottom:4px">Hitting</div>`;
+    html+=`<div class="table-wrap bs-full"><table><thead><tr><th>Player</th>${hasPos?'<th>Pos</th>':''}`;es.forEach(s=>{html+=`<th title="${esc(s.full)}">${esc(s.label)}</th>`});html+=`</tr></thead><tbody>`;
+    (g.players||[]).forEach(p=>{const dn=playerDisplayName(p);if(!dn)return;html+=`<tr><td style="font-weight:600">${playerChip(dn)}</td>${hasPos?'<td style="font-size:11px;color:var(--mut)">'+esc(p.pos||'')+'</td>':''}`;es.forEach(s=>{html+=`<td>${p[s.id]||0}</td>`});html+=`</tr>`});
+    if((g.players||[]).length){html+=`<tr class="total-row"><td>TEAM</td>${hasPos?'<td></td>':''}`;es.forEach(s=>{html+=`<td>${(g.players||[]).reduce((sum,p)=>sum+n(p[s.id]),0)}</td>`});html+=`</tr>`}
     html+=`</tbody></table></div>`;
     // Mobile split tables
-    html+=`<div class="bs-mobile"><div class="table-wrap"><table><thead><tr><th>Player</th>`;bsA.forEach(s=>{html+=`<th title="${esc(s.full)}">${esc(s.label)}</th>`});html+=`</tr></thead><tbody>`;
-    (g.players||[]).forEach(p=>{const dn=playerDisplayName(p);if(!dn)return;html+=`<tr><td style="font-weight:600">${playerChip(dn)}</td>`;bsA.forEach(s=>{html+=`<td>${p[s.id]||0}</td>`});html+=`</tr>`});
-    if((g.players||[]).length){html+=`<tr class="total-row"><td>TEAM</td>`;bsA.forEach(s=>{html+=`<td>${(g.players||[]).reduce((sum,p)=>sum+n(p[s.id]),0)}</td>`});html+=`</tr>`}
+    html+=`<div class="bs-mobile"><div class="table-wrap"><table><thead><tr><th>Player</th>${hasPos?'<th>Pos</th>':''}`;bsA.forEach(s=>{html+=`<th title="${esc(s.full)}">${esc(s.label)}</th>`});html+=`</tr></thead><tbody>`;
+    (g.players||[]).forEach(p=>{const dn=playerDisplayName(p);if(!dn)return;html+=`<tr><td style="font-weight:600">${playerChip(dn)}</td>${hasPos?'<td style="font-size:11px;color:var(--mut)">'+esc(p.pos||'')+'</td>':''}`;bsA.forEach(s=>{html+=`<td>${p[s.id]||0}</td>`});html+=`</tr>`});
+    if((g.players||[]).length){html+=`<tr class="total-row"><td>TEAM</td>${hasPos?'<td></td>':''}`;bsA.forEach(s=>{html+=`<td>${(g.players||[]).reduce((sum,p)=>sum+n(p[s.id]),0)}</td>`});html+=`</tr>`}
     html+=`</tbody></table></div>`;
     html+=`<div class="table-wrap" style="margin-top:12px"><table><thead><tr><th>Player</th>`;bsB.forEach(s=>{html+=`<th title="${esc(s.full)}">${esc(s.label)}</th>`});html+=`</tr></thead><tbody>`;
     (g.players||[]).forEach(p=>{const dn=playerDisplayName(p);if(!dn)return;html+=`<tr><td style="font-weight:600">${playerChip(dn)}</td>`;bsB.forEach(s=>{html+=`<td>${p[s.id]||0}</td>`});html+=`</tr>`});
     if((g.players||[]).length){html+=`<tr class="total-row"><td>TEAM</td>`;bsB.forEach(s=>{html+=`<td>${(g.players||[]).reduce((sum,p)=>sum+n(p[s.id]),0)}</td>`});html+=`</tr>`}
     html+=`</tbody></table></div></div>`;
+    // Read-only pitching lines
+    const PSTATS=[{id:'ip',label:'IP',full:'Innings Pitched'},{id:'ph',label:'H',full:'Hits'},{id:'pr',label:'R',full:'Runs'},{id:'per',label:'ER',full:'Earned Runs'},{id:'pbb',label:'BB',full:'Walks'},{id:'pk',label:'K',full:'Strikeouts'}];
+    if(g.pitching&&g.pitching.length){
+      html+=`<div style="font-size:10px;font-weight:700;color:var(--mut);text-transform:uppercase;letter-spacing:0.6px;margin:16px 0 4px">Pitching</div>`;
+      html+=`<div class="table-wrap"><table><thead><tr><th>Pitcher</th>`;PSTATS.forEach(s=>{html+=`<th title="${esc(s.full)}">${esc(s.label)}</th>`});html+=`</tr></thead><tbody>`;
+      (g.pitching||[]).forEach(p=>{html+=`<tr><td style="font-weight:600">${playerChip(p.name)}</td>`;PSTATS.forEach(s=>{html+=`<td>${p[s.id]||0}</td>`});html+=`</tr>`});
+      html+=`</tbody></table></div>`;
+    }
     if(g.notes)html+=`<div style="margin-top:12px;padding:10px 14px;background:rgba(26,39,68,0.02);border-radius:var(--radius);font-size:13px;color:#666;line-height:1.6;white-space:pre-wrap">${esc(g.notes)}</div>`;
     html+=`</div>`;
     area.innerHTML=html;
@@ -1513,6 +1548,10 @@ function addGuestToGame(gid){
   setTimeout(()=>{const inputs=document.querySelectorAll('#boxScoreArea .cell-input.wide');if(inputs.length)inputs[inputs.length-1].focus()},50);
 }
 function rmPlayer(gid,pid){const g=D.games.find(x=>x.id===gid);if(g)g.players=(g.players||[]).filter(p=>p.id!==pid);renderBoxScores()}
+/* ═══ PITCHING HELPERS ═══ */
+function addPitcher(gid,name){const g=D.games.find(x=>x.id===gid);if(!g)return;if(!g.pitching)g.pitching=[];g.pitching.push({name:name});renderBoxScores()}
+function updPitcher(gid,idx,k,v){const g=D.games.find(x=>x.id===gid);if(g&&g.pitching&&g.pitching[idx])g.pitching[idx][k]=v}
+function rmPitcher(gid,idx){const g=D.games.find(x=>x.id===gid);if(g&&g.pitching)g.pitching.splice(idx,1);renderBoxScores()}
 
 /* ═══ BOX SCORE ROW SELECTION + MULTI-DELETE ═══ */
 function getSelectedPids(gid){
