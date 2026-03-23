@@ -45,13 +45,12 @@ button{cursor:pointer;font-family:inherit}input,textarea,select{font-family:inhe
 .tab{display:none}.tab.active{display:block}
 /* Hero */
 .hero-section{text-align:center;padding:20px 0 28px}
-.hero-btn{position:relative;padding:18px 56px;font-size:15px;font-weight:800;letter-spacing:1.5px;text-transform:uppercase;color:#fff;background:linear-gradient(135deg,var(--acc) 0%,#d4912a 100%);border:none;border-radius:14px;cursor:pointer;box-shadow:0 6px 28px rgba(232,168,56,0.35);transition:all 0.4s;overflow:hidden;width:100%;max-width:100%}
-.hero-btn:hover{box-shadow:0 8px 36px rgba(232,168,56,0.5);transform:translateY(-2px)}
-.hero-btn:active{transform:translateY(0);box-shadow:0 3px 16px rgba(232,168,56,0.3)}
+.hero-btn{position:relative;padding:18px 56px;font-size:15px;font-weight:800;letter-spacing:1.5px;text-transform:uppercase;color:#3b2f1e;background:transparent;border:2px solid #3b2f1e;border-radius:14px;cursor:pointer;box-shadow:none;transition:all 0.3s;overflow:hidden;width:100%;max-width:100%}
+.hero-btn:hover{background:rgba(59,47,30,0.06);box-shadow:0 4px 16px rgba(59,47,30,0.1);transform:translateY(-1px)}
+.hero-btn:active{transform:translateY(0);box-shadow:none}
 .hero-btn.signin{background:linear-gradient(135deg,#e07830 0%,#c4602a 100%);box-shadow:0 6px 28px rgba(224,120,48,0.35);letter-spacing:1px}
 .hero-btn.signin:hover{box-shadow:0 8px 36px rgba(224,120,48,0.5)}
-.hero-btn::before{content:'';position:absolute;top:-50%;left:-50%;width:200%;height:200%;background:linear-gradient(45deg,transparent 30%,rgba(255,255,255,0.12) 50%,transparent 70%);animation:shimmer 3s ease-in-out infinite}
-@keyframes shimmer{0%{transform:translateX(-100%)}100%{transform:translateX(100%)}}
+.hero-btn::before{display:none}
 /* Quiet admin sign-in */
 .admin-signin{display:inline-flex;align-items:center;gap:6px;padding:6px 14px;border:1px solid var(--brd);background:var(--card);border-radius:6px;font-size:11px;font-weight:500;color:var(--mut);transition:0.2s;box-shadow:none;opacity:0.6}
 .admin-signin:hover{opacity:1;border-color:var(--pri);color:var(--pri)}
@@ -101,21 +100,20 @@ button{cursor:pointer;font-family:inherit}input,textarea,select{font-family:inhe
 .post-photos{padding:0 24px 20px;display:flex;gap:8px;flex-wrap:wrap}
 .post-photos img{max-width:100%;border-radius:8px;border:1px solid var(--brd)}
 /* Gold recap banner */
-.recap-banner{background:linear-gradient(135deg,#b8960f 0%,#8a6e08 40%,#a6880e 70%,#c9a82c 100%);padding:20px 24px 18px;color:#fff;display:flex;justify-content:space-between;align-items:center;position:relative;overflow:hidden}
+.recap-banner{background:linear-gradient(135deg,#c4a035 0%,#a07828 40%,#b8922e 70%,#d4ad3c 100%);padding:20px 24px 18px;color:#fff;display:flex;justify-content:space-between;align-items:center;position:relative;overflow:hidden}
 .recap-banner::before{content:'';position:absolute;inset:0;background:linear-gradient(180deg,rgba(255,255,255,0.08) 0%,transparent 40%,rgba(0,0,0,0.15) 100%);pointer-events:none}
 .recap-banner *{position:relative}
 .recap-banner .rb-left{display:flex;flex-direction:column;gap:4px}
-.recap-banner .rb-opponent{font-size:22px;font-weight:900;letter-spacing:-0.5px;text-shadow:0 1px 4px rgba(0,0,0,0.2)}
-.recap-banner .rb-opponent span{font-weight:400;font-size:16px;opacity:0.8;margin-right:4px}
-.recap-banner .rb-meta{font-size:11px;opacity:0.75;font-weight:600;display:flex;align-items:center;gap:8px}
-.recap-banner .rb-author{display:flex;align-items:center;gap:6px;font-size:12px;font-weight:600;opacity:0.85}
+.recap-banner .rb-opponent{font-weight:900;letter-spacing:-0.3px}
+.recap-banner .rb-meta{font-size:12px;opacity:0.7;font-weight:600;margin-top:2px}
+.recap-banner .rb-author{display:flex;align-items:center;gap:4px;font-size:13px;font-weight:700;flex-wrap:wrap}
 .recap-banner .rb-author .player-chip{background:rgba(255,255,255,0.15);color:#fff}
 .recap-banner .rb-author .player-chip .pc-num{color:rgba(255,255,255,0.7)}
 .recap-banner .rb-right{text-align:right;flex-shrink:0}
 .recap-banner .rb-score{font-size:32px;font-weight:900;letter-spacing:-1px;text-shadow:0 2px 6px rgba(0,0,0,0.2)}
-.recap-banner .rb-result{font-size:13px;font-weight:800;text-transform:uppercase;letter-spacing:2px;margin-bottom:2px}
+.recap-banner .rb-result{font-size:14px;font-weight:800;text-transform:uppercase;letter-spacing:1.5px;margin-bottom:4px}
 .recap-banner .rb-result.win{color:#d4ffd4}.recap-banner .rb-result.loss{color:#ffd4d4}.recap-banner .rb-result.tie{color:#fff8d4}
-.recap-badge{display:inline-flex;align-items:center;gap:4px;font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:1.2px;background:rgba(255,255,255,0.15);padding:3px 10px;border-radius:4px;backdrop-filter:blur(4px)}
+
 @media(max-width:640px){.recap-banner{flex-direction:column;align-items:flex-start;gap:12px}.recap-banner .rb-right{text-align:left;display:flex;align-items:center;gap:12px;flex-direction:row-reverse}}
 .result-tag{font-size:12px;font-weight:800;color:#fff;padding:3px 10px;border-radius:4px}
 /* Comments */
@@ -269,13 +267,14 @@ tr.bs-row .row-check{width:15px;height:15px;accent-color:var(--blue);cursor:poin
 .player-chip .pc-num{font-size:0.8em;color:var(--acc);font-weight:800;margin-left:3px}
 .pc-avatar{width:20px;height:20px;border-radius:50%;object-fit:cover;margin-right:5px;flex-shrink:0;border:1px solid rgba(26,39,68,0.12)}
 /* Player chip hover card */
-.pc-hover{display:none;position:absolute;bottom:calc(100% + 8px);left:50%;transform:translateX(-50%);background:var(--card);border:1px solid var(--brd);border-radius:10px;box-shadow:0 8px 32px rgba(0,0,0,0.15);padding:14px 16px;width:220px;z-index:500;text-align:center;pointer-events:none}
-.player-chip:hover .pc-hover{display:block}
-.pc-hover::after{content:'';position:absolute;top:100%;left:50%;transform:translateX(-50%);border:6px solid transparent;border-top-color:var(--card)}
+.pc-hover{display:none;position:absolute;bottom:calc(100% + 8px);left:50%;transform:translateX(-50%);background:var(--card);border:1px solid var(--brd);border-radius:10px;box-shadow:0 8px 32px rgba(0,0,0,0.15);padding:14px 16px;width:240px;z-index:500;text-align:center;pointer-events:auto}
+.player-chip:hover .pc-hover,.pc-hover:hover{display:block}
+.pc-hover::after{content:'';position:absolute;top:100%;left:50%;transform:translateX(-50%);border:8px solid transparent;border-top-color:var(--card)}
 .pc-hover-photo{width:56px;height:56px;border-radius:50%;object-fit:cover;margin:0 auto 8px;display:block;border:2px solid var(--brd)}
 .pc-hover-name{font-size:14px;font-weight:800;color:var(--pri);margin-bottom:2px}
 .pc-hover-meta{font-size:11px;color:var(--mut);font-weight:600;text-transform:uppercase;letter-spacing:0.5px}
-.pc-hover-song{font-size:10px;color:var(--acc);margin-top:6px;font-weight:600;white-space:normal}
+.pc-hover-song{margin-top:8px;border-radius:8px;overflow:hidden}
+.pc-hover-song iframe{width:100%;height:80px;border:none;border-radius:8px}
 /* Box score notes */
 .box-notes{margin-top:12px}
 .box-notes label{display:block;font-size:10px;font-weight:700;color:var(--mut);text-transform:uppercase;letter-spacing:0.6px;margin-bottom:4px}
@@ -318,7 +317,7 @@ body.season-2024 td{border-bottom-color:var(--brd)}
 body.season-2024 .total-row td{border-top-color:var(--pri);background:rgba(59,47,30,0.04)}
 body.season-2024 .cell-input{color:var(--pri)}
 body.season-2024 .footer{color:#a89880}
-body.season-2024 .hero-btn{background:linear-gradient(135deg,#b8860b 0%,#9a7209 100%);box-shadow:0 6px 28px rgba(184,134,11,0.3)}
+body.season-2024 .hero-btn{background:transparent;border-color:#3b2f1e;color:#3b2f1e;box-shadow:none}
 body.season-2024 .nav-icon.active::after{background:var(--acc)}
 /* Season tab bar — hidden during development, toggle in sidebar instead */
 .season-bar{display:none}
@@ -403,6 +402,7 @@ body.season-2024 .admin-signin:hover{color:var(--pri);border-color:var(--pri)}
   .page-wrap,.header{margin-left:0 !important}
   .page-wrap{padding-top:48px}
   .header{padding-top:12px}
+  .header .header-inner{left:0 !important}
   .season-bar{margin-left:0 !important}
   .auth-bar{margin-left:0 !important}
   /* Content */
@@ -456,7 +456,7 @@ body.has-save-bar .main{padding-bottom:80px !important}
 <div class="season-bar" id="seasonBar"></div>
 <div class="page-wrap">
 <div class="auth-bar" id="authBar"></div>
-<div class="header"><div class="header-inner" style="justify-content:center;flex-direction:column;align-items:center;gap:4px"><div class="header-team" id="headerTeam" style="font-size:28px;text-align:center">Welcome to GrooveHub!</div><div class="header-record" id="headerRecord"></div></div></div>
+<div class="header"><div class="header-inner" style="justify-content:center;flex-direction:column;align-items:center;gap:4px;position:relative;left:-28px"><div class="header-team" id="headerTeam" style="font-size:28px;text-align:center">Welcome to GrooveHub!</div><div class="header-record" id="headerRecord"></div></div></div>
 <main class="main">
 <div class="tab" id="tab-home"><div class="hero-section"><button class="hero-btn" id="heroBtn" onclick="heroClick()">POST SOMETHING</button></div><div class="feed" id="feedArea"></div></div>
 <div class="tab" id="tab-roster"><div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;margin-bottom:6px"><div><h2 class="sec-title">The Roster</h2><p class="sec-hint" id="rosterHint">The 2026 New York Groove.</p></div><div id="rosterAdminBtns"></div></div><div class="roster-grid" id="rosterGrid"></div></div>
@@ -592,10 +592,20 @@ async function uploadPhoto(blob,filename){
 }
 
 /* ═══ PLAYER NAME CHIPS ═══ */
-// Build a lookup: lowercase name -> {name, number, photo, position, walkupSong}
+// Build a lookup: lowercase name/alias/first-name -> {name, number, photo, position, walkupSong}
 function rosterMap(){
   const m={};
-  D.roster.forEach(r=>{if(r.name)m[r.name.trim().toLowerCase()]={name:r.name,number:r.number||'',photo:r.photo||'',position:r.position||'',walkupSong:r.walkupSong||''}});
+  D.roster.forEach(r=>{
+    if(!r.name)return;
+    const entry={name:r.name,number:r.number||'',photo:r.photo||'',position:r.position||'',walkupSong:r.walkupSong||''};
+    // Full name
+    m[r.name.trim().toLowerCase()]=entry;
+    // Aliases
+    (r.aliases||[]).forEach(a=>{if(a&&a.trim())m[a.trim().toLowerCase()]=entry});
+    // First name (only if unique — avoid collisions)
+    const first=r.name.trim().toLowerCase().split(/\s+/)[0];
+    if(first&&!m[first])m[first]=entry;
+  });
   return m;
 }
 function chipHoverHtml(entry){
@@ -606,7 +616,11 @@ function chipHoverHtml(entry){
   if(entry.position)meta.push(entry.position);
   if(entry.number)meta.push('#'+entry.number);
   if(meta.length)h+=`<div class="pc-hover-meta">${esc(meta.join(' · '))}</div>`;
-  if(entry.walkupSong)h+=`<div class="pc-hover-song">🎵 ${esc(entry.walkupSong)}</div>`;
+  if(entry.walkupSong&&spotifyTrackId(entry.walkupSong)){
+    h+=`<div class="pc-hover-song" data-spotify="${spotifyTrackId(entry.walkupSong)}"></div>`;
+  }else if(entry.walkupSong){
+    h+=`<div style="font-size:10px;color:var(--acc);margin-top:6px;font-weight:600">🎵 ${esc(entry.walkupSong)}</div>`;
+  }
   h+='</div>';
   return h;
 }
@@ -1297,7 +1311,8 @@ function renderFeed(){
     if(p.type==='recap'&&p.runsFor){
       const w=n(p.runsFor)>n(p.runsAgainst),l=n(p.runsFor)<n(p.runsAgainst),r=w?'W':l?'L':'T',rc=w?'win':l?'loss':'tie';
       const rl=w?'WIN':l?'LOSS':'TIE';
-      html+=`<div class="recap-banner"><div class="rb-left"><div class="rb-opponent"><span>@</span>${esc(p.opponent||'TBD')}</div><div class="rb-meta"><span class="recap-badge">Official Game Recap</span><span>${fmtDate(p.createdAt||p.date)}</span></div><div class="rb-author">by ${playerChip(p.author)}</div></div><div class="rb-right"><div class="rb-result ${rc}">${rl}</div><div class="rb-score">${esc(p.runsFor)} – ${esc(p.runsAgainst)}</div></div></div>`;
+      const atVs=p.location?'at':'vs';
+      html+=`<div class="recap-banner"><div class="rb-left"><div class="rb-author">Official Game Recap by ${playerChip(p.author)}</div><div class="rb-meta">${fmtDate(p.createdAt||p.date)}</div></div><div class="rb-right"><div class="rb-result ${rc}">${rl} <span class="rb-opponent">${atVs} ${esc(p.opponent||'TBD')}</span></div><div class="rb-score">${esc(p.runsFor)} – ${esc(p.runsAgainst)}</div></div></div>`;
       if(p.title)html+=`<div class="post-title">${chipifyText(p.title)}</div>`;
     }else{
       html+=`<div class="post-header"><div><div class="post-author">${playerChip(p.author)}</div><div class="post-date">${fmtDate(p.createdAt||p.date)}</div></div></div>`;
@@ -1924,6 +1939,15 @@ loadData(()=>{
     document.body.classList.add('admin-mode');
     initGrass();
   }
+});
+
+// Lazy-load Spotify embeds in hover cards on first hover
+document.addEventListener('mouseover',function(e){
+  const song=e.target.closest('.pc-hover-song[data-spotify]');
+  if(!song)return;
+  const id=song.dataset.spotify;
+  delete song.dataset.spotify;
+  song.innerHTML=`<iframe src="https://open.spotify.com/embed/track/${id}?utm_source=generator&theme=0" allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" loading="lazy"></iframe>`;
 });
 </script>
 </body>
