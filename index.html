@@ -115,14 +115,14 @@ button{cursor:pointer;font-family:inherit}input,textarea,select{font-family:inhe
 .recap-banner .rb-result.win{color:#d4ffd4}.recap-banner .rb-result.loss{color:#ffd4d4}.recap-banner .rb-result.tie{color:#fff8d4}
 
 @media(max-width:640px){
-  .recap-banner{flex-direction:column;gap:10px;padding:16px 18px 14px}
-  .recap-banner .rb-left{width:100%}
+  .recap-banner{flex-direction:column-reverse;gap:10px;padding:16px 18px 14px}
+  .recap-banner .rb-left{width:100%;border-top:1px solid rgba(255,255,255,0.15);padding-top:10px;margin-top:2px}
   .recap-banner .rb-author{font-size:11px;flex-wrap:wrap}
   .recap-banner .rb-meta{font-size:11px}
-  .recap-banner .rb-right{width:100%;display:flex;align-items:baseline;justify-content:space-between;gap:8px}
-  .recap-banner .rb-result{font-size:12px;letter-spacing:1px}
-  .recap-banner .rb-opponent{display:block;font-size:13px;margin-top:1px}
-  .recap-banner .rb-score{font-size:26px}
+  .recap-banner .rb-right{width:100%;text-align:left}
+  .recap-banner .rb-result{font-size:16px;letter-spacing:1px}
+  .recap-banner .rb-opponent{font-size:16px}
+  .recap-banner .rb-score{font-size:28px}
 }
 .result-tag{font-size:12px;font-weight:800;color:#fff;padding:3px 10px;border-radius:4px}
 /* Comments */
