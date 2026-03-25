@@ -117,21 +117,21 @@ button{cursor:pointer;font-family:inherit}input,textarea,select{font-family:inhe
 .rb-grid{
   display:grid;
   grid-template-columns:auto 1fr;
-  grid-template-rows:auto auto;
+  grid-template-rows:auto auto auto;
   gap:0;
 }
 
-/* Score block — left column, spans both rows */
+/* Score block — left column, spans all rows, fixed width */
 .rb-score-block{
-  grid-row:1/3;grid-column:1;
+  grid-row:1/-1;grid-column:1;
   display:flex;flex-direction:column;align-items:center;justify-content:center;
-  padding:20px 28px;
+  padding:16px 12px;
   border-right:1px solid rgba(255,255,255,0.12);
-  min-width:110px;
+  width:120px;
 }
 .rb-result{font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:2px;margin-bottom:2px}
 .rb-result.win{color:#d4ffd4}.rb-result.loss{color:#ffd4d4}.rb-result.tie{color:#fff8d4}
-.rb-score{font-size:34px;font-weight:900;letter-spacing:-1px;line-height:1;text-shadow:0 2px 6px rgba(0,0,0,0.2)}
+.rb-score{font-size:34px;font-weight:900;letter-spacing:-1px;line-height:1;text-shadow:0 2px 6px rgba(0,0,0,0.2);text-align:center;word-break:break-all}
 
 /* Top-right: opponent left, date+location+weather right */
 .rb-info{
@@ -163,24 +163,39 @@ button{cursor:pointer;font-family:inherit}input,textarea,select{font-family:inhe
 .rb-stat .rb-stat-val{color:#fff;font-weight:900}
 .rb-stat .rb-stat-label{opacity:0.7;text-transform:uppercase;letter-spacing:0.5px;font-size:10px}
 .rb-stats-group{display:flex;align-items:center;gap:10px}
-.rb-boxlink{font-size:11px;font-weight:700;color:rgba(255,255,255,0.7);display:inline-flex;align-items:center;gap:3px;cursor:pointer;transition:opacity 0.15s;background:none;border:none;font-family:inherit;padding:0;line-height:1;margin-left:6px}
-.rb-boxlink:hover{opacity:1;color:#fff}
-.rb-boxlink .material-symbols-outlined{font-size:13px}
+.rb-boxlink{
+  font-size:11px;font-weight:700;color:#fff;
+  display:inline-flex;align-items:center;gap:4px;
+  cursor:pointer;transition:all 0.15s;
+  background:rgba(255,255,255,0.12);border:1px solid rgba(255,255,255,0.18);
+  border-radius:6px;padding:5px 12px;
+  font-family:inherit;line-height:1;
+  white-space:nowrap;flex-shrink:0;
+}
+.rb-boxlink:hover{background:rgba(255,255,255,0.2);border-color:rgba(255,255,255,0.3)}
 .rb-detail-spacer{flex:1}
 .rb-author{font-size:12px;font-weight:600;opacity:0.7;display:flex;align-items:center;gap:4px;white-space:nowrap;line-height:1}
 .rb-author .player-chip{background:rgba(255,255,255,0.15);color:#fff;font-size:12px}
 .rb-author .player-chip .pc-num{color:rgba(255,255,255,0.7)}
 
 @media(max-width:640px){
-  .rb-score-block{padding:14px 18px;min-width:80px}
+  /* Score block: stack box score button below score */
+  .rb-score-block{padding:10px 8px;width:90px;gap:6px}
   .rb-score{font-size:26px}
   .rb-result{font-size:10px;letter-spacing:1.5px}
+  .rb-mobile-boxlink{display:block}
   .rb-info{padding:8px 14px;flex-wrap:wrap;gap:4px}
   .rb-info-right{margin-left:0;width:100%;gap:8px}
   .rb-opponent{font-size:15px}
   .rb-details{padding:6px 14px;flex-wrap:wrap;gap:6px}
   .rb-detail-spacer{display:none}
+  /* Hide the inline box score button on mobile — it's in the score block now */
+  .rb-details .rb-boxlink{display:none}
 }
+/* Mobile box score button inside score block — hidden on desktop */
+.rb-mobile-boxlink{display:none}
+.rb-mobile-boxlink .rb-boxlink{font-size:10px;padding:4px 10px;margin-top:2px}
+.rb-mobile-boxlink .rb-boxlink .material-symbols-outlined{display:none}
 .result-tag{font-size:12px;font-weight:800;color:#fff;padding:3px 10px;border-radius:4px}
 /* Comments */
 .comments-section{padding:0 24px 12px}
@@ -334,17 +349,77 @@ tr.bs-row .row-check{width:15px;height:15px;accent-color:var(--blue);cursor:poin
 .player-chip{display:inline-flex;align-items:center;font-weight:700;color:var(--pri);background:linear-gradient(135deg,rgba(232,168,56,0.12),rgba(232,168,56,0.05));padding:3px 9px;border-radius:6px;font-size:0.95em;white-space:nowrap;line-height:1.4;vertical-align:middle;position:relative;cursor:default}
 .player-chip .pc-num{font-size:0.8em;color:var(--acc);font-weight:800;margin-left:3px}
 .pc-avatar{width:20px;height:20px;border-radius:50%;object-fit:cover;margin-right:5px;flex-shrink:0;border:none;background:transparent}
-/* Player chip hover card */
-.pc-hover{display:none;position:absolute;bottom:calc(100% + 8px);left:50%;transform:translateX(-50%);background:var(--card);border:1px solid var(--brd);border-radius:12px;box-shadow:0 8px 32px rgba(0,0,0,0.15);padding:14px 16px;width:320px;z-index:500;text-align:center;pointer-events:auto}
-@media(max-width:640px){.pc-hover{position:fixed;bottom:auto;top:50%;left:50%;transform:translate(-50%,-50%);width:calc(100vw - 32px);max-width:360px;border-radius:16px;box-shadow:0 12px 48px rgba(0,0,0,0.25)}}
+.pc-avatar-cutout{width:22px;height:22px;border-radius:0;object-fit:contain;object-position:center bottom;margin-right:4px;flex-shrink:0;align-self:flex-end;filter:drop-shadow(0 0.5px 1px rgba(0,0,0,0.15))}
+/* ═══ Player chip hover card — sports card layout ═══ */
+.pc-hover{
+  display:none;position:fixed;
+  background:var(--card);border:1px solid var(--brd);
+  border-radius:14px;
+  box-shadow:0 12px 40px rgba(0,0,0,0.14),0 2px 8px rgba(0,0,0,0.06);
+  width:320px;max-width:calc(100vw - 24px);z-index:500;
+  pointer-events:auto;overflow:hidden;
+}
 .player-chip:hover .pc-hover,.pc-hover:hover{display:block}
-.pc-hover::after{content:'';position:absolute;top:100%;left:50%;transform:translateX(-50%);border:8px solid transparent;border-top-color:var(--card)}
-.pc-hover::before{content:'';position:absolute;top:100%;left:0;right:0;height:16px;background:transparent}
-.pc-hover-photo{width:56px;height:56px;border-radius:50%;object-fit:cover;margin:0 auto 8px;display:block;border:none;background:transparent}
-.pc-hover-name{font-size:14px;font-weight:800;color:var(--pri);margin-bottom:2px}
-.pc-hover-meta{font-size:11px;color:var(--mut);font-weight:600;text-transform:uppercase;letter-spacing:0.5px}
-.pc-hover-song{margin-top:8px;border-radius:12px;overflow:hidden}
-.pc-hover-song iframe{width:100%;height:152px;border:none;border-radius:12px}
+
+/* Top section: info left, photo right */
+.pc-hover-top{
+  display:flex;align-items:stretch;
+  min-height:72px;position:relative;
+  background:linear-gradient(135deg,var(--pri) 0%,rgba(26,39,68,0.92) 100%);
+  padding:0;
+}
+.pc-hover-info{
+  flex:1;display:flex;flex-direction:column;justify-content:center;
+  padding:14px 0 14px 18px;min-width:0;
+}
+.pc-hover-name{
+  font-family:'Sen',sans-serif;font-size:17px;font-weight:900;
+  color:#fff;letter-spacing:-0.3px;line-height:1.2;
+  margin-bottom:3px;
+}
+.pc-hover-number{
+  font-family:'Sen',sans-serif;font-size:28px;font-weight:900;
+  color:rgba(232,168,56,0.9);line-height:1;letter-spacing:-1px;
+  margin-bottom:4px;
+}
+.pc-hover-meta{
+  font-size:10px;color:rgba(255,255,255,0.6);font-weight:700;
+  text-transform:uppercase;letter-spacing:1.5px;
+}
+/* Photo container — right side */
+.pc-hover-photo-wrap{
+  width:80px;flex-shrink:0;
+  display:flex;align-items:flex-end;justify-content:center;
+  position:relative;overflow:visible;
+}
+/* Cutout photo — anchored to bottom, overflows upward */
+.pc-hover-photo-cutout{
+  width:72px;height:72px;
+  object-fit:contain;object-position:center bottom;
+  filter:drop-shadow(0 2px 4px rgba(0,0,0,0.25));
+  position:relative;z-index:1;
+  margin-bottom:-1px;
+}
+/* Circle photo — centered */
+.pc-hover-photo-circle{
+  width:52px;height:52px;border-radius:50%;
+  object-fit:cover;
+  border:2px solid rgba(255,255,255,0.2);
+  margin-bottom:10px;
+}
+/* No photo placeholder */
+.pc-hover-photo-none{
+  width:44px;height:44px;border-radius:50%;
+  background:rgba(255,255,255,0.08);border:1.5px solid rgba(255,255,255,0.12);
+  display:flex;align-items:center;justify-content:center;
+  margin-bottom:14px;
+}
+.pc-hover-photo-none .material-symbols-outlined{font-size:22px;color:rgba(255,255,255,0.25)}
+
+/* Bottom section: walkup song */
+.pc-hover-bottom{padding:0}
+.pc-hover-song{border-radius:0;overflow:hidden}
+.pc-hover-song iframe{width:100%;height:152px;border:none;border-radius:0}
 /* Box score notes */
 .box-notes{margin-top:12px}
 .box-notes label{display:block;font-size:10px;font-weight:700;color:var(--mut);text-transform:uppercase;letter-spacing:0.6px;margin-bottom:4px}
@@ -502,7 +577,7 @@ body.has-save-bar .main{padding-bottom:80px !important}
 .save-bar .sb-save:disabled{opacity:0.5;cursor:default;transform:none}
 @keyframes pulse-dot{0%,100%{opacity:1}50%{opacity:0.4}}
 
-/* ═══ 2026 TEASER BANNER — frosted glass ═══ */
+/* ═══ 2026 TEASER BANNER — frosted glass ad bar ═══ */
 .teaser-banner{
   display:none;margin-left:56px;overflow:hidden;
   position:sticky;top:0;z-index:100;
@@ -513,7 +588,6 @@ body.has-save-bar .main{padding-bottom:80px !important}
 }
 .teaser-banner.active{display:block}
 
-/* Both content layers live in a grid cell so they can crossfade */
 .teaser-inner{
   overflow:hidden;
   transition:height 0.28s cubic-bezier(0.4,0,0.2,1);
@@ -523,59 +597,51 @@ body.has-save-bar .main{padding-bottom:80px !important}
   transition:opacity 0.2s ease;
 }
 
-/* ── Expanded state (default) ── */
+/* ── Expanded: compact ad bar — text left, toggle right ── */
 .teaser-content-full{
-  display:flex;flex-direction:column;align-items:center;justify-content:center;
-  padding:40px 20px 36px;text-align:center;gap:6px;
-  opacity:1;
+  display:flex;align-items:center;justify-content:space-between;
+  padding:14px 24px;opacity:1;gap:16px;
 }
-
+.teaser-left{display:flex;align-items:baseline;gap:10px}
 .teaser-title{
-  font-family:'Sen',sans-serif;font-size:32px;font-weight:900;
-  letter-spacing:2px;color:#fff;
-  opacity:0;transform:translateY(12px);
+  font-family:'Sen',sans-serif;font-size:18px;font-weight:900;
+  letter-spacing:1px;color:#fff;white-space:nowrap;
+  opacity:0;
 }
-.teaser-banner.animate .teaser-title{
-  animation:teaser-text-in 0.8s 0.2s ease-out forwards;
-}
+.teaser-banner.animate .teaser-title{animation:teaser-fade 0.5s 0.15s ease-out forwards}
 .teaser-sub-full{
-  font-family:'Sen',sans-serif;font-size:13px;font-weight:700;
-  letter-spacing:3px;text-transform:uppercase;
-  color:rgba(232,168,56,0.9);
-  opacity:0;transform:translateY(8px);
-  margin-top:4px;
+  font-family:'Sen',sans-serif;font-size:11px;font-weight:700;
+  letter-spacing:2px;text-transform:uppercase;
+  color:rgba(232,168,56,0.9);white-space:nowrap;
+  opacity:0;
 }
-.teaser-banner.animate .teaser-sub-full{
-  animation:teaser-text-in 0.6s 0.5s ease-out forwards;
-}
+.teaser-banner.animate .teaser-sub-full{animation:teaser-fade 0.4s 0.3s ease-out forwards}
 .teaser-switcher-full{
-  display:inline-flex;align-items:center;
+  display:inline-flex;align-items:center;flex-shrink:0;
   background:rgba(255,255,255,0.08);
   border:1px solid rgba(255,255,255,0.1);
-  border-radius:20px;padding:3px;margin-top:10px;
-  opacity:0;transform:translateY(8px);
+  border-radius:20px;padding:3px;
+  opacity:0;
 }
-.teaser-banner.animate .teaser-switcher-full{
-  animation:teaser-text-in 0.5s 0.7s ease-out forwards;
-}
+.teaser-banner.animate .teaser-switcher-full{animation:teaser-fade 0.4s 0.4s ease-out forwards}
 
-@keyframes teaser-text-in{
-  0%{opacity:0;transform:translateY(12px)}
-  100%{opacity:1;transform:translateY(0)}
-}
+@keyframes teaser-fade{0%{opacity:0}100%{opacity:1}}
 
-/* ── Collapsed state (on scroll) ── */
+/* ── Collapsed state (on scroll) — same layout, just smaller ── */
 .teaser-content-collapsed{
   position:absolute;top:0;left:0;right:0;
-  display:flex;
-  align-items:center;justify-content:space-between;
-  padding:0 24px;height:44px;
+  display:flex;align-items:center;justify-content:space-between;
+  padding:0 24px;height:38px;
   opacity:0;pointer-events:none;
 }
 .teaser-collapsed-sub{
-  font-family:'Sen',sans-serif;font-size:11px;font-weight:700;
-  letter-spacing:2.5px;text-transform:uppercase;
+  font-family:'Sen',sans-serif;font-size:10px;font-weight:700;
+  letter-spacing:2px;text-transform:uppercase;
   color:rgba(232,168,56,0.9);white-space:nowrap;
+}
+.teaser-collapsed-title{
+  font-family:'Sen',sans-serif;font-size:14px;font-weight:900;
+  color:#fff;letter-spacing:0.5px;margin-right:8px;
 }
 .teaser-switcher-collapsed{
   display:inline-flex;align-items:center;
@@ -584,10 +650,9 @@ body.has-save-bar .main{padding-bottom:80px !important}
   border-radius:16px;padding:2px;
 }
 
-/* When collapsed: crossfade, full content hidden via height animation */
+/* When collapsed */
 .teaser-banner.collapsed .teaser-content-full{opacity:0;pointer-events:none}
 .teaser-banner.collapsed .teaser-content-collapsed{opacity:1;pointer-events:auto}
-/* After animation settles, hide full to prevent ghost clicks */
 .teaser-banner.collapsed.settled .teaser-content-full{visibility:hidden}
 
 /* Shared toggle styles */
@@ -604,18 +669,58 @@ body.has-save-bar .main{padding-bottom:80px !important}
   box-shadow:0 1px 6px rgba(0,0,0,0.2);
 }
 
-/* On 2026: acts as page header — taller expanded */
-.teaser-banner.is-header .teaser-content-full{padding:52px 20px 44px}
-
 @media(max-width:640px){
   .teaser-banner{margin-left:0;top:48px}
-  .teaser-title{font-size:24px;letter-spacing:1px}
-  .teaser-sub-full{font-size:11px;letter-spacing:2px}
-  .teaser-content-full{padding:28px 16px 24px}
-  .teaser-content-collapsed{padding:0 14px;height:40px}
-  .teaser-collapsed-sub{font-size:10px;letter-spacing:2px}
-  .ts-btn{padding:4px 12px;font-size:10px}
-  .teaser-banner.is-header .teaser-content-full{padding:32px 16px 28px}
+  .teaser-content-full{padding:10px 14px;gap:8px}
+  .teaser-title{display:none}
+  .teaser-sub-full{font-size:9px;letter-spacing:1.5px}
+  .teaser-content-collapsed{padding:0 14px;height:34px}
+  .teaser-collapsed-title{display:none}
+  .teaser-collapsed-sub{font-size:9px}
+  .ts-btn{padding:4px 10px;font-size:10px}
+}
+
+/* ═══ LINEUP PHOTOS IN RECAP BANNER ═══ */
+.rb-lineup{
+  grid-row:3;grid-column:2;
+  display:flex;align-items:flex-end;
+  padding:2px 20px 0;gap:0;
+  height:34px;
+  overflow-x:auto;overflow-y:visible;
+  scrollbar-width:none;
+}
+.rb-lineup::-webkit-scrollbar{display:none}
+.rb-lineup-player{
+  flex-shrink:0;display:flex;flex-direction:column;align-items:center;
+  justify-content:flex-end;
+  width:34px;height:100%;
+}
+/* Transparent cutout photos — anchored to bottom, no circle */
+.rb-lineup-photo-cutout{
+  width:32px;height:32px;object-fit:contain;object-position:center bottom;
+  filter:drop-shadow(0 1px 2px rgba(0,0,0,0.3));
+  margin-top:auto;
+}
+/* Non-transparent / placeholder — circle, floats just above bottom */
+.rb-lineup-photo-circle{
+  width:26px;height:26px;border-radius:50%;object-fit:cover;
+  border:1.5px solid rgba(255,255,255,0.25);
+  margin-top:auto;margin-bottom:4px;
+}
+.rb-lineup-placeholder{
+  width:26px;height:26px;border-radius:50%;
+  background:rgba(255,255,255,0.08);border:1.5px solid rgba(255,255,255,0.12);
+  display:flex;align-items:center;justify-content:center;
+  margin-top:auto;margin-bottom:4px;
+}
+.rb-lineup-placeholder .material-symbols-outlined{font-size:14px;color:rgba(255,255,255,0.3)}
+
+@media(max-width:640px){
+  .rb-lineup{padding:4px 14px 2px;height:auto;flex-wrap:wrap;overflow:visible;gap:2px 0}
+  .rb-lineup-player{width:28px;height:28px}
+  .rb-lineup-photo-cutout{width:26px;height:26px}
+  .rb-lineup-photo-circle{width:22px;height:22px}
+  .rb-lineup-placeholder{width:22px;height:22px}
 }
 
 /* ═══ 2024 SHOWCASE CONTEXT BADGE ═══ */
@@ -648,15 +753,20 @@ body.has-save-bar .main{padding-bottom:80px !important}
 <div class="teaser-banner" id="teaserBanner">
   <div class="teaser-inner" id="teaserInner">
     <div class="teaser-content-full" id="teaserFull">
-      <div class="teaser-title" id="teaserTitle">GrooveHub 2026</div>
-      <div class="teaser-sub-full">Season begins April 11, 2026</div>
+      <div class="teaser-left">
+        <div class="teaser-title" id="teaserTitle">GrooveHub 2026</div>
+        <div class="teaser-sub-full">New season begins April 11</div>
+      </div>
       <div class="teaser-switcher-full">
         <button class="ts-btn ts-btn-full-24" onclick="switchSeason('2024')">2024</button>
         <button class="ts-btn ts-btn-full-26" onclick="switchSeason('2026')">2026</button>
       </div>
     </div>
     <div class="teaser-content-collapsed" id="teaserCollapsed">
-      <span class="teaser-collapsed-sub">Season begins April 11, 2026</span>
+      <div style="display:flex;align-items:center">
+        <span class="teaser-collapsed-title">GrooveHub 2026</span>
+        <span class="teaser-collapsed-sub">New season begins April 11</span>
+      </div>
       <div class="teaser-switcher-collapsed">
         <button class="ts-btn ts-btn-col-24" onclick="switchSeason('2024')">2024</button>
         <button class="ts-btn ts-btn-col-26" onclick="switchSeason('2026')">2026</button>
@@ -873,17 +983,29 @@ function rosterMap(){
   return m;
 }
 function chipHoverHtml(entry){
+  const isCutout=entry.photo&&/\.png/i.test(entry.photo);
+  let photoHtml;
+  if(entry.photo&&isCutout){
+    photoHtml=`<img class="pc-hover-photo-cutout" src="${entry.photo}">`;
+  }else if(entry.photo){
+    photoHtml=`<img class="pc-hover-photo-circle" src="${entry.photo}">`;
+  }else{
+    photoHtml=`<div class="pc-hover-photo-none"><span class="material-symbols-outlined">person</span></div>`;
+  }
   let h='<div class="pc-hover">';
-  if(entry.photo)h+=`<img class="pc-hover-photo" src="${entry.photo}">`;
+  h+=`<div class="pc-hover-top">`;
+  h+=`<div class="pc-hover-info">`;
+  if(entry.number)h+=`<div class="pc-hover-number">#${esc(entry.number)}</div>`;
   h+=`<div class="pc-hover-name">${esc(entry.name)}</div>`;
-  const meta=[];
-  if(entry.position)meta.push(entry.position);
-  if(entry.number)meta.push('#'+entry.number);
-  if(meta.length)h+=`<div class="pc-hover-meta">${esc(meta.join(' · '))}</div>`;
+  if(entry.position)h+=`<div class="pc-hover-meta">${esc(entry.position)}</div>`;
+  h+=`</div>`;
+  h+=`<div class="pc-hover-photo-wrap">${photoHtml}</div>`;
+  h+=`</div>`;
+  // Song section
   if(entry.walkupSong&&spotifyTrackId(entry.walkupSong)){
-    h+=`<div class="pc-hover-song" data-spotify="${spotifyTrackId(entry.walkupSong)}"></div>`;
+    h+=`<div class="pc-hover-bottom"><div class="pc-hover-song" data-spotify="${spotifyTrackId(entry.walkupSong)}"></div></div>`;
   }else if(entry.walkupSong){
-    h+=`<div style="font-size:10px;color:var(--acc);margin-top:6px;font-weight:600">🎵 ${esc(entry.walkupSong)}</div>`;
+    h+=`<div style="font-size:10px;color:var(--acc);padding:8px 16px;font-weight:600">🎵 ${esc(entry.walkupSong)}</div>`;
   }
   h+='</div>';
   return h;
@@ -894,7 +1016,11 @@ function playerChip(name){
   const rm=rosterMap();
   const entry=rm[name.trim().toLowerCase()];
   if(entry){
-    const avatar=entry.photo?`<img class="pc-avatar" src="${entry.photo}">`:'';
+    let avatar='';
+    if(entry.photo){
+      const isCutout=/\.png/i.test(entry.photo);
+      avatar=isCutout?`<img class="pc-avatar-cutout" src="${entry.photo}">`:`<img class="pc-avatar" src="${entry.photo}">`;
+    }
     return `<span class="player-chip">${avatar}${esc(entry.name)}${entry.number?'<span class="pc-num">#'+esc(entry.number)+'</span>':''}${chipHoverHtml(entry)}</span>`;
   }
   return esc(name);
@@ -943,7 +1069,8 @@ function chipifyText(text){
     const escaped=esc(r.name);
     const reStr=escaped.replace(/[.*+?^${}()|[\]\\]/g,'\\$&');
     const re=new RegExp('\\b'+reStr+'\\b','gi');
-    const avatar=r.photo?`<img class="pc-avatar" src="${r.photo}">`:'';
+    let avatar='';
+    if(r.photo){const isCut=/\.png/i.test(r.photo);avatar=isCut?`<img class="pc-avatar-cutout" src="${r.photo}">`:`<img class="pc-avatar" src="${r.photo}">`}
     const chip=`<span class="player-chip">${avatar}${escaped}${r.number?'<span class="pc-num">#'+esc(r.number)+'</span>':''}${chipHoverHtml(r)}</span>`;
     const key=r.name.toLowerCase();
     safe=safe.replace(re,(match,offset)=>{
@@ -993,6 +1120,18 @@ function resolveLocation(post){
   return '';
 }
 function mapsUrl(loc){return 'https://www.google.com/maps/search/'+encodeURIComponent(loc)}
+function playerPhoto(name){
+  if(!name)return '';
+  const key=name.trim().toLowerCase();
+  const r=D.roster.find(x=>x.name&&x.name.trim().toLowerCase()===key);
+  return r&&r.photo?r.photo:'';
+}
+function playerPhotoHtml(name,size){
+  const sz=size||20;
+  const photo=playerPhoto(name);
+  if(!photo)return `<span style="display:inline-block;width:${sz}px;height:${sz}px;border-radius:50%;background:#e0ddd5;vertical-align:middle;margin-right:4px;flex-shrink:0"></span>`;
+  return `<img src="${photo}" style="width:${sz}px;height:${sz}px;border-radius:50%;object-fit:cover;vertical-align:middle;margin-right:4px;flex-shrink:0">`;
+}
 
 /* ═══ AUTO-FETCH HISTORICAL WEATHER ═══ */
 const WEATHER_CODES={0:'Clear',1:'Mostly Clear',2:'Partly Cloudy',3:'Overcast',
@@ -1784,17 +1923,36 @@ function renderFeed(){
       if(loc||weather)infoHtml+=`<span class="rb-sep">·</span>`;
       infoHtml+=`<span class="rb-date">${gdate}</span>`;
       infoHtml+=`</span>`;
-      // Details row: stats + box score left, author right
-      let detailsHtml=`<span class="rb-stats-group">${statsHtml}`;
-      if(p.gameId)detailsHtml+=`<button class="rb-boxlink" onclick="activeGame='${p.gameId}';activeTab='boxscores';renderAll()"><span class="material-symbols-outlined">open_in_new</span>Box Score</button>`;
-      detailsHtml+=`</span>`;
+      // Details row: stats left, author + box score button right
+      let detailsHtml=`<span class="rb-stats-group">${statsHtml}</span>`;
       detailsHtml+=`<span class="rb-detail-spacer"></span>`;
       detailsHtml+=`<span class="rb-author">Recap by ${playerChip(p.author)}</span>`;
+      if(p.gameId)detailsHtml+=`<button class="rb-boxlink" onclick="activeGame='${p.gameId}';activeTab='boxscores';renderAll()">See Box Score</button>`;
+
+      // Lineup photos — players in order, with roster photos
+      let lineupHtml='';
+      if(game&&game.players&&game.players.length){
+        game.players.forEach(gp=>{
+          const rEntry=gp.rosterId?D.roster.find(r=>r.id===gp.rosterId):D.roster.find(r=>r.name&&r.name.trim().toLowerCase()===(gp.name||'').trim().toLowerCase());
+          const photo=rEntry&&rEntry.photo?rEntry.photo:'';
+          const isCutout=photo&&/\.png/i.test(photo);
+          let imgHtml;
+          if(photo&&isCutout){
+            imgHtml=`<img class="rb-lineup-photo-cutout" src="${photo}" alt="${esc(gp.name||'')}">`;
+          }else if(photo){
+            imgHtml=`<img class="rb-lineup-photo-circle" src="${photo}" alt="${esc(gp.name||'')}">`;
+          }else{
+            imgHtml=`<div class="rb-lineup-placeholder"><span class="material-symbols-outlined">person</span></div>`;
+          }
+          lineupHtml+=`<div class="rb-lineup-player">${imgHtml}</div>`;
+        });
+      }
 
       html+=`<div class="recap-banner"><div class="rb-grid">`
-        +`<div class="rb-score-block"><div class="rb-result ${rc}">${rl}</div><div class="rb-score">${esc(p.runsFor)} – ${esc(p.runsAgainst)}</div></div>`
+        +`<div class="rb-score-block"><div class="rb-result ${rc}">${rl}</div><div class="rb-score">${esc(p.runsFor)} – ${esc(p.runsAgainst)}</div>${p.gameId?`<div class="rb-mobile-boxlink"><button class="rb-boxlink" onclick="activeGame='${p.gameId}';activeTab='boxscores';renderAll()">See Box Score</button></div>`:''}</div>`
         +`<div class="rb-info">${infoHtml}</div>`
         +`<div class="rb-details">${detailsHtml}</div>`
+        +(lineupHtml?`<div class="rb-lineup">${lineupHtml}</div>`:'')
         +`</div></div>`;
       if(p.title)html+=`<div class="post-title">${chipifyText(p.title)}</div>`;
     }else{
@@ -2189,12 +2347,12 @@ function renderPlayerStats(){const pl=getPlayerTotals();const es=enabledStats();
     });
   }
   function sc(col){return playerStatsSort.col===col?(playerStatsSort.dir==='asc'?' sort-asc':' sort-desc'):''}
-  let html=`<div class="table-wrap ps-full"><table><thead><tr><th class="sortable${sc('name')}" onclick="sortPlayerStats('name')">Player</th><th class="sortable${sc('gp')}" onclick="sortPlayerStats('gp')">GP</th>`;es.forEach(s=>{html+=`<th class="sortable${sc(s.id)}" title="${esc(s.full)}" onclick="sortPlayerStats('${s.id}')">${esc(s.label)}</th>`});html+=`<th class="sortable${sc('avg')}" onclick="sortPlayerStats('avg')">AVG</th></tr></thead><tbody>`;pl.forEach(p=>{html+=`<tr><td style="font-weight:600">${esc(p.name)}</td><td style="text-align:center">${p.gp}</td>`;es.forEach(s=>{html+=`<td>${p[s.id]||0}</td>`});html+=`<td class="calc-cell">${avg3(p.h||0,p.ab||0)}</td></tr>`});html+=`</tbody></table></div>`;
+  let html=`<div class="table-wrap ps-full"><table><thead><tr><th class="sortable${sc('name')}" onclick="sortPlayerStats('name')">Player</th><th class="sortable${sc('gp')}" onclick="sortPlayerStats('gp')">GP</th>`;es.forEach(s=>{html+=`<th class="sortable${sc(s.id)}" title="${esc(s.full)}" onclick="sortPlayerStats('${s.id}')">${esc(s.label)}</th>`});html+=`<th class="sortable${sc('avg')}" onclick="sortPlayerStats('avg')">AVG</th></tr></thead><tbody>`;pl.forEach(p=>{html+=`<tr><td style="font-weight:600">${playerPhotoHtml(p.name)}${esc(p.name)}</td><td style="text-align:center">${p.gp}</td>`;es.forEach(s=>{html+=`<td>${p[s.id]||0}</td>`});html+=`<td class="calc-cell">${avg3(p.h||0,p.ab||0)}</td></tr>`});html+=`</tbody></table></div>`;
   // Mobile split tables
   const midIdx=Math.ceil(es.length/2);
   const esA=es.slice(0,midIdx),esB=es.slice(midIdx);
-  html+=`<div class="ps-mobile"><div class="table-wrap"><table><thead><tr><th class="sortable${sc('name')}" onclick="sortPlayerStats('name')">Player</th><th class="sortable${sc('gp')}" onclick="sortPlayerStats('gp')">GP</th>`;esA.forEach(s=>{html+=`<th class="sortable${sc(s.id)}" title="${esc(s.full)}" onclick="sortPlayerStats('${s.id}')">${esc(s.label)}</th>`});html+=`<th class="sortable${sc('avg')}" onclick="sortPlayerStats('avg')">AVG</th></tr></thead><tbody>`;pl.forEach(p=>{html+=`<tr><td style="font-weight:600">${esc(p.name)}</td><td style="text-align:center">${p.gp}</td>`;esA.forEach(s=>{html+=`<td>${p[s.id]||0}</td>`});html+=`<td class="calc-cell">${avg3(p.h||0,p.ab||0)}</td></tr>`});html+=`</tbody></table></div>`;
-  html+=`<div class="table-wrap" style="margin-top:12px"><table><thead><tr><th class="sortable${sc('name')}" onclick="sortPlayerStats('name')">Player</th>`;esB.forEach(s=>{html+=`<th class="sortable${sc(s.id)}" title="${esc(s.full)}" onclick="sortPlayerStats('${s.id}')">${esc(s.label)}</th>`});html+=`</tr></thead><tbody>`;pl.forEach(p=>{html+=`<tr><td style="font-weight:600">${esc(p.name)}</td>`;esB.forEach(s=>{html+=`<td>${p[s.id]||0}</td>`});html+=`</tr>`});html+=`</tbody></table></div></div>`;
+  html+=`<div class="ps-mobile"><div class="table-wrap"><table><thead><tr><th class="sortable${sc('name')}" onclick="sortPlayerStats('name')">Player</th><th class="sortable${sc('gp')}" onclick="sortPlayerStats('gp')">GP</th>`;esA.forEach(s=>{html+=`<th class="sortable${sc(s.id)}" title="${esc(s.full)}" onclick="sortPlayerStats('${s.id}')">${esc(s.label)}</th>`});html+=`<th class="sortable${sc('avg')}" onclick="sortPlayerStats('avg')">AVG</th></tr></thead><tbody>`;pl.forEach(p=>{html+=`<tr><td style="font-weight:600">${playerPhotoHtml(p.name,18)}${esc(p.name)}</td><td style="text-align:center">${p.gp}</td>`;esA.forEach(s=>{html+=`<td>${p[s.id]||0}</td>`});html+=`<td class="calc-cell">${avg3(p.h||0,p.ab||0)}</td></tr>`});html+=`</tbody></table></div>`;
+  html+=`<div class="table-wrap" style="margin-top:12px"><table><thead><tr><th class="sortable${sc('name')}" onclick="sortPlayerStats('name')">Player</th>`;esB.forEach(s=>{html+=`<th class="sortable${sc(s.id)}" title="${esc(s.full)}" onclick="sortPlayerStats('${s.id}')">${esc(s.label)}</th>`});html+=`</tr></thead><tbody>`;pl.forEach(p=>{html+=`<tr><td style="font-weight:600">${playerPhotoHtml(p.name,18)}${esc(p.name)}</td>`;esB.forEach(s=>{html+=`<td>${p[s.id]||0}</td>`});html+=`</tr>`});html+=`</tbody></table></div></div>`;
   document.getElementById('playerStatsArea').innerHTML=html}
 
 /* ═══ LEADERBOARDS ═══ */
@@ -2566,15 +2724,38 @@ loadData(()=>{
   autoFillWeather();
 });
 
-// Lazy-load Spotify embeds in hover cards when chip is hovered
+// Lazy-load Spotify embeds + position hover cards within viewport
 document.addEventListener('mouseover',function(e){
   const chip=e.target.closest('.player-chip');
   if(!chip)return;
+  // Spotify lazy load
   const song=chip.querySelector('.pc-hover-song[data-spotify]');
-  if(!song)return;
-  const id=song.dataset.spotify;
-  delete song.dataset.spotify;
-  song.innerHTML=`<iframe style="border-radius:12px" src="https://open.spotify.com/embed/track/${id}?utm_source=generator&theme=0" width="100%" height="152" frameBorder="0" allowfullscreen allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" loading="lazy"></iframe>`;
+  if(song){
+    const id=song.dataset.spotify;
+    delete song.dataset.spotify;
+    song.innerHTML=`<iframe style="border-radius:0" src="https://open.spotify.com/embed/track/${id}?utm_source=generator&theme=0" width="100%" height="152" frameBorder="0" allowfullscreen allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" loading="lazy"></iframe>`;
+  }
+  // Position hover card within viewport
+  const hover=chip.querySelector('.pc-hover');
+  if(!hover)return;
+  const cr=chip.getBoundingClientRect();
+  const buf=12;
+  // Default: centered above the chip
+  let left=cr.left+cr.width/2-160;
+  let top=cr.top-8;
+  // Measure after making visible briefly
+  hover.style.visibility='hidden';hover.style.display='block';
+  const hr=hover.getBoundingClientRect();
+  hover.style.display='';hover.style.visibility='';
+  const hW=hr.width||320;
+  const hH=hr.height||200;
+  // Horizontal: clamp within viewport
+  left=Math.max(buf,Math.min(left,window.innerWidth-hW-buf));
+  // Vertical: show above chip, or below if not enough space above
+  top=cr.top-hH-8;
+  if(top<buf) top=cr.bottom+8;
+  hover.style.left=left+'px';
+  hover.style.top=top+'px';
 });
 
 // Teaser banner: animated collapse/expand on scroll
