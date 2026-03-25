@@ -202,7 +202,8 @@ button{cursor:pointer;font-family:inherit}input,textarea,select{font-family:inhe
 .roster-card{background:var(--card);border:1px solid var(--brd);border-radius:var(--radius);overflow:hidden;transition:box-shadow 0.2s}
 .roster-card:hover{box-shadow:0 4px 20px rgba(0,0,0,0.08)}
 .roster-card-top{padding:20px 16px 12px;text-align:center}
-.roster-avatar{width:72px;height:72px;border-radius:36px;background:linear-gradient(135deg,#e0ddd5,#d0cdc5);margin:0 auto 10px;display:flex;align-items:center;justify-content:center;font-size:28px;color:var(--mut);overflow:hidden}
+.roster-avatar{width:72px;height:72px;border-radius:36px;background:transparent;margin:0 auto 10px;display:flex;align-items:center;justify-content:center;font-size:28px;color:var(--mut);overflow:hidden}
+.roster-avatar:not(:has(img)){background:linear-gradient(135deg,#e0ddd5,#d0cdc5)}
 .roster-avatar img{width:100%;height:100%;object-fit:cover}
 .roster-card .rname{font-weight:800;font-size:16px;color:var(--pri);margin-bottom:2px}
 .roster-card .rnumber{font-size:12px;color:var(--acc);font-weight:700}
@@ -226,7 +227,8 @@ button{cursor:pointer;font-family:inherit}input,textarea,select{font-family:inhe
 /* ═══ EXPANDED PLAYER CARD ═══ */
 .player-detail{background:var(--card);border:1px solid var(--brd);border-radius:var(--radius);overflow:hidden;grid-column:1/-1;animation:fadeIn 0.25s ease}
 .pd-header{display:flex;gap:20px;padding:24px;align-items:flex-start}
-.pd-photo{width:140px;height:170px;border-radius:8px;background:linear-gradient(135deg,#e0ddd5,#d0cdc5);flex-shrink:0;display:flex;align-items:center;justify-content:center;overflow:hidden;position:relative}
+.pd-photo{width:140px;height:170px;border-radius:8px;background:transparent;flex-shrink:0;display:flex;align-items:center;justify-content:center;overflow:hidden;position:relative}
+.pd-photo:not(:has(img)){background:linear-gradient(135deg,#e0ddd5,#d0cdc5)}
 .pd-photo img{width:100%;height:100%;object-fit:cover}
 .pd-photo .material-symbols-outlined{font-size:48px;color:var(--mut)}
 .pd-photo-upload{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,0.4);opacity:0;transition:opacity 0.2s;cursor:pointer;border-radius:8px}
@@ -331,14 +333,14 @@ tr.bs-row .row-check{width:15px;height:15px;accent-color:var(--blue);cursor:poin
 /* Player name chip — used in posts, box scores, everywhere a Groove player appears */
 .player-chip{display:inline-flex;align-items:center;font-weight:700;color:var(--pri);background:linear-gradient(135deg,rgba(232,168,56,0.12),rgba(232,168,56,0.05));padding:3px 9px;border-radius:6px;font-size:0.95em;white-space:nowrap;line-height:1.4;vertical-align:middle;position:relative;cursor:default}
 .player-chip .pc-num{font-size:0.8em;color:var(--acc);font-weight:800;margin-left:3px}
-.pc-avatar{width:20px;height:20px;border-radius:50%;object-fit:cover;margin-right:5px;flex-shrink:0;border:1px solid rgba(26,39,68,0.12)}
+.pc-avatar{width:20px;height:20px;border-radius:50%;object-fit:cover;margin-right:5px;flex-shrink:0;border:none;background:transparent}
 /* Player chip hover card */
 .pc-hover{display:none;position:absolute;bottom:calc(100% + 8px);left:50%;transform:translateX(-50%);background:var(--card);border:1px solid var(--brd);border-radius:12px;box-shadow:0 8px 32px rgba(0,0,0,0.15);padding:14px 16px;width:320px;z-index:500;text-align:center;pointer-events:auto}
 @media(max-width:640px){.pc-hover{position:fixed;bottom:auto;top:50%;left:50%;transform:translate(-50%,-50%);width:calc(100vw - 32px);max-width:360px;border-radius:16px;box-shadow:0 12px 48px rgba(0,0,0,0.25)}}
 .player-chip:hover .pc-hover,.pc-hover:hover{display:block}
 .pc-hover::after{content:'';position:absolute;top:100%;left:50%;transform:translateX(-50%);border:8px solid transparent;border-top-color:var(--card)}
 .pc-hover::before{content:'';position:absolute;top:100%;left:0;right:0;height:16px;background:transparent}
-.pc-hover-photo{width:56px;height:56px;border-radius:50%;object-fit:cover;margin:0 auto 8px;display:block;border:2px solid var(--brd)}
+.pc-hover-photo{width:56px;height:56px;border-radius:50%;object-fit:cover;margin:0 auto 8px;display:block;border:none;background:transparent}
 .pc-hover-name{font-size:14px;font-weight:800;color:var(--pri);margin-bottom:2px}
 .pc-hover-meta{font-size:11px;color:var(--mut);font-weight:600;text-transform:uppercase;letter-spacing:0.5px}
 .pc-hover-song{margin-top:8px;border-radius:12px;overflow:hidden}
@@ -781,6 +783,7 @@ function switchSeason(year) {
   loadData(() => {
     renderAll();
     if (firebaseReady && currentUser) startRealtimeSync();
+    autoFillWeather();
   });
 }
 
@@ -804,6 +807,7 @@ function autoResize(el){el.style.height='0';el.style.height=Math.max(el.scrollHe
 let pendingUploads=0;
 function resizeImage(file,maxDim){
   return new Promise(resolve=>{
+    const isPng=file.type==='image/png'||/\.png$/i.test(file.name||'');
     const reader=new FileReader();
     reader.onload=e=>{
       const img=new Image();
@@ -815,7 +819,8 @@ function resizeImage(file,maxDim){
         }
         const c=document.createElement('canvas');c.width=w;c.height=h;
         c.getContext('2d').drawImage(img,0,0,w,h);
-        c.toBlob(blob=>resolve(blob),'image/jpeg',0.8);
+        if(isPng){c.toBlob(blob=>resolve(blob),'image/png')}
+        else{c.toBlob(blob=>resolve(blob),'image/jpeg',0.8)}
       };
       img.src=e.target.result;
     };
@@ -973,6 +978,68 @@ function resolveLocation(post){
   return '';
 }
 function mapsUrl(loc){return 'https://www.google.com/maps/search/'+encodeURIComponent(loc)}
+
+/* ═══ AUTO-FETCH HISTORICAL WEATHER ═══ */
+const WEATHER_CODES={0:'Clear',1:'Mostly Clear',2:'Partly Cloudy',3:'Overcast',
+  45:'Foggy',48:'Foggy',51:'Light Drizzle',53:'Drizzle',55:'Heavy Drizzle',
+  61:'Light Rain',63:'Rain',65:'Heavy Rain',71:'Light Snow',73:'Snow',75:'Heavy Snow',
+  80:'Light Showers',81:'Showers',82:'Heavy Showers',95:'Thunderstorm',96:'Thunderstorm w/ Hail',99:'Thunderstorm w/ Hail'};
+
+// Approximate coordinates for known NYC parks; fallback to Central Park
+function locToCoords(loc){
+  const l=(loc||'').toLowerCase();
+  if(/inwood/i.test(l)) return {lat:40.8681,lon:-73.9253};
+  if(/randall/i.test(l)) return {lat:40.7935,lon:-73.9218};
+  if(/central\s*park/i.test(l)) return {lat:40.7829,lon:-73.9654};
+  if(/riverside/i.test(l)) return {lat:40.8010,lon:-73.9712};
+  if(/east\s*river/i.test(l)) return {lat:40.7681,lon:-73.9676};
+  if(/van\s*cortlandt/i.test(l)) return {lat:40.8932,lon:-73.8986};
+  if(/prospect/i.test(l)) return {lat:40.6602,lon:-73.9690};
+  if(/red\s*hook/i.test(l)) return {lat:40.6726,lon:-74.0060};
+  if(/mccarren/i.test(l)) return {lat:40.7200,lon:-73.9510};
+  if(/domino/i.test(l)) return {lat:40.7135,lon:-73.9680};
+  // Default: NYC midtown
+  return {lat:40.7580,lon:-73.9855};
+}
+
+const _weatherCache={};
+async function fetchGameWeather(game){
+  if(!game.date||!game.location) return null;
+  const key=game.date+'|'+game.location;
+  if(_weatherCache[key]) return _weatherCache[key];
+  const {lat,lon}=locToCoords(game.location);
+  try{
+    const url=`https://archive-api.open-meteo.com/v1/archive?latitude=${lat}&longitude=${lon}&start_date=${game.date}&end_date=${game.date}&daily=temperature_2m_max,temperature_2m_min,weathercode&hourly=temperature_2m,relative_humidity_2m,weathercode&temperature_unit=fahrenheit&timezone=America/New_York`;
+    const res=await fetch(url);
+    if(!res.ok) return null;
+    const data=await res.json();
+    // Find ~6pm hour (typical game time) — index 18
+    const hi=data.hourly;
+    const gameHour=18;
+    const tempF=hi&&hi.temperature_2m?Math.round(hi.temperature_2m[gameHour]):null;
+    const humid=hi&&hi.relative_humidity_2m?hi.relative_humidity_2m[gameHour]:null;
+    const wcode=hi&&hi.weathercode?hi.weathercode[gameHour]:null;
+    const cond=WEATHER_CODES[wcode]||'';
+    let result=[];
+    if(tempF!==null) result.push(tempF+'°F');
+    if(cond) result.push(cond);
+    if(humid!==null&&humid>70) result.push('Humid');
+    const str=result.join(', ');
+    _weatherCache[key]=str;
+    return str;
+  }catch(e){return null}
+}
+
+// Auto-populate weather for all games that don't have it
+async function autoFillWeather(){
+  let changed=false;
+  for(const g of D.games){
+    if(g.weather||!g.date||!g.location) continue;
+    const w=await fetchGameWeather(g);
+    if(w){g.weather=w;changed=true}
+  }
+  if(changed){saveNow();renderFeed()}
+}
 
 /* ═══ TEAM RECORD ═══ */
 function getRecord(){
@@ -1290,10 +1357,52 @@ function spotifyEmbed(url){
 async function handleRosterPhoto(idx,files){
   if(!files||!files.length)return;
   const f=files[0];
+  const isPng=f.type==='image/png'||/\.png$/i.test(f.name||'');
   const blob=await resizeImage(f,300);
-  const url=await uploadPhoto(blob,'roster-'+D.roster[idx].id+'.jpg');
+  const ext=isPng?'.png':'.jpg';
+  const url=await uploadPhoto(blob,'roster-'+D.roster[idx].id+ext);
   D.roster[idx].photo=url;
   renderRoster();
+}
+
+// Bulk photo upload — matches filenames to roster players
+async function handleBulkPhotos(files){
+  if(!files||!files.length)return;
+  let matched=0,skipped=[];
+  for(const f of Array.from(files)){
+    // Strip extension, replace separators with spaces, lowercase
+    const base=f.name.replace(/\.[^.]+$/,'').replace(/[-_]/g,' ').trim().toLowerCase();
+    // Try to match against roster names
+    let idx=-1;
+    for(let i=0;i<D.roster.length;i++){
+      const rn=(D.roster[i].name||'').trim().toLowerCase();
+      if(!rn)continue;
+      // Exact match, or filename contains full name, or name contains filename
+      if(base===rn||base.includes(rn)||rn.includes(base)){idx=i;break}
+      // Try last name match
+      const parts=rn.split(/\s+/);
+      const last=parts[parts.length-1];
+      if(last.length>2&&base===last){idx=i;break}
+      // Try first name match
+      const first=parts[0];
+      if(first.length>2&&base===first){idx=i;break}
+    }
+    if(idx>=0){
+      const isPng=f.type==='image/png'||/\.png$/i.test(f.name);
+      const blob=await resizeImage(f,300);
+      const ext=isPng?'.png':'.jpg';
+      const url=await uploadPhoto(blob,'roster-'+D.roster[idx].id+ext);
+      D.roster[idx].photo=url;
+      matched++;
+    }else{
+      skipped.push(f.name);
+    }
+  }
+  if(matched)saveNow();
+  renderRoster();
+  let msg=`Uploaded ${matched} photo${matched!==1?'s':''}`;
+  if(skipped.length)msg+=`\nCouldn't match: ${skipped.join(', ')}`;
+  alert(msg);
 }
 
 function renderRoster(){
@@ -1456,9 +1565,13 @@ function renderRoster(){
 
   grid.innerHTML=html;
 
-  // Admin buttons area — save is now in the unified save bar
+  // Admin buttons area
   const adminBtns=document.getElementById('rosterAdminBtns');
-  adminBtns.innerHTML='';
+  if(admin){
+    adminBtns.innerHTML=`<button class="btn btn-sm btn-ghost" onclick="document.getElementById('bulkPhotoInput').click()"><span class="material-symbols-outlined" style="font-size:14px">photo_library</span>Bulk Upload Photos</button><input type="file" id="bulkPhotoInput" accept="image/*" multiple style="display:none" onchange="handleBulkPhotos(this.files)">`;
+  } else {
+    adminBtns.innerHTML='';
+  }
 }
 
 function getPlayerStatsByName(name){
@@ -1630,12 +1743,13 @@ function renderFeed(){
         statsHtml+=`<span class="rb-stat"><span class="rb-stat-val">${totalBB}</span><span class="rb-stat-label">BB</span></span>`;
         statsHtml+=`<span class="rb-stat"><span class="rb-stat-val">${totalK}</span><span class="rb-stat-label">K</span></span>`;
       }
-      // Info row: opponent left, date+location+weather right
+      // Info row: opponent left, then location · weather · date right
       let infoHtml=`<span class="rb-opponent">${atVs} ${esc(p.opponent||'TBD')}</span>`;
       infoHtml+=`<span class="rb-info-right">`;
+      if(loc)infoHtml+=`<span class="rb-location"><span class="material-symbols-outlined">location_on</span><a href="${mapsUrl(loc)}" target="_blank" rel="noopener">${esc(loc)}</a></span>`;
+      if(weather){if(loc)infoHtml+=`<span class="rb-sep">·</span>`;infoHtml+=`<span class="rb-weather"><span class="material-symbols-outlined">thermostat</span>${esc(weather)}</span>`}
+      if(loc||weather)infoHtml+=`<span class="rb-sep">·</span>`;
       infoHtml+=`<span class="rb-date">${gdate}</span>`;
-      if(loc)infoHtml+=`<span class="rb-sep">·</span><span class="rb-location"><span class="material-symbols-outlined">location_on</span><a href="${mapsUrl(loc)}" target="_blank" rel="noopener">${esc(loc)}</a></span>`;
-      if(weather)infoHtml+=`<span class="rb-sep">·</span><span class="rb-weather"><span class="material-symbols-outlined">thermostat</span>${esc(weather)}</span>`;
       infoHtml+=`</span>`;
       // Details row: stats + box score left, author right
       let detailsHtml=`<span class="rb-stats-group">${statsHtml}`;
@@ -2420,6 +2534,8 @@ loadData(()=>{
     document.body.classList.add('admin-mode');
     initGrass();
   }
+  // Auto-fill missing weather from historical data
+  autoFillWeather();
 });
 
 // Lazy-load Spotify embeds in hover cards when chip is hovered
