@@ -57,6 +57,33 @@ button{cursor:pointer;font-family:inherit}input,textarea,select{font-family:inhe
 .admin-signin{display:inline-flex;align-items:center;gap:6px;padding:6px 14px;border:1px solid var(--brd);background:var(--card);border-radius:6px;font-size:11px;font-weight:500;color:var(--mut);transition:0.2s;box-shadow:none;opacity:0.6}
 .admin-signin:hover{opacity:1;border-color:var(--pri);color:var(--pri)}
 .admin-signin .g-logo{width:14px;height:14px}
+/* Profile Completion Modal */
+.profile-modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:350;display:none;align-items:center;justify-content:center;padding:20px;backdrop-filter:blur(4px)}
+.profile-modal-overlay.open{display:flex}
+.profile-modal{background:var(--card);border-radius:16px;width:100%;max-width:480px;box-shadow:0 16px 56px rgba(0,0,0,0.22);padding:36px 32px;text-align:center;animation:pmSlideUp 0.35s ease}
+@keyframes pmSlideUp{from{opacity:0;transform:translateY(24px)}to{opacity:1;transform:translateY(0)}}
+.profile-modal h2{font-size:22px;margin-bottom:6px;color:var(--pri)}
+.profile-modal .pm-sub{font-size:14px;color:var(--mut);margin-bottom:24px;line-height:1.5}
+.pm-photo-area{width:120px;height:120px;border-radius:50%;margin:0 auto 20px;border:3px dashed var(--brd);display:flex;align-items:center;justify-content:center;cursor:pointer;transition:0.2s;overflow:hidden;background:var(--bg);position:relative}
+.pm-photo-area:hover{border-color:var(--acc)}
+.pm-photo-area img{width:100%;height:100%;object-fit:cover}
+.pm-photo-area .pm-photo-hint{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;color:var(--mut);font-size:11px;font-weight:600;gap:4px;background:rgba(255,255,255,0.85);opacity:1;transition:0.2s}
+.pm-photo-area.has-photo .pm-photo-hint{opacity:0}
+.pm-photo-area.has-photo:hover .pm-photo-hint{opacity:1}
+.pm-field{margin-bottom:16px;text-align:left}
+.pm-field label{display:block;font-size:11px;font-weight:700;color:var(--mut);text-transform:uppercase;letter-spacing:0.6px;margin-bottom:4px}
+.pm-field input{width:100%;padding:12px 14px;border:1px solid var(--brd);border-radius:8px;font-size:15px;transition:border-color 0.2s}
+.pm-field input:focus{outline:none;border-color:var(--acc)}
+.pm-save-btn{padding:12px 32px;background:var(--blue);color:#fff;border:none;border-radius:var(--radius);font-size:14px;font-weight:700;box-shadow:0 2px 10px rgba(37,99,235,0.25);transition:all 0.2s;letter-spacing:0.3px;margin-top:8px;width:100%}
+.pm-save-btn:hover{box-shadow:0 4px 16px rgba(37,99,235,0.35);transform:translateY(-1px)}
+.pm-skip{border:none;background:transparent;color:var(--mut);font-size:12px;font-weight:600;margin-top:12px;transition:0.15s}
+.pm-skip:hover{color:var(--pri)}
+.pm-thanks{display:none;flex-direction:column;align-items:center;gap:12px;padding:20px 0}
+.pm-thanks .pm-check{width:64px;height:64px;border-radius:50%;background:#2d6a2e;color:#fff;display:flex;align-items:center;justify-content:center;font-size:32px;animation:pmPop 0.4s ease}
+@keyframes pmPop{0%{transform:scale(0)}60%{transform:scale(1.15)}100%{transform:scale(1)}}
+@keyframes spin{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}
+.pm-thanks h3{font-size:20px;color:var(--pri)}
+.pm-thanks p{font-size:14px;color:var(--mut)}
 /* Composer */
 .composer-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.4);z-index:300;display:none;align-items:center;justify-content:center;padding:20px}
 .composer-overlay.open{display:flex}
@@ -742,6 +769,7 @@ body.has-save-bar .main{padding-bottom:80px !important}
 <canvas id="grassCanvas"></canvas>
 <nav class="sidebar" id="sidebar"></nav>
 <div class="composer-overlay" id="composerOverlay"><div class="composer" id="composerInner"></div></div>
+<div class="profile-modal-overlay" id="profileModalOverlay"><div class="profile-modal" id="profileModalInner"></div></div>
 <div class="season-bar" id="seasonBar"></div>
 <!-- Teaser Banner -->
 <div class="teaser-banner" id="teaserBanner">
@@ -1271,8 +1299,8 @@ function saveNow(btn) {
   // Always save to localStorage as backup
   try { localStorage.setItem(STORE(), JSON.stringify(D)) } catch(e) { console.error(e) }
 
-  // Save to Firestore if available and user is admin
-  if (firebaseReady && db && isAdmin()) {
+  // Save to Firestore if available and user is admin or player
+  if (firebaseReady && db && (isAdmin() || isPlayer())) {
     savingInProgress = true;
     const payload = JSON.parse(JSON.stringify(D));
     db.collection('stathub').doc(DOC_ID()).set(payload)
@@ -1432,7 +1460,7 @@ if(firebaseReady&&auth){
     currentUser=user;
     renderAuthBar();
     if(user){
-      loadData(()=>{renderAll();startRealtimeSync()});
+      loadData(()=>{renderAll();startRealtimeSync();checkProfileCompletion()});
       if(isAdmin()) document.body.classList.add('admin-mode'); else document.body.classList.remove('admin-mode');
       initGrass();
     } else {
@@ -1444,6 +1472,112 @@ if(firebaseReady&&auth){
 }
 
 function recapGameIds(){return new Set(D.posts.filter(p=>p.type==='recap'&&p.gameId).map(p=>p.gameId))}
+
+/* ═══ PROFILE COMPLETION MODAL ═══ */
+let _profileModalShown = false;
+
+function checkProfileCompletion(){
+  if(_profileModalShown) return;
+  if(!currentUser || !isPlayer()) return;
+  const idx = ownRosterIndex();
+  if(idx < 0) return;
+  const r = D.roster[idx];
+  // Check if missing hometown or photo
+  const missingPhoto = !r.photo;
+  const missingHometown = !r.hometown || !r.hometown.trim();
+  if(!missingPhoto && !missingHometown) return;
+  _profileModalShown = true;
+  showProfileModal(idx, missingPhoto, missingHometown);
+}
+
+function showProfileModal(idx, missingPhoto, missingHometown){
+  const r = D.roster[idx];
+  const overlay = document.getElementById('profileModalOverlay');
+  const inner = document.getElementById('profileModalInner');
+  let html = `<div id="pmForm">`;
+  html += `<h2>Complete Your Profile</h2>`;
+  html += `<p class="pm-sub">Hey ${esc(r.name.split(' ')[0])}! Help us fill out the roster — `;
+  const missing = [];
+  if(missingPhoto) missing.push('a photo');
+  if(missingHometown) missing.push('your hometown');
+  html += `we're missing ${missing.join(' and ')}.</p>`;
+
+  if(missingPhoto){
+    const existingPhoto = r.photo ? `<img src="${esc(r.photo)}" referrerpolicy="no-referrer">` : '';
+    html += `<div class="pm-photo-area${r.photo?' has-photo':''}" id="pmPhotoArea" onclick="document.getElementById('pmPhotoInput').click()">`;
+    html += existingPhoto;
+    html += `<div class="pm-photo-hint"><span class="material-symbols-outlined" style="font-size:28px">photo_camera</span>Upload photo</div>`;
+    html += `<input type="file" id="pmPhotoInput" accept="image/*" style="display:none" onchange="handleProfileModalPhoto(${idx},this.files)">`;
+    html += `</div>`;
+  }
+
+  if(missingHometown){
+    html += `<div class="pm-field"><label>Hometown</label><input id="pmHometown" value="${esc(r.hometown||'')}" placeholder="City, ST"></div>`;
+  }
+
+  html += `<button class="pm-save-btn" onclick="saveProfileModal(${idx})">Save</button>`;
+  html += `<button class="pm-skip" onclick="closeProfileModal()">I'll do this later</button>`;
+  html += `</div>`;
+
+  // Thanks state (hidden initially)
+  html += `<div class="pm-thanks" id="pmThanks">`;
+  html += `<div class="pm-check"><span class="material-symbols-outlined">check</span></div>`;
+  html += `<h3>Thanks!</h3>`;
+  html += `<p>Your profile is looking great.</p>`;
+  html += `</div>`;
+
+  inner.innerHTML = html;
+  overlay.classList.add('open');
+}
+
+async function handleProfileModalPhoto(idx, files){
+  if(!files || !files.length) return;
+  const area = document.getElementById('pmPhotoArea');
+  area.innerHTML = '<div class="pm-photo-hint"><span class="material-symbols-outlined" style="font-size:28px;animation:spin 1s linear infinite">progress_activity</span>Uploading...</div><input type="file" id="pmPhotoInput" accept="image/*" style="display:none" onchange="handleProfileModalPhoto('+idx+',this.files)">';
+  try {
+    const f = files[0];
+    const isPng = f.type === 'image/png' || /\.png$/i.test(f.name || '');
+    const blob = await resizeImage(f, 300);
+    const ext = isPng ? '.png' : '.jpg';
+    const url = await uploadPhoto(blob, 'roster-' + D.roster[idx].id + ext);
+    D.roster[idx].photo = url;
+    area.classList.add('has-photo');
+    area.innerHTML = `<img src="${url}"><div class="pm-photo-hint"><span class="material-symbols-outlined" style="font-size:28px">photo_camera</span>Change photo</div><input type="file" id="pmPhotoInput" accept="image/*" style="display:none" onchange="handleProfileModalPhoto(${idx},this.files)">`;
+  } catch(e) {
+    console.error('Profile photo upload failed:', e);
+    area.innerHTML = `<div class="pm-photo-hint"><span class="material-symbols-outlined" style="font-size:28px">photo_camera</span>Upload photo</div><input type="file" id="pmPhotoInput" accept="image/*" style="display:none" onchange="handleProfileModalPhoto(${idx},this.files)">`;
+  }
+}
+
+function saveProfileModal(idx){
+  const hometownInput = document.getElementById('pmHometown');
+  if(hometownInput) D.roster[idx].hometown = hometownInput.value.trim();
+  // Save to Firestore (player save)
+  savePlayerProfile();
+  // Show thanks
+  document.getElementById('pmForm').style.display = 'none';
+  const thanks = document.getElementById('pmThanks');
+  thanks.style.display = 'flex';
+  // Auto-close after 2 seconds
+  setTimeout(()=>{
+    closeProfileModal();
+    renderRoster();
+  }, 2000);
+}
+
+function closeProfileModal(){
+  document.getElementById('profileModalOverlay').classList.remove('open');
+}
+
+// Save for players — writes the full doc to Firestore so player edits persist
+function savePlayerProfile(){
+  try { localStorage.setItem(STORE(), JSON.stringify(D)) } catch(e) { console.error(e) }
+  if(firebaseReady && db && (isAdmin() || isPlayer())){
+    const payload = JSON.parse(JSON.stringify(D));
+    db.collection('stathub').doc(DOC_ID()).set(payload)
+      .catch(e => console.error('Player profile save failed:', e));
+  }
+}
 
 /* ═══ SIDEBAR ═══ */
 const TABS=[
@@ -2409,7 +2543,7 @@ function renderStatNotes(){
 }
 
 /* ═══ SETTINGS ═══ */
-const STABS=[{id:'general',label:'General'},{id:'tabs',label:'Tabs'},{id:'stats',label:'Stats'},{id:'import',label:'Import CSV'},{id:'backlog',label:'Backlog'}];
+const STABS=[{id:'general',label:'General'},{id:'tabs',label:'Tabs'},{id:'stats',label:'Stats'},{id:'import',label:'Import CSV'},{id:'tools',label:'Tools'},{id:'backlog',label:'Backlog'}];
 function renderSettings(){
   // Settings are admin-only
   if(!isAdmin()){
@@ -2432,6 +2566,27 @@ if(settingsSub==='import'){
   </div>
   <input type="file" id="csvFileInput" accept=".csv" style="display:none" onchange="handleCsvImport(this.files[0])">
   <div id="csvImportResult"></div></div>`;
+}
+if(settingsSub==='tools'){
+  html=`<div class="s-card"><h3>Profile Completion Modal</h3>
+  <p style="font-size:12px;color:var(--mut);margin-bottom:14px">Test the modal that prompts players to fill in missing photo/hometown. Pick a player below or trigger it for everyone who's incomplete.</p>
+  <div style="display:flex;flex-direction:column;gap:8px">`;
+  // List players missing photo or hometown
+  const incomplete = D.roster.map((r,i)=>({r,i})).filter(({r})=>!r.photo||!r.hometown||!r.hometown.trim());
+  if(incomplete.length){
+    incomplete.forEach(({r,i})=>{
+      const missing=[];
+      if(!r.photo) missing.push('photo');
+      if(!r.hometown||!r.hometown.trim()) missing.push('hometown');
+      html+=`<div style="display:flex;align-items:center;justify-content:space-between;padding:8px 12px;background:var(--bg);border-radius:8px">
+        <div><span style="font-weight:700;font-size:13px">${esc(r.name||'Unnamed')}</span> <span style="font-size:11px;color:var(--mut)">— missing ${missing.join(', ')}</span></div>
+        <button class="save-btn" style="font-size:11px;padding:5px 14px" onclick="_profileModalShown=false;showProfileModal(${i},${!r.photo},${!r.hometown||!r.hometown.trim()})">Test Modal</button>
+      </div>`;
+    });
+  } else {
+    html+=`<div style="font-size:13px;color:var(--mut)">All players have both a photo and hometown filled in.</div>`;
+  }
+  html+=`</div></div>`;
 }
 if(settingsSub==='backlog'){
   const BACKLOG=[
