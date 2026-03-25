@@ -57,28 +57,39 @@ button{cursor:pointer;font-family:inherit}input,textarea,select{font-family:inhe
 .admin-signin{display:inline-flex;align-items:center;gap:6px;padding:6px 14px;border:1px solid var(--brd);background:var(--card);border-radius:6px;font-size:11px;font-weight:500;color:var(--mut);transition:0.2s;box-shadow:none;opacity:0.6}
 .admin-signin:hover{opacity:1;border-color:var(--pri);color:var(--pri)}
 .admin-signin .g-logo{width:14px;height:14px}
-/* Profile Completion Modal */
+/* Profile Modal */
 .profile-modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:350;display:none;align-items:center;justify-content:center;padding:20px;backdrop-filter:blur(4px)}
 .profile-modal-overlay.open{display:flex}
-.profile-modal{background:var(--card);border-radius:16px;width:100%;max-width:480px;box-shadow:0 16px 56px rgba(0,0,0,0.22);padding:36px 32px;text-align:center;animation:pmSlideUp 0.35s ease}
+.profile-modal{background:var(--card);border-radius:16px;width:100%;max-width:520px;max-height:90vh;overflow-y:auto;box-shadow:0 16px 56px rgba(0,0,0,0.22);padding:0;animation:pmSlideUp 0.35s ease}
 @keyframes pmSlideUp{from{opacity:0;transform:translateY(24px)}to{opacity:1;transform:translateY(0)}}
-.profile-modal h2{font-size:22px;margin-bottom:6px;color:var(--pri)}
-.profile-modal .pm-sub{font-size:14px;color:var(--mut);margin-bottom:24px;line-height:1.5}
-.pm-photo-area{width:120px;height:120px;border-radius:50%;margin:0 auto 20px;border:3px dashed var(--brd);display:flex;align-items:center;justify-content:center;cursor:pointer;transition:0.2s;overflow:hidden;background:var(--bg);position:relative}
+.pm-header{padding:28px 32px 0;text-align:center}
+.pm-header h2{font-size:22px;margin-bottom:6px;color:var(--pri)}
+.pm-header .pm-sub{font-size:14px;color:var(--mut);line-height:1.5}
+.pm-body{padding:20px 32px 28px}
+.pm-photo-area{width:110px;height:110px;border-radius:50%;margin:0 auto 20px;border:3px dashed var(--brd);display:flex;align-items:center;justify-content:center;cursor:pointer;transition:0.2s;overflow:hidden;background:var(--bg);position:relative}
+.pm-photo-area.required{border-color:var(--acc)}
 .pm-photo-area:hover{border-color:var(--acc)}
 .pm-photo-area img{width:100%;height:100%;object-fit:cover}
 .pm-photo-area .pm-photo-hint{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;color:var(--mut);font-size:11px;font-weight:600;gap:4px;background:rgba(255,255,255,0.85);opacity:1;transition:0.2s}
 .pm-photo-area.has-photo .pm-photo-hint{opacity:0}
 .pm-photo-area.has-photo:hover .pm-photo-hint{opacity:1}
-.pm-field{margin-bottom:16px;text-align:left}
+.pm-photo-label{text-align:center;font-size:10px;font-weight:700;color:var(--mut);text-transform:uppercase;letter-spacing:0.6px;margin-bottom:16px}
+.pm-field{margin-bottom:14px;text-align:left}
 .pm-field label{display:block;font-size:11px;font-weight:700;color:var(--mut);text-transform:uppercase;letter-spacing:0.6px;margin-bottom:4px}
-.pm-field input{width:100%;padding:12px 14px;border:1px solid var(--brd);border-radius:8px;font-size:15px;transition:border-color 0.2s}
-.pm-field input:focus{outline:none;border-color:var(--acc)}
-.pm-save-btn{padding:12px 32px;background:var(--blue);color:#fff;border:none;border-radius:var(--radius);font-size:14px;font-weight:700;box-shadow:0 2px 10px rgba(37,99,235,0.25);transition:all 0.2s;letter-spacing:0.3px;margin-top:8px;width:100%}
+.pm-field label .pm-req{color:var(--acc);font-weight:800}
+.pm-field input,.pm-field textarea{width:100%;padding:10px 12px;border:1px solid var(--brd);border-radius:8px;font-size:14px;transition:border-color 0.2s;font-family:'Sen',sans-serif}
+.pm-field input:focus,.pm-field textarea:focus{outline:none;border-color:var(--acc)}
+.pm-field textarea{min-height:70px;resize:vertical;line-height:1.6}
+.pm-field-row{display:flex;gap:10px}
+.pm-field-row .pm-field{flex:1}
+.pm-section{font-size:10px;font-weight:700;color:var(--mut);text-transform:uppercase;letter-spacing:0.8px;margin:20px 0 10px;padding-top:16px;border-top:1px solid var(--brd)}
+.pm-actions{padding:0 32px 28px;display:flex;flex-direction:column;align-items:center;gap:8px}
+.pm-save-btn{padding:12px 32px;background:var(--blue);color:#fff;border:none;border-radius:var(--radius);font-size:14px;font-weight:700;box-shadow:0 2px 10px rgba(37,99,235,0.25);transition:all 0.2s;letter-spacing:0.3px;width:100%}
 .pm-save-btn:hover{box-shadow:0 4px 16px rgba(37,99,235,0.35);transform:translateY(-1px)}
-.pm-skip{border:none;background:transparent;color:var(--mut);font-size:12px;font-weight:600;margin-top:12px;transition:0.15s}
+.pm-save-btn:disabled{opacity:0.5;cursor:not-allowed;transform:none;box-shadow:none}
+.pm-skip{border:none;background:transparent;color:var(--mut);font-size:12px;font-weight:600;transition:0.15s}
 .pm-skip:hover{color:var(--pri)}
-.pm-thanks{display:none;flex-direction:column;align-items:center;gap:12px;padding:20px 0}
+.pm-thanks{display:none;flex-direction:column;align-items:center;gap:12px;padding:48px 32px}
 .pm-thanks .pm-check{width:64px;height:64px;border-radius:50%;background:#2d6a2e;color:#fff;display:flex;align-items:center;justify-content:center;font-size:32px;animation:pmPop 0.4s ease}
 @keyframes pmPop{0%{transform:scale(0)}60%{transform:scale(1.15)}100%{transform:scale(1)}}
 @keyframes spin{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}
@@ -508,16 +519,23 @@ body.season-2024 .sidebar .nav-icon:hover{color:var(--pri);background:rgba(59,47
 body.season-2024 .sidebar .nav-icon.active{color:var(--pri);background:rgba(59,47,30,0.08)}
 body.season-2024 .admin-signin{color:#8c7b6b;border-color:var(--brd)}
 body.season-2024 .admin-signin:hover{color:var(--pri);border-color:var(--pri)}
-/* Auth bar */
-.auth-bar{display:flex;align-items:center;justify-content:flex-end;gap:10px;padding:8px 24px;margin-left:56px;font-size:12px;color:var(--mut)}
-.auth-bar .user-info{display:flex;align-items:center;gap:8px}
-.auth-bar .user-avatar{width:24px;height:24px;border-radius:12px;border:1px solid var(--brd)}
-.auth-bar .user-name{font-weight:600;color:var(--pri);font-size:12px}
-.auth-btn{padding:6px 16px;border:1px solid var(--brd);background:var(--card);border-radius:6px;font-size:12px;font-weight:600;color:var(--pri);transition:0.15s;display:inline-flex;align-items:center;gap:6px;box-shadow:0 1px 4px rgba(0,0,0,0.06)}
-.auth-btn:hover{border-color:var(--pri);box-shadow:0 2px 8px rgba(0,0,0,0.1)}
-.auth-btn .g-logo{width:16px;height:16px}
-.auth-btn.signout{border:none;background:transparent;box-shadow:none;color:var(--mut);font-weight:500;padding:4px 8px}
-.auth-btn.signout:hover{color:var(--loss)}
+/* Top-right profile pill */
+.profile-pill{position:fixed;top:12px;right:16px;z-index:210;display:flex;align-items:center;gap:8px}
+.profile-pill .pp-avatar{width:32px;height:32px;border-radius:50%;border:2px solid var(--brd);cursor:pointer;transition:0.2s;object-fit:cover}
+.profile-pill .pp-avatar:hover{border-color:var(--acc);box-shadow:0 2px 10px rgba(0,0,0,0.12)}
+.profile-pill .pp-placeholder{width:32px;height:32px;border-radius:50%;border:2px solid var(--brd);background:var(--bg);display:flex;align-items:center;justify-content:center;cursor:pointer;transition:0.2s;color:var(--mut)}
+.profile-pill .pp-placeholder:hover{border-color:var(--acc);color:var(--acc)}
+.pp-menu{position:absolute;top:40px;right:0;background:var(--card);border:1px solid var(--brd);border-radius:10px;box-shadow:0 8px 32px rgba(0,0,0,0.14);min-width:180px;padding:6px 0;display:none;animation:pmSlideUp 0.2s ease}
+.pp-menu.open{display:block}
+.pp-menu-item{display:flex;align-items:center;gap:8px;padding:9px 16px;font-size:13px;font-weight:600;color:var(--pri);cursor:pointer;transition:0.12s;border:none;background:none;width:100%;text-align:left;font-family:inherit}
+.pp-menu-item:hover{background:rgba(26,39,68,0.04)}
+.pp-menu-item.danger{color:var(--loss)}
+.pp-menu-item.danger:hover{background:rgba(187,34,34,0.04)}
+.pp-menu-divider{height:1px;background:var(--brd);margin:4px 0}
+.pp-name{font-size:12px;font-weight:700;color:var(--pri);padding:8px 16px 2px;pointer-events:none}
+.pp-email{font-size:10px;color:var(--mut);padding:0 16px 6px;pointer-events:none}
+/* Auth bar (legacy container) */
+.auth-bar{display:none}
 .auth-gate{text-align:center;padding:16px;color:var(--mut);font-size:13px;margin-bottom:12px;background:rgba(37,99,235,0.04);border-radius:8px}
 @media(max-width:640px){
   /* ═══ MOBILE: Sidebar → Top horizontal nav ═══ */
@@ -557,7 +575,9 @@ body.season-2024 .admin-signin:hover{color:var(--pri);border-color:var(--pri)}
   .header{padding-top:12px}
   .header .header-inner{left:0 !important}
   .season-bar{margin-left:0 !important}
-  .auth-bar{margin-left:0 !important}
+  .profile-pill{top:auto;bottom:60px;right:12px}
+  .pp-menu{top:auto;bottom:40px}
+  .profile-modal{max-height:85vh}
   /* Content */
   .main{padding:0 12px 40px}
   .hero-btn{padding:14px 24px;font-size:13px}
@@ -798,6 +818,7 @@ body.has-save-bar .main{padding-bottom:80px !important}
 </div>
 <div class="page-wrap">
 <div class="auth-bar" id="authBar"></div>
+<div class="profile-pill" id="profilePill"></div>
 <div class="header"><div class="header-inner" style="justify-content:center;flex-direction:column;align-items:center;gap:4px;position:relative;left:-28px"><div class="header-team" id="headerTeam" style="font-size:28px;text-align:center">Welcome to GrooveHub!</div><div class="header-record" id="headerRecord"></div></div></div>
 <div class="showcase-badge" id="showcaseBadge"><span class="sb-dot"></span>You're viewing real data from the 2024 season — <a href="https://docs.google.com/spreadsheets/d/1vFn1eYuYG4SQ_C8OQ-yOL_Nk2iubau-TU45tNtDggeQ/edit?usp=sharing" target="_blank" rel="noopener" style="color:var(--pri);text-decoration:underline">see our original StatHub!</a></div>
 <div class="mobile-season-toggle" id="mobileSeasonToggle"></div>
@@ -1439,20 +1460,44 @@ function signOut(){
   renderAuthBar();renderAll();
 }
 function renderAuthBar(){
-  const bar=document.getElementById('authBar');
+  const pill=document.getElementById('profilePill');
+  if(!pill) return;
   if(!firebaseReady){
-    bar.innerHTML='<span style="font-size:11px;color:#ccc">Local mode — Firebase not configured</span>';
+    pill.innerHTML='';
     return;
   }
   if(currentUser){
-    const photo=currentUser.photoURL?`<img class="user-avatar" src="${currentUser.photoURL}" referrerpolicy="no-referrer">`:'';
-    const badge=isAdmin()?'<span class="admin-badge">Admin</span>':'';
-    bar.innerHTML=`<div class="user-info">${photo}<span class="user-name">${esc(currentUser.displayName||currentUser.email)}</span>${badge}</div><button class="auth-btn signout" onclick="signOut()">Sign out</button>`;
-  }else{
-    // Quiet sign-in — small, subtle
-    bar.innerHTML=`<button class="admin-signin" onclick="signIn()"><svg class="g-logo" viewBox="0 0 24 24"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 0 1-2.2 3.32v2.77h3.57c2.08-1.92 3.27-4.74 3.27-8.1z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/></svg>Admin</button>`;
+    // Determine avatar: use roster photo if available, else Google photo, else initials
+    const rIdx = ownRosterIndex();
+    const rosterPhoto = rIdx >= 0 && D.roster[rIdx] && D.roster[rIdx].photo ? D.roster[rIdx].photo : null;
+    const avatarSrc = rosterPhoto || currentUser.photoURL;
+    const avatarHtml = avatarSrc
+      ? `<img class="pp-avatar" src="${esc(avatarSrc)}" referrerpolicy="no-referrer" onclick="toggleProfileMenu()" title="My Profile">`
+      : `<div class="pp-placeholder" onclick="toggleProfileMenu()" title="My Profile"><span class="material-symbols-outlined" style="font-size:18px">person</span></div>`;
+    pill.innerHTML = avatarHtml + `<div class="pp-menu" id="ppMenu">
+      <div class="pp-name">${esc(currentUser.displayName||'')}</div>
+      <div class="pp-email">${esc(currentUser.email)}</div>
+      <div class="pp-menu-divider"></div>
+      ${(isPlayer()||isAdmin()) && rIdx>=0 ? '<button class="pp-menu-item" onclick="openProfileEditor();closeProfileMenu()"><span class="material-symbols-outlined" style="font-size:16px">edit</span>Edit My Profile</button>':''}
+      <button class="pp-menu-item danger" onclick="signOut();closeProfileMenu()"><span class="material-symbols-outlined" style="font-size:16px">logout</span>Sign Out</button>
+    </div>`;
+  } else {
+    pill.innerHTML=`<button class="admin-signin" onclick="signIn()"><svg class="g-logo" viewBox="0 0 24 24"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 0 1-2.2 3.32v2.77h3.57c2.08-1.92 3.27-4.74 3.27-8.1z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/></svg>Sign In</button>`;
   }
 }
+function toggleProfileMenu(){
+  const menu=document.getElementById('ppMenu');
+  if(menu) menu.classList.toggle('open');
+}
+function closeProfileMenu(){
+  const menu=document.getElementById('ppMenu');
+  if(menu) menu.classList.remove('open');
+}
+// Close menu on outside click
+document.addEventListener('click',function(e){
+  const pill=document.getElementById('profilePill');
+  if(pill && !pill.contains(e.target)) closeProfileMenu();
+});
 function isSignedIn(){return !!currentUser}
 
 if(firebaseReady&&auth){
@@ -1473,53 +1518,91 @@ if(firebaseReady&&auth){
 
 function recapGameIds(){return new Set(D.posts.filter(p=>p.type==='recap'&&p.gameId).map(p=>p.gameId))}
 
-/* ═══ PROFILE COMPLETION MODAL ═══ */
+/* ═══ PROFILE EDITOR MODAL ═══ */
 let _profileModalShown = false;
+let _pmIdx = -1; // roster index being edited in the modal
 
 function checkProfileCompletion(){
   if(_profileModalShown) return;
-  if(!currentUser || !isPlayer()) return;
+  if(!currentUser) return;
+  if(!isPlayer() && !isAdmin()) return;
   const idx = ownRosterIndex();
   if(idx < 0) return;
   const r = D.roster[idx];
-  // Check if missing hometown or photo
   const missingPhoto = !r.photo;
   const missingHometown = !r.hometown || !r.hometown.trim();
   if(!missingPhoto && !missingHometown) return;
   _profileModalShown = true;
-  showProfileModal(idx, missingPhoto, missingHometown);
+  openProfileEditor(idx, true);
 }
 
-function showProfileModal(idx, missingPhoto, missingHometown){
+// Open the profile editor — called from menu or auto-prompt
+// promptMode=true means we're nudging them to complete required fields
+function openProfileEditor(overrideIdx, promptMode){
+  const idx = typeof overrideIdx === 'number' ? overrideIdx : ownRosterIndex();
+  if(idx < 0) return;
+  _pmIdx = idx;
   const r = D.roster[idx];
+  const missingPhoto = !r.photo;
+  const missingHometown = !r.hometown || !r.hometown.trim();
+  const hasRequired = !missingPhoto && !missingHometown;
+
   const overlay = document.getElementById('profileModalOverlay');
   const inner = document.getElementById('profileModalInner');
   let html = `<div id="pmForm">`;
-  html += `<h2>Complete Your Profile</h2>`;
-  html += `<p class="pm-sub">Hey ${esc(r.name.split(' ')[0])}! Help us fill out the roster — `;
-  const missing = [];
-  if(missingPhoto) missing.push('a photo');
-  if(missingHometown) missing.push('your hometown');
-  html += `we're missing ${missing.join(' and ')}.</p>`;
 
-  if(missingPhoto){
-    const existingPhoto = r.photo ? `<img src="${esc(r.photo)}" referrerpolicy="no-referrer">` : '';
-    html += `<div class="pm-photo-area${r.photo?' has-photo':''}" id="pmPhotoArea" onclick="document.getElementById('pmPhotoInput').click()">`;
-    html += existingPhoto;
-    html += `<div class="pm-photo-hint"><span class="material-symbols-outlined" style="font-size:28px">photo_camera</span>Upload photo</div>`;
-    html += `<input type="file" id="pmPhotoInput" accept="image/*" style="display:none" onchange="handleProfileModalPhoto(${idx},this.files)">`;
-    html += `</div>`;
+  // Header
+  html += `<div class="pm-header">`;
+  if(promptMode && (missingPhoto || missingHometown)){
+    html += `<h2>Complete Your Profile</h2>`;
+    const missing = [];
+    if(missingPhoto) missing.push('a photo');
+    if(missingHometown) missing.push('your hometown');
+    html += `<p class="pm-sub">Hey ${esc((r.name||'').split(' ')[0])}! We're missing ${missing.join(' and ')} — fill in the required fields and update anything else you'd like.</p>`;
+  } else {
+    html += `<h2>Edit Profile</h2>`;
+    html += `<p class="pm-sub">${esc(r.name||'')}</p>`;
   }
-
-  if(missingHometown){
-    html += `<div class="pm-field"><label>Hometown</label><input id="pmHometown" value="${esc(r.hometown||'')}" placeholder="City, ST"></div>`;
-  }
-
-  html += `<button class="pm-save-btn" onclick="saveProfileModal(${idx})">Save</button>`;
-  html += `<button class="pm-skip" onclick="closeProfileModal()">I'll do this later</button>`;
   html += `</div>`;
 
-  // Thanks state (hidden initially)
+  html += `<div class="pm-body">`;
+
+  // Photo
+  const photoHtml = r.photo ? `<img src="${esc(r.photo)}" referrerpolicy="no-referrer">` : '';
+  html += `<div class="pm-photo-area${r.photo?' has-photo':''}${missingPhoto?' required':''}" id="pmPhotoArea" onclick="document.getElementById('pmPhotoInput').click()">`;
+  html += photoHtml;
+  html += `<div class="pm-photo-hint"><span class="material-symbols-outlined" style="font-size:28px">photo_camera</span>${r.photo?'Change':'Upload'} photo</div>`;
+  html += `<input type="file" id="pmPhotoInput" accept="image/*" style="display:none" onchange="handleProfileModalPhoto(${idx},this.files)">`;
+  html += `</div>`;
+  html += `<div class="pm-photo-label">Photo <span class="pm-req" style="color:var(--acc)">*</span></div>`;
+
+  // Required section
+  html += `<div class="pm-field"><label>Hometown <span class="pm-req">*</span></label><input id="pmHometown" value="${esc(r.hometown||'')}" placeholder="City, ST"></div>`;
+
+  // Optional section
+  html += `<div class="pm-section">Optional</div>`;
+  html += `<div class="pm-field-row">`;
+  html += `<div class="pm-field"><label>Throws</label><input id="pmThrows" value="${esc(r.throws||'')}" placeholder="R / L / S"></div>`;
+  html += `<div class="pm-field"><label>Bats</label><input id="pmBats" value="${esc(r.bats||'')}" placeholder="R / L / S"></div>`;
+  html += `<div class="pm-field"><label>Height</label><input id="pmHeight" value="${esc(r.height||'')}" placeholder="6'2&quot;"></div>`;
+  html += `</div>`;
+  html += `<div class="pm-field"><label>Walkup Song (Spotify link)</label><input id="pmWalkup" value="${esc(r.walkupSong||'')}" placeholder="https://open.spotify.com/track/..."></div>`;
+  html += `<div class="pm-field"><label>Bio</label><textarea id="pmBio" placeholder="Tell us about yourself...">${esc(r.bio||'')}</textarea></div>`;
+
+  html += `</div>`; // end pm-body
+
+  // Actions
+  html += `<div class="pm-actions">`;
+  html += `<button class="pm-save-btn" id="pmSaveBtn" onclick="saveProfileModal()">Save Profile</button>`;
+  if(promptMode && !hasRequired){
+    html += `<button class="pm-skip" onclick="closeProfileModal()">I'll do this later</button>`;
+  } else {
+    html += `<button class="pm-skip" onclick="closeProfileModal()">Cancel</button>`;
+  }
+  html += `</div>`;
+  html += `</div>`; // end pmForm
+
+  // Thanks state
   html += `<div class="pm-thanks" id="pmThanks">`;
   html += `<div class="pm-check"><span class="material-symbols-outlined">check</span></div>`;
   html += `<h3>Thanks!</h3>`;
@@ -1527,6 +1610,7 @@ function showProfileModal(idx, missingPhoto, missingHometown){
   html += `</div>`;
 
   inner.innerHTML = html;
+  inner.scrollTop = 0;
   overlay.classList.add('open');
 }
 
@@ -1542,6 +1626,7 @@ async function handleProfileModalPhoto(idx, files){
     const url = await uploadPhoto(blob, 'roster-' + D.roster[idx].id + ext);
     D.roster[idx].photo = url;
     area.classList.add('has-photo');
+    area.classList.remove('required');
     area.innerHTML = `<img src="${url}"><div class="pm-photo-hint"><span class="material-symbols-outlined" style="font-size:28px">photo_camera</span>Change photo</div><input type="file" id="pmPhotoInput" accept="image/*" style="display:none" onchange="handleProfileModalPhoto(${idx},this.files)">`;
   } catch(e) {
     console.error('Profile photo upload failed:', e);
@@ -1549,18 +1634,29 @@ async function handleProfileModalPhoto(idx, files){
   }
 }
 
-function saveProfileModal(idx){
-  const hometownInput = document.getElementById('pmHometown');
-  if(hometownInput) D.roster[idx].hometown = hometownInput.value.trim();
-  // Save to Firestore (player save)
+function saveProfileModal(){
+  const idx = _pmIdx;
+  if(idx < 0) return;
+  const r = D.roster[idx];
+  // Read all fields from the modal
+  const v = id => { const el = document.getElementById(id); return el ? el.value : null };
+  const ht = v('pmHometown'); if(ht !== null) r.hometown = ht.trim();
+  const th = v('pmThrows');   if(th !== null) r.throws = th.trim();
+  const ba = v('pmBats');     if(ba !== null) r.bats = ba.trim();
+  const he = v('pmHeight');   if(he !== null) r.height = he.trim();
+  const wu = v('pmWalkup');   if(wu !== null) r.walkupSong = wu.trim();
+  const bi = v('pmBio');      if(bi !== null) r.bio = bi;
+
+  // Save to Firestore
   savePlayerProfile();
+
   // Show thanks
   document.getElementById('pmForm').style.display = 'none';
   const thanks = document.getElementById('pmThanks');
   thanks.style.display = 'flex';
-  // Auto-close after 2 seconds
   setTimeout(()=>{
     closeProfileModal();
+    renderAuthBar();
     renderRoster();
   }, 2000);
 }
@@ -2580,7 +2676,7 @@ if(settingsSub==='tools'){
       if(!r.hometown||!r.hometown.trim()) missing.push('hometown');
       html+=`<div style="display:flex;align-items:center;justify-content:space-between;padding:8px 12px;background:var(--bg);border-radius:8px">
         <div><span style="font-weight:700;font-size:13px">${esc(r.name||'Unnamed')}</span> <span style="font-size:11px;color:var(--mut)">— missing ${missing.join(', ')}</span></div>
-        <button class="save-btn" style="font-size:11px;padding:5px 14px" onclick="_profileModalShown=false;showProfileModal(${i},${!r.photo},${!r.hometown||!r.hometown.trim()})">Test Modal</button>
+        <button class="save-btn" style="font-size:11px;padding:5px 14px" onclick="_profileModalShown=false;openProfileEditor(${i},true)">Test Modal</button>
       </div>`;
     });
   } else {
