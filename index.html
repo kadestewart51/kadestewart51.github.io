@@ -41,12 +41,14 @@ button{cursor:pointer;font-family:inherit}input,textarea,select{font-family:inhe
 .header-team{font-size:22px;font-weight:800;color:var(--pri);letter-spacing:-0.5px}
 .header-sub{font-size:9px;letter-spacing:4px;color:var(--acc);font-weight:700;margin-top:1px;text-transform:uppercase}
 .header-record{font-size:13px;font-weight:700;color:var(--pri);letter-spacing:0.5px;background:rgba(26,39,68,0.04);padding:6px 14px;border-radius:8px;display:flex;align-items:center;gap:6px}
+.header-record:empty{display:none}
 .header-record .rec-w{color:var(--win)}.header-record .rec-l{color:var(--loss)}.header-record .rec-t{color:var(--tie)}
 .page-wrap{margin-left:56px;min-height:100vh}
 .main{max-width:100%;margin:0 auto;padding:0 24px 60px}
 .tab{display:none}.tab.active{display:block}
 /* Hero */
 .hero-section{text-align:center;padding:20px 0 28px}
+.hero-section:has(> .hero-btn[style*="display:none"]),.hero-section:has(> .hero-btn[style*="display: none"]){padding:4px 0 0}
 .hero-btn{position:relative;padding:18px 56px;font-size:15px;font-weight:800;letter-spacing:1.5px;text-transform:uppercase;color:#3b2f1e;background:transparent;border:2px solid #3b2f1e;border-radius:14px;cursor:pointer;box-shadow:none;transition:all 0.3s;overflow:hidden;width:100%;max-width:100%}
 .hero-btn:hover{background:rgba(59,47,30,0.06);box-shadow:0 4px 16px rgba(59,47,30,0.1);transform:translateY(-1px)}
 .hero-btn:active{transform:translateY(0);box-shadow:none}
@@ -165,9 +167,9 @@ button{cursor:pointer;font-family:inherit}input,textarea,select{font-family:inhe
   display:flex;flex-direction:column;align-items:center;justify-content:center;
   padding:16px 12px;
   border-right:1px solid rgba(255,255,255,0.12);
-  width:120px;
+  width:140px;
 }
-.rb-result{font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:2px;margin-bottom:2px}
+.rb-result{font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:1px;margin-bottom:2px;text-align:center;line-height:1.3}
 .rb-result.win{color:#d4ffd4}.rb-result.loss{color:#ffd4d4}.rb-result.tie{color:#fff8d4}
 .rb-score{font-size:34px;font-weight:900;letter-spacing:-1px;line-height:1;text-shadow:0 2px 6px rgba(0,0,0,0.2);text-align:center;word-break:break-all}
 
@@ -208,13 +210,14 @@ button{cursor:pointer;font-family:inherit}input,textarea,select{font-family:inhe
 
 @media(max-width:640px){
   /* On mobile: score spans rows 1-2 only, lineup gets full width on row 3 */
-  .rb-score-block{grid-row:1/3;padding:10px 8px;width:90px;gap:6px}
+  .rb-score-block{grid-row:1/3;padding:10px 8px;width:110px;gap:4px}
   .rb-score{font-size:26px}
   .rb-result{font-size:10px;letter-spacing:1.5px}
   .rb-info{padding:8px 14px;flex-wrap:wrap;gap:4px}
   .rb-info-right{margin-left:0;width:100%;gap:8px}
+  .rb-sep{display:none}
   .rb-opponent{font-size:15px}
-  .rb-details{padding:6px 14px;flex-wrap:wrap;gap:6px}
+  .rb-details{display:none}
   .rb-detail-spacer{display:none}
 }
 /* Box score button in post body */
@@ -485,6 +488,7 @@ tr.bs-row .row-check{width:15px;height:15px;accent-color:var(--blue);cursor:poin
 /* Season color schemes — like incognito, you always know where you are */
 body.season-2026{--bg:#f4f2ec;--pri:#1a2744;--acc:#e8a838;--brd:#e0ddd5;--card:#fff;--sec:#3b5998}
 body.season-2024{--bg:#f5f0e8;--pri:#3b2f1e;--acc:#b8860b;--brd:#d4c9b5;--card:#faf6ef;--sec:#6b5344;--txt:#3b2f1e;--mut:#8c7b6b;--win:#5a7247;--loss:#8b3a3a;--tie:#b8860b}
+body.season-2025{--bg:#eef1ea;--pri:#2c3e2c;--acc:#5a7247;--brd:#c5d4bb;--card:#f6f9f3;--sec:#4a6840;--txt:#2c3e2c;--mut:#7a8c70;--win:#2d6a2e;--loss:#8b3a3a;--tie:#b8860b}
 body.season-2024 h1,body.season-2024 h2,body.season-2024 h3{color:var(--pri)}
 body.season-2024 .post-body,body.season-2024 .comment-text{color:#5a4e3e}
 body.season-2024 .roster-card-bio{color:#7a6e5e}
@@ -591,11 +595,8 @@ body.season-2024 .admin-signin:hover{color:var(--pri);border-color:var(--pri)}
   .save-bar{left:0 !important;padding:8px 12px}
   /* Grass canvas below nav */
   #grassCanvas{top:48px}
-  /* Season toggle — move to header area on mobile */
-  .sidebar .season-toggle-wrap{display:none !important}
-  .mobile-season-toggle{display:flex !important}
 }
-.mobile-season-toggle{display:none;align-items:center;justify-content:center;gap:8px;padding:6px 0}
+
 /* Mobile split tables */
 .ps-mobile,.bs-mobile{display:none}
 @media(max-width:640px){.ps-full,.bs-full{display:none}.ps-mobile,.bs-mobile{display:block}}
@@ -650,6 +651,7 @@ body.has-save-bar .main{padding-bottom:80px !important}
   opacity:0;
 }
 .teaser-banner.animate .teaser-title{animation:teaser-fade 0.5s 0.15s ease-out forwards}
+.teaser-banner.animate-done .teaser-title{opacity:1}
 .teaser-sub-full{
   font-family:'Sen',sans-serif;font-size:11px;font-weight:700;
   letter-spacing:2px;text-transform:uppercase;
@@ -657,6 +659,7 @@ body.has-save-bar .main{padding-bottom:80px !important}
   opacity:0;
 }
 .teaser-banner.animate .teaser-sub-full{animation:teaser-fade 0.4s 0.3s ease-out forwards}
+.teaser-banner.animate-done .teaser-sub-full{opacity:1}
 .teaser-switcher-full{
   display:inline-flex;align-items:center;flex-shrink:0;
   background:rgba(255,255,255,0.08);
@@ -665,6 +668,7 @@ body.has-save-bar .main{padding-bottom:80px !important}
   opacity:0;
 }
 .teaser-banner.animate .teaser-switcher-full{animation:teaser-fade 0.4s 0.4s ease-out forwards}
+.teaser-banner.animate-done .teaser-switcher-full{opacity:1}
 
 @keyframes teaser-fade{0%{opacity:0}100%{opacity:1}}
 
@@ -757,7 +761,7 @@ body.has-save-bar .main{padding-bottom:80px !important}
 .rb-lineup-placeholder .material-symbols-outlined{font-size:14px;color:rgba(255,255,255,0.3)}
 
 @media(max-width:640px){
-  .rb-lineup{grid-column:1/-1;padding:0 14px;height:auto;flex-wrap:wrap;overflow:visible;gap:0}
+  .rb-lineup{grid-column:1/-1;padding:0 14px;height:auto;flex-wrap:wrap;overflow:visible;gap:0;justify-content:center}
   .rb-lineup-player{width:28px;height:30px}
   .rb-lineup-photo-cutout{width:26px;height:26px}
   .rb-lineup-photo-circle{width:22px;height:22px}
@@ -779,6 +783,10 @@ body.has-save-bar .main{padding-bottom:80px !important}
   background:#5a7247;flex-shrink:0;
   animation:pulse-dot 2s ease-in-out infinite;
 }
+@media(max-width:640px){
+  .showcase-badge{flex-direction:column;gap:4px}
+  .showcase-badge .sb-dot{display:none}
+}
 </style>
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
@@ -797,20 +805,22 @@ body.has-save-bar .main{padding-bottom:80px !important}
     <div class="teaser-content-full" id="teaserFull">
       <div class="teaser-left">
         <div class="teaser-title" id="teaserTitle">GrooveHub 2026</div>
-        <div class="teaser-sub-full">New season begins April 11</div>
+        <div class="teaser-sub-full" id="teaserSub">New season begins April 11</div>
       </div>
       <div class="teaser-switcher-full">
         <button class="ts-btn ts-btn-full-24" onclick="switchSeason('2024')">2024</button>
+        <button class="ts-btn ts-btn-full-25" onclick="switchSeason('2025')">2025</button>
         <button class="ts-btn ts-btn-full-26" onclick="switchSeason('2026')">2026</button>
       </div>
     </div>
     <div class="teaser-content-collapsed" id="teaserCollapsed">
       <div style="display:flex;align-items:center">
-        <span class="teaser-collapsed-title">GrooveHub 2026</span>
-        <span class="teaser-collapsed-sub">New season begins April 11</span>
+        <span class="teaser-collapsed-title" id="teaserColTitle">GrooveHub 2026</span>
+        <span class="teaser-collapsed-sub" id="teaserColSub">New season begins April 11</span>
       </div>
       <div class="teaser-switcher-collapsed">
         <button class="ts-btn ts-btn-col-24" onclick="switchSeason('2024')">2024</button>
+        <button class="ts-btn ts-btn-col-25" onclick="switchSeason('2025')">2025</button>
         <button class="ts-btn ts-btn-col-26" onclick="switchSeason('2026')">2026</button>
       </div>
     </div>
@@ -821,7 +831,6 @@ body.has-save-bar .main{padding-bottom:80px !important}
 <div class="profile-pill" id="profilePill"></div>
 <div class="header"><div class="header-inner" style="justify-content:center;flex-direction:column;align-items:center;gap:4px;position:relative;left:-28px"><div class="header-team" id="headerTeam" style="font-size:28px;text-align:center">Welcome to GrooveHub!</div><div class="header-record" id="headerRecord"></div></div></div>
 <div class="showcase-badge" id="showcaseBadge"><span class="sb-dot"></span>You're viewing real data from the 2024 season — <a href="https://docs.google.com/spreadsheets/d/1vFn1eYuYG4SQ_C8OQ-yOL_Nk2iubau-TU45tNtDggeQ/edit?usp=sharing" target="_blank" rel="noopener" style="color:var(--pri);text-decoration:underline">see our original StatHub!</a></div>
-<div class="mobile-season-toggle" id="mobileSeasonToggle"></div>
 <main class="main">
 <div class="tab" id="tab-home"><div class="hero-section"><button class="hero-btn" id="heroBtn" onclick="heroClick()">POST SOMETHING</button></div><div class="feed" id="feedArea"></div></div>
 <div class="tab" id="tab-roster"><div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;margin-bottom:6px"><div><h2 class="sec-title">The Roster</h2><p class="sec-hint" id="rosterHint">The 2026 New York Groove.</p></div><div id="rosterAdminBtns"></div></div><div class="roster-grid" id="rosterGrid"></div></div>
@@ -910,7 +919,7 @@ function ownRosterIndex(){
 }
 
 /* ═══ SEASON MANAGEMENT ═══ */
-const SEASONS = ['2024','2026'];
+const SEASONS = ['2024','2025','2026'];
 let activeSeason = '2024'; // default
 
 function STORE() { return 'groove-stathub-' + activeSeason }
@@ -923,8 +932,7 @@ function switchSeason(year) {
     applySnapshot(JSON.parse(_snapshot));
   }
   exitEditContext();
-  // Reset teaser animation so it replays on season switch
-  _teaserPlayed = false;
+  // Don't reset teaser animation — only plays once on first load
 
   // Crossfade transition
   const wrap = document.querySelector('.page-wrap');
@@ -940,17 +948,26 @@ function switchSeason(year) {
     activeTab = 'home';
     openComments = {};
     expandedRoster = {};
-    // Load new season's data
-    loadData(() => {
+
+    if (year === '2025') {
+      // 2025 is a static season — no Firestore data
       renderAll();
-      if (firebaseReady && currentUser) startRealtimeSync();
-      autoFillWeather();
-      // Fade back in
       requestAnimationFrame(() => {
         wrap.style.opacity = '1';
         setTimeout(() => { wrap.style.transition = ''; }, 300);
       });
-    });
+    } else {
+      // Load season data from Firestore
+      loadData(() => {
+        renderAll();
+        if (firebaseReady && currentUser) startRealtimeSync();
+        autoFillWeather();
+        requestAnimationFrame(() => {
+          wrap.style.opacity = '1';
+          setTimeout(() => { wrap.style.transition = ''; }, 300);
+        });
+      });
+    }
   }, 300);
 }
 
@@ -1245,6 +1262,42 @@ function getRecord(){
     const rf=n(g.runsFor),ra=n(g.runsAgainst);
     if(!g.runsFor&&!g.runsAgainst) return;
     if(rf>ra)w++;else if(rf<ra)l++;else t++;
+  });
+  return {w,l,t};
+}
+
+/* ═══ 2025 SEASON DATA (no box scores — just results) ═══ */
+const SEASON_2025 = [
+  {date:'Apr 19',opponent:'FUMBL',type:'away',result:'L',score:'16-8'},
+  {date:'May 3',opponent:'Brooklyn Bad Stars',type:'home',result:'W',score:'8-7'},
+  {date:'May 17',opponent:'Asbury Park Bennys',type:'home',result:'L',score:'12-7'},
+  {date:'May 23',opponent:'Carolina Kudzu',type:'away',result:'L',score:'20-6'},
+  {date:'May 25',opponent:'Neuse River 9',type:'away',result:'L',score:'12-9'},
+  {date:'May 31',opponent:'FUMBL',type:'away',result:'Rainout',score:''},
+  {date:'Jun 7',opponent:'FUMBL',type:'home',result:'Rainout',score:''},
+  {date:'Jun 21',opponent:'FUMBL',type:'home',result:'W',score:'5-4'},
+  {date:'Jul 5',opponent:'Open Sandlot',type:'home',result:'',score:''},
+  {date:'Jul 12',opponent:'Asbury Park Bennys',type:'away',result:'W',score:'10-9'},
+  {date:'Jul 19',opponent:'Brooklyn Bad Stars',type:'home',result:'W',score:'18-7'},
+  {date:'Jul 26',opponent:'Brooklyn Bad Stars',type:'home',result:'W',score:'18-14'},
+  {date:'Aug 9',opponent:'Brooklyn Bad Stars',type:'home',result:'L',score:'3-2'},
+  {date:'Aug 16',opponent:'Brooklyn Books',type:'home',result:'W',score:'16-8'},
+  {date:'Aug 23',opponent:'FUMBL',type:'home',result:'W',score:'18-7'},
+  {date:'Aug 24',opponent:'Oak Cliff 86ers',type:'home',result:'W',score:'14-2'},
+  {date:'Sep 6',opponent:'FUMBL',type:'home',result:'W',score:'16-8'},
+  {date:'Sep 13',opponent:'Brooklyn Books',type:'away',result:'W',score:'12-5'},
+  {date:'Sep 20',opponent:'FUMBL',type:'home',result:'L',score:'11-9'},
+  {date:'Sep 21',opponent:'Cap City Cobras',type:'home',result:'L',score:'11-8'},
+  {date:'Oct 4',opponent:'Cooperstown Rumble',type:'away',result:'',score:''},
+  {date:'Oct 5',opponent:'Cooperstown Rumble',type:'away',result:'',score:''},
+  {date:'Oct 18',opponent:'Brooklyn Bad Stars',type:'home',result:'W',score:'5-2'},
+];
+
+function get2025Record(){
+  let w=0,l=0,t=0;
+  SEASON_2025.forEach(g=>{
+    if(g.result==='W')w++;
+    else if(g.result==='L')l++;
   });
   return {w,l,t};
 }
@@ -1687,12 +1740,18 @@ const TABS=[
 ];
 function renderNav(){
   let html='<div class="sidebar-top">';
-  TABS.forEach(t=>{if(t.cfg&&!D.cfg[t.cfg])return;html+=`<button class="nav-icon${activeTab===t.id?' active':''}" onclick="navTo('${t.id}')"><span class="material-symbols-outlined">${t.icon}</span><span class="tip">${t.label}</span></button>`});
+  if(activeSeason==='2025'){
+    // 2025 only has the home tab
+    html+=`<button class="nav-icon active" onclick="navTo('home')"><span class="material-symbols-outlined">home</span><span class="tip">Feed</span></button>`;
+  } else {
+    TABS.forEach(t=>{if(t.cfg&&!D.cfg[t.cfg])return;html+=`<button class="nav-icon${activeTab===t.id?' active':''}" onclick="navTo('${t.id}')"><span class="material-symbols-outlined">${t.icon}</span><span class="tip">${t.label}</span></button>`});
+  }
   html+=`</div><div class="sidebar-bottom">`;
-  // Small season toggle
-  const otherSeason = activeSeason === '2026' ? '2024' : '2026';
-  html+=`<div class="season-toggle-wrap" onclick="switchSeason('${otherSeason}')" title="Switch to ${otherSeason} season"><div class="season-toggle${activeSeason==='2024'?' on-2024':''}"><div class="st-knob"></div></div><span class="season-toggle-label">${activeSeason}</span></div>`;
-  html+=`<button class="nav-icon${activeTab==='settings'?' active':''}" onclick="navTo('settings')"><span class="material-symbols-outlined">settings</span><span class="tip">Settings</span></button></div>`;
+  if(!currentUser){
+    html+=`<button class="nav-icon" onclick="signIn()" title="Sign In"><span class="material-symbols-outlined">login</span><span class="tip">Sign In</span></button>`;
+  }
+  if(activeSeason!=='2025') html+=`<button class="nav-icon${activeTab==='settings'?' active':''}" onclick="navTo('settings')"><span class="material-symbols-outlined">settings</span><span class="tip">Settings</span></button>`;
+  html+=`</div>`;
   document.getElementById('sidebar').innerHTML=html;
 }
 function navTo(tab){
@@ -1709,9 +1768,8 @@ function renderTabs(){document.querySelectorAll('.tab').forEach(t=>t.classList.r
 
 /* ═══ HEADER RECORD ═══ */
 function renderRecord(){
-  const rec=getRecord();
+  const rec = activeSeason === '2025' ? get2025Record() : getRecord();
   const el=document.getElementById('headerRecord');
-  if(!rec.w&&!rec.l&&!rec.t){el.innerHTML='';return}
   let parts=[];
   parts.push(`<span class="rec-w">${rec.w}W</span>`);
   parts.push(`<span class="rec-l">${rec.l}L</span>`);
@@ -2110,6 +2168,36 @@ function publishPost(){
 /* ═══ FEED ═══ */
 function renderFeed(){
   const area=document.getElementById('feedArea');
+
+  // 2025: static season view
+  if(activeSeason==='2025'){
+    let html='<div class="post" style="padding:28px 24px;text-align:center">';
+    html+='<div style="font-size:15px;color:var(--pri);font-weight:700;margin-bottom:6px">The 2025 Season</div>';
+    html+='<p style="font-size:14px;color:var(--mut);line-height:1.7;max-width:480px;margin:0 auto 24px">We regretfully did not keep a record of the fun. That will change this year.</p>';
+    html+='</div>';
+    // Game results
+    SEASON_2025.forEach(g=>{
+      if(!g.result && !g.score) return; // skip unplayed/future
+      const isW=g.result==='W',isL=g.result==='L',isRain=g.result==='Rainout';
+      const rc=isW?'win':isL?'loss':isRain?'tie':'';
+      const atVs=g.type==='home'?'vs':'at';
+      const rl=isRain?'RAINOUT':isW?'WIN':isL?'LOSS':'';
+      let scoreDisplay='';
+      if(g.score){const parts=g.score.split('-');scoreDisplay=parts[0]+' – '+parts[1]}
+      html+=`<div class="post" style="padding:0;overflow:hidden">`;
+      html+=`<div class="recap-banner" style="border-radius:var(--radius)"><div class="rb-grid" style="grid-template-columns:auto 1fr">`;
+      if(scoreDisplay){
+        html+=`<div class="rb-score-block"><div class="rb-result ${rc}">${rl} ${atVs} ${esc(g.opponent)}</div><div class="rb-score">${scoreDisplay}</div></div>`;
+      } else {
+        html+=`<div class="rb-score-block"><div class="rb-result ${rc}">${rl}</div><div style="font-size:13px;font-weight:700;color:rgba(255,255,255,0.7)">${atVs} ${esc(g.opponent)}</div></div>`;
+      }
+      html+=`<div class="rb-info"><span class="rb-opponent">${atVs} ${esc(g.opponent)}</span><span class="rb-info-right"><span class="rb-date">${esc(g.date)}</span></span></div>`;
+      html+=`</div></div></div>`;
+    });
+    area.innerHTML=html;
+    return;
+  }
+
   if(!D.posts.length){area.innerHTML='<div class="empty"><div class="empty-text" style="font-size:18px;color:#bbb;margin-top:20px">Nothing here yet.</div><p style="color:#ccc;font-size:13px;margin-top:6px">Hit the button to make history.</p></div>';return}
   const admin=isAdmin();
   let html='';
@@ -2172,7 +2260,7 @@ function renderFeed(){
       }
 
       html+=`<div class="recap-banner"><div class="rb-grid">`
-        +`<div class="rb-score-block"><div class="rb-result ${rc}">${rl}</div><div class="rb-score">${esc(p.runsFor)} – ${esc(p.runsAgainst)}</div></div>`
+        +`<div class="rb-score-block"><div class="rb-result ${rc}">${rl} ${atVs} ${esc(p.opponent||'')}</div><div class="rb-score">${esc(p.runsFor)} – ${esc(p.runsAgainst)}</div></div>`
         +`<div class="rb-info">${infoHtml}</div>`
         +`<div class="rb-details">${detailsHtml}</div>`
         +(lineupHtml?`<div class="rb-lineup">${lineupHtml}</div>`:'')
@@ -2231,7 +2319,7 @@ function heroClick(){
 let _teaserPlayed = false;
 
 function renderHome(){
-  document.getElementById('headerTeam').textContent='Welcome to GrooveHub '+activeSeason;
+  document.getElementById('headerTeam').textContent='Welcome to GrooveHub';
   // Apply season body class for color scheme
   SEASONS.forEach(y=>document.body.classList.remove('season-'+y));
   document.body.classList.add('season-'+activeSeason);
@@ -2239,30 +2327,42 @@ function renderHome(){
   // Teaser banner — billboard on 2024, page header on 2026
   const teaser = document.getElementById('teaserBanner');
   if(teaser){
-    if(activeTab==='home') teaser.classList.add('active');
-    else { teaser.classList.remove('active'); }
+    teaser.classList.add('active');
     // Banner is the same size on both seasons for smooth transitions
 
     const titleEl = document.getElementById('teaserTitle');
 
-    // Always show the 2026 teaser — this is the billboard
-    if(titleEl) titleEl.textContent = 'GrooveHub 2026';
+    if(titleEl) titleEl.textContent = 'GrooveHub ' + activeSeason;
+
+    const subText = activeSeason==='2026' ? 'New season begins April 11'
+      : activeSeason==='2025' ? '11–7 · The Lost Season'
+      : 'The inaugural season';
+    const subEl = document.getElementById('teaserSub');
+    if(subEl) subEl.textContent = subText;
+    const colTitle = document.getElementById('teaserColTitle');
+    if(colTitle) colTitle.textContent = 'GrooveHub ' + activeSeason;
+    const colSub = document.getElementById('teaserColSub');
+    if(colSub) colSub.textContent = subText;
 
     // Season switcher state — update all toggle buttons
     teaser.querySelectorAll('.ts-btn').forEach(b=>{
       const is24 = b.classList.contains('ts-btn-full-24') || b.classList.contains('ts-btn-col-24');
+      const is25 = b.classList.contains('ts-btn-full-25') || b.classList.contains('ts-btn-col-25');
       const is26 = b.classList.contains('ts-btn-full-26') || b.classList.contains('ts-btn-col-26');
-      b.classList.toggle('active', (is24 && activeSeason==='2024') || (is26 && activeSeason==='2026'));
+      b.classList.toggle('active', (is24 && activeSeason==='2024') || (is25 && activeSeason==='2025') || (is26 && activeSeason==='2026'));
     });
 
     if(!_teaserPlayed){
       _teaserPlayed = true;
       teaser.classList.remove('animate');
+      teaser.classList.remove('animate-done');
       requestAnimationFrame(()=>{
         teaser.classList.add('animate');
+        // After intro animation, lock opacity so season switches don't re-fade
+        setTimeout(()=>{ teaser.classList.add('animate-done'); }, 600);
       });
     } else {
-      teaser.classList.add('animate');
+      teaser.classList.add('animate-done');
     }
   }
 
@@ -2273,12 +2373,15 @@ function renderHome(){
     else badge.classList.remove('active');
   }
 
+  // 2025: force home tab, hide post button
+  if(activeSeason==='2025') activeTab='home';
+
   // Header always visible — banner is consistent across seasons
 
   renderRecord();
   const btn=document.getElementById('heroBtn');
   if(btn){
-    if(isAdmin()){
+    if(isAdmin() && activeSeason!=='2025'){
       btn.className='hero-btn';
       btn.textContent='POST SOMETHING';
       btn.style.display='';
@@ -2292,11 +2395,9 @@ function renderHome(){
   if(ft){
     let fhtml='NY Groove · '+activeSeason;
     if(activeSeason==='2024')fhtml+=` · <a href="https://docs.google.com/spreadsheets/d/1vFn1eYuYG4SQ_C8OQ-yOL_Nk2iubau-TU45tNtDggeQ/edit?usp=sharing" target="_blank" rel="noopener" style="color:var(--mut);text-decoration:underline;font-size:11px" id="sheetLink">See original StatHub 2024</a>`;
+    if(activeSeason==='2025')fhtml+=' · The Lost Season';
     ft.innerHTML=fhtml;
   }
-  // Mobile season toggle
-  const mst=document.getElementById('mobileSeasonToggle');
-  if(mst){const other=activeSeason==='2026'?'2024':'2026';mst.innerHTML=`<div class="season-toggle-wrap" onclick="switchSeason('${other}')" style="flex-direction:row;gap:8px;cursor:pointer"><div class="season-toggle${activeSeason==='2024'?' on-2024':''}"><div class="st-knob"></div></div><span class="season-toggle-label">${activeSeason}</span></div>`}
 }
 
 /* ═══ BOX SCORES ═══ */
