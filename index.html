@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>NY Groove · 2026</title>
+<title>GrooveHub · NY Groove</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Sen:wght@400..800&family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200&display=swap" rel="stylesheet">
@@ -101,30 +101,85 @@ button{cursor:pointer;font-family:inherit}input,textarea,select{font-family:inhe
 .post-body{padding:10px 24px 20px;font-size:15px;line-height:2;color:#444;white-space:pre-wrap}
 .post-photos{padding:0 24px 20px;display:flex;gap:8px;flex-wrap:wrap}
 .post-photos img{max-width:100%;border-radius:8px;border:1px solid var(--brd)}
-/* Gold recap banner */
-.recap-banner{background:linear-gradient(135deg,#c4a035 0%,#a07828 40%,#b8922e 70%,#d4ad3c 100%);padding:20px 24px 18px;color:#fff;display:flex;justify-content:space-between;align-items:center;position:relative;overflow:visible}
-.recap-banner::before{content:'';position:absolute;inset:0;background:linear-gradient(180deg,rgba(255,255,255,0.08) 0%,transparent 40%,rgba(0,0,0,0.15) 100%);pointer-events:none;border-radius:var(--radius) var(--radius) 0 0}
+/* ═══ GAME RECAP BANNER — Grid layout ═══ */
+.recap-banner{
+  background:linear-gradient(135deg,#c4a035 0%,#a07828 40%,#b8922e 70%,#d4ad3c 100%);
+  padding:0;color:#fff;position:relative;overflow:visible;
+}
+.recap-banner::before{
+  content:'';position:absolute;inset:0;
+  background:linear-gradient(180deg,rgba(255,255,255,0.08) 0%,transparent 40%,rgba(0,0,0,0.15) 100%);
+  pointer-events:none;border-radius:var(--radius) var(--radius) 0 0;
+}
 .recap-banner *{position:relative}
-.recap-banner .rb-left{display:flex;flex-direction:column;gap:4px}
-.recap-banner .rb-opponent{font-weight:900;letter-spacing:-0.3px}
-.recap-banner .rb-meta{font-size:12px;opacity:0.7;font-weight:600;margin-top:2px}
-.recap-banner .rb-author{display:flex;align-items:center;gap:4px;font-size:13px;font-weight:700;flex-wrap:wrap}
-.recap-banner .rb-author .player-chip{background:rgba(255,255,255,0.15);color:#fff}
-.recap-banner .rb-author .player-chip .pc-num{color:rgba(255,255,255,0.7)}
-.recap-banner .rb-right{text-align:right;flex-shrink:0}
-.recap-banner .rb-score{font-size:32px;font-weight:900;letter-spacing:-1px;text-shadow:0 2px 6px rgba(0,0,0,0.2)}
-.recap-banner .rb-result{font-size:14px;font-weight:800;text-transform:uppercase;letter-spacing:1.5px;margin-bottom:4px}
-.recap-banner .rb-result.win{color:#d4ffd4}.recap-banner .rb-result.loss{color:#ffd4d4}.recap-banner .rb-result.tie{color:#fff8d4}
+
+/* Grid: score block left, game info right */
+.rb-grid{
+  display:grid;
+  grid-template-columns:auto 1fr;
+  grid-template-rows:auto auto;
+  gap:0;
+}
+
+/* Score block — left column, spans both rows */
+.rb-score-block{
+  grid-row:1/3;grid-column:1;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  padding:20px 28px;
+  border-right:1px solid rgba(255,255,255,0.12);
+  min-width:110px;
+}
+.rb-result{font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:2px;margin-bottom:2px}
+.rb-result.win{color:#d4ffd4}.rb-result.loss{color:#ffd4d4}.rb-result.tie{color:#fff8d4}
+.rb-score{font-size:34px;font-weight:900;letter-spacing:-1px;line-height:1;text-shadow:0 2px 6px rgba(0,0,0,0.2)}
+
+/* Top-right: opponent left, date+location+weather right */
+.rb-info{
+  grid-row:1;grid-column:2;
+  display:flex;align-items:center;
+  padding:12px 20px;
+  border-bottom:1px solid rgba(255,255,255,0.08);
+  min-height:0;
+}
+.rb-opponent{font-size:17px;font-weight:900;letter-spacing:-0.3px;line-height:1}
+.rb-info-right{margin-left:auto;display:flex;align-items:center;gap:10px;flex-shrink:0}
+.rb-sep{opacity:0.3;font-size:11px;line-height:1}
+.rb-date{font-size:12px;font-weight:700;opacity:0.85;white-space:nowrap;line-height:1}
+.rb-location{font-size:11px;font-weight:600;opacity:0.65;display:inline-flex;align-items:center;gap:3px;line-height:1}
+.rb-location a{color:#fff;text-decoration:none;transition:opacity 0.15s}
+.rb-location a:hover{opacity:1;text-decoration:underline}
+.rb-location .material-symbols-outlined{font-size:13px;flex-shrink:0}
+.rb-weather{font-size:11px;font-weight:600;opacity:0.6;display:inline-flex;align-items:center;gap:3px;line-height:1}
+.rb-weather .material-symbols-outlined{font-size:13px}
+
+/* Bottom-right: stats + box score left, author right */
+.rb-details{
+  grid-row:2;grid-column:2;
+  display:flex;align-items:center;
+  padding:8px 20px;
+  min-height:0;
+}
+.rb-stat{font-size:11px;font-weight:700;color:rgba(255,255,255,0.8);display:inline-flex;align-items:center;gap:3px;white-space:nowrap;line-height:1}
+.rb-stat .rb-stat-val{color:#fff;font-weight:900}
+.rb-stat .rb-stat-label{opacity:0.7;text-transform:uppercase;letter-spacing:0.5px;font-size:10px}
+.rb-stats-group{display:flex;align-items:center;gap:10px}
+.rb-boxlink{font-size:11px;font-weight:700;color:rgba(255,255,255,0.7);display:inline-flex;align-items:center;gap:3px;cursor:pointer;transition:opacity 0.15s;background:none;border:none;font-family:inherit;padding:0;line-height:1;margin-left:6px}
+.rb-boxlink:hover{opacity:1;color:#fff}
+.rb-boxlink .material-symbols-outlined{font-size:13px}
+.rb-detail-spacer{flex:1}
+.rb-author{font-size:12px;font-weight:600;opacity:0.7;display:flex;align-items:center;gap:4px;white-space:nowrap;line-height:1}
+.rb-author .player-chip{background:rgba(255,255,255,0.15);color:#fff;font-size:12px}
+.rb-author .player-chip .pc-num{color:rgba(255,255,255,0.7)}
 
 @media(max-width:640px){
-  .recap-banner{flex-direction:column-reverse;gap:10px;padding:16px 18px 14px}
-  .recap-banner .rb-left{width:100%;border-top:1px solid rgba(255,255,255,0.15);padding-top:10px;margin-top:2px}
-  .recap-banner .rb-author{font-size:11px;flex-wrap:wrap}
-  .recap-banner .rb-meta{font-size:11px}
-  .recap-banner .rb-right{width:100%;text-align:left}
-  .recap-banner .rb-result{font-size:16px;letter-spacing:1px}
-  .recap-banner .rb-opponent{font-size:16px}
-  .recap-banner .rb-score{font-size:28px}
+  .rb-score-block{padding:14px 18px;min-width:80px}
+  .rb-score{font-size:26px}
+  .rb-result{font-size:10px;letter-spacing:1.5px}
+  .rb-info{padding:8px 14px;flex-wrap:wrap;gap:4px}
+  .rb-info-right{margin-left:0;width:100%;gap:8px}
+  .rb-opponent{font-size:15px}
+  .rb-details{padding:6px 14px;flex-wrap:wrap;gap:6px}
+  .rb-detail-spacer{display:none}
 }
 .result-tag{font-size:12px;font-weight:800;color:#fff;padding:3px 10px;border-radius:4px}
 /* Comments */
@@ -444,6 +499,138 @@ body.has-save-bar .main{padding-bottom:80px !important}
 .save-bar .sb-save:hover{box-shadow:0 4px 16px rgba(37,99,235,0.35);transform:translateY(-1px)}
 .save-bar .sb-save:disabled{opacity:0.5;cursor:default;transform:none}
 @keyframes pulse-dot{0%,100%{opacity:1}50%{opacity:0.4}}
+
+/* ═══ 2026 TEASER BANNER — frosted glass ═══ */
+.teaser-banner{
+  display:none;margin-left:56px;overflow:hidden;
+  position:sticky;top:0;z-index:100;
+  background:rgba(16,24,48,0.82);
+  backdrop-filter:blur(24px) saturate(1.2);
+  -webkit-backdrop-filter:blur(24px) saturate(1.2);
+  border-bottom:1px solid rgba(255,255,255,0.06);
+}
+.teaser-banner.active{display:block}
+
+/* Both content layers live in a grid cell so they can crossfade */
+.teaser-inner{
+  overflow:hidden;
+  transition:height 0.28s cubic-bezier(0.4,0,0.2,1);
+}
+.teaser-content-full,
+.teaser-content-collapsed{
+  transition:opacity 0.2s ease;
+}
+
+/* ── Expanded state (default) ── */
+.teaser-content-full{
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  padding:40px 20px 36px;text-align:center;gap:6px;
+  opacity:1;
+}
+
+.teaser-title{
+  font-family:'Sen',sans-serif;font-size:32px;font-weight:900;
+  letter-spacing:2px;color:#fff;
+  opacity:0;transform:translateY(12px);
+}
+.teaser-banner.animate .teaser-title{
+  animation:teaser-text-in 0.8s 0.2s ease-out forwards;
+}
+.teaser-sub-full{
+  font-family:'Sen',sans-serif;font-size:13px;font-weight:700;
+  letter-spacing:3px;text-transform:uppercase;
+  color:rgba(232,168,56,0.9);
+  opacity:0;transform:translateY(8px);
+  margin-top:4px;
+}
+.teaser-banner.animate .teaser-sub-full{
+  animation:teaser-text-in 0.6s 0.5s ease-out forwards;
+}
+.teaser-switcher-full{
+  display:inline-flex;align-items:center;
+  background:rgba(255,255,255,0.08);
+  border:1px solid rgba(255,255,255,0.1);
+  border-radius:20px;padding:3px;margin-top:10px;
+  opacity:0;transform:translateY(8px);
+}
+.teaser-banner.animate .teaser-switcher-full{
+  animation:teaser-text-in 0.5s 0.7s ease-out forwards;
+}
+
+@keyframes teaser-text-in{
+  0%{opacity:0;transform:translateY(12px)}
+  100%{opacity:1;transform:translateY(0)}
+}
+
+/* ── Collapsed state (on scroll) ── */
+.teaser-content-collapsed{
+  position:absolute;top:0;left:0;right:0;
+  display:flex;
+  align-items:center;justify-content:space-between;
+  padding:0 24px;height:44px;
+  opacity:0;pointer-events:none;
+}
+.teaser-collapsed-sub{
+  font-family:'Sen',sans-serif;font-size:11px;font-weight:700;
+  letter-spacing:2.5px;text-transform:uppercase;
+  color:rgba(232,168,56,0.9);white-space:nowrap;
+}
+.teaser-switcher-collapsed{
+  display:inline-flex;align-items:center;
+  background:rgba(255,255,255,0.08);
+  border:1px solid rgba(255,255,255,0.1);
+  border-radius:16px;padding:2px;
+}
+
+/* When collapsed: crossfade, full content hidden via height animation */
+.teaser-banner.collapsed .teaser-content-full{opacity:0;pointer-events:none}
+.teaser-banner.collapsed .teaser-content-collapsed{opacity:1;pointer-events:auto}
+/* After animation settles, hide full to prevent ghost clicks */
+.teaser-banner.collapsed.settled .teaser-content-full{visibility:hidden}
+
+/* Shared toggle styles */
+.ts-btn{
+  padding:5px 16px;border-radius:14px;border:none;
+  font-family:'Sen',sans-serif;font-size:11px;font-weight:700;
+  letter-spacing:1px;text-transform:uppercase;
+  cursor:pointer;transition:all 0.2s;
+  background:transparent;color:rgba(255,255,255,0.45);
+}
+.ts-btn:hover{color:rgba(255,255,255,0.8)}
+.ts-btn.active{
+  background:rgba(255,255,255,0.14);color:#fff;
+  box-shadow:0 1px 6px rgba(0,0,0,0.2);
+}
+
+/* On 2026: acts as page header — taller expanded */
+.teaser-banner.is-header .teaser-content-full{padding:52px 20px 44px}
+
+@media(max-width:640px){
+  .teaser-banner{margin-left:0;top:48px}
+  .teaser-title{font-size:24px;letter-spacing:1px}
+  .teaser-sub-full{font-size:11px;letter-spacing:2px}
+  .teaser-content-full{padding:28px 16px 24px}
+  .teaser-content-collapsed{padding:0 14px;height:40px}
+  .teaser-collapsed-sub{font-size:10px;letter-spacing:2px}
+  .ts-btn{padding:4px 12px;font-size:10px}
+  .teaser-banner.is-header .teaser-content-full{padding:32px 16px 28px}
+}
+
+/* ═══ 2024 SHOWCASE CONTEXT BADGE ═══ */
+.showcase-badge{
+  display:none;
+  align-items:center;justify-content:center;gap:8px;
+  padding:10px 20px;margin:0 auto 8px;
+  font-size:12px;font-weight:600;color:var(--mut);
+  letter-spacing:0.3px;
+  max-width:600px;text-align:center;line-height:1.6;
+}
+.showcase-badge.active{display:flex}
+.showcase-badge .sb-dot{
+  width:6px;height:6px;border-radius:50%;
+  background:#5a7247;flex-shrink:0;
+  animation:pulse-dot 2s ease-in-out infinite;
+}
 </style>
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
@@ -455,9 +642,30 @@ body.has-save-bar .main{padding-bottom:80px !important}
 <nav class="sidebar" id="sidebar"></nav>
 <div class="composer-overlay" id="composerOverlay"><div class="composer" id="composerInner"></div></div>
 <div class="season-bar" id="seasonBar"></div>
+<!-- Teaser Banner -->
+<div class="teaser-banner" id="teaserBanner">
+  <div class="teaser-inner" id="teaserInner">
+    <div class="teaser-content-full" id="teaserFull">
+      <div class="teaser-title" id="teaserTitle">GrooveHub 2026</div>
+      <div class="teaser-sub-full">Season begins April 11, 2026</div>
+      <div class="teaser-switcher-full">
+        <button class="ts-btn ts-btn-full-24" onclick="switchSeason('2024')">2024</button>
+        <button class="ts-btn ts-btn-full-26" onclick="switchSeason('2026')">2026</button>
+      </div>
+    </div>
+    <div class="teaser-content-collapsed" id="teaserCollapsed">
+      <span class="teaser-collapsed-sub">Season begins April 11, 2026</span>
+      <div class="teaser-switcher-collapsed">
+        <button class="ts-btn ts-btn-col-24" onclick="switchSeason('2024')">2024</button>
+        <button class="ts-btn ts-btn-col-26" onclick="switchSeason('2026')">2026</button>
+      </div>
+    </div>
+  </div>
+</div>
 <div class="page-wrap">
 <div class="auth-bar" id="authBar"></div>
 <div class="header"><div class="header-inner" style="justify-content:center;flex-direction:column;align-items:center;gap:4px;position:relative;left:-28px"><div class="header-team" id="headerTeam" style="font-size:28px;text-align:center">Welcome to GrooveHub!</div><div class="header-record" id="headerRecord"></div></div></div>
+<div class="showcase-badge" id="showcaseBadge"><span class="sb-dot"></span>You're viewing real data from the 2024 season — <a href="https://docs.google.com/spreadsheets/d/1vFn1eYuYG4SQ_C8OQ-yOL_Nk2iubau-TU45tNtDggeQ/edit?usp=sharing" target="_blank" rel="noopener" style="color:var(--pri);text-decoration:underline">see our original StatHub!</a></div>
 <div class="mobile-season-toggle" id="mobileSeasonToggle"></div>
 <main class="main">
 <div class="tab" id="tab-home"><div class="hero-section"><button class="hero-btn" id="heroBtn" onclick="heroClick()">POST SOMETHING</button></div><div class="feed" id="feedArea"></div></div>
@@ -560,6 +768,8 @@ function switchSeason(year) {
     applySnapshot(JSON.parse(_snapshot));
   }
   exitEditContext();
+  // Reset teaser animation so it replays on season switch
+  _teaserPlayed = false;
   // Stop listening to old season
   stopRealtimeSync();
   activeSeason = year;
@@ -750,6 +960,19 @@ function fmtDateShort(ts){
   const months=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
   return `${months[d.getMonth()]} ${d.getDate()}`;
 }
+function fmtGameDate(ts){
+  if(!ts)return '';
+  const d=new Date(typeof ts==='number'?ts:ts+'T12:00:00');
+  if(isNaN(d))return ts;
+  const months=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  return `${months[d.getMonth()]} ${d.getDate()}, ${d.getFullYear()}`;
+}
+function resolveLocation(post){
+  if(post.location)return post.location;
+  if(post.gameId){const g=D.games.find(x=>x.id===post.gameId);if(g&&g.location)return g.location}
+  return '';
+}
+function mapsUrl(loc){return 'https://www.google.com/maps/search/'+encodeURIComponent(loc)}
 
 /* ═══ TEAM RECORD ═══ */
 function getRecord(){
@@ -1339,10 +1562,10 @@ function updatePublishBtn(){
 function publishPost(){
   // Filter out any still-uploading placeholders
   composerData.photos=(composerData.photos||[]).filter(p=>p&&p!=='uploading');
-  let opponent='',runsFor='',runsAgainst='',gameDate='';
+  let opponent='',runsFor='',runsAgainst='',gameDate='',gameLocation='';
   if(composerType==='recap'&&composerGameId){
     const g=D.games.find(x=>x.id===composerGameId);
-    if(g){opponent=g.opponent||'';runsFor=g.runsFor||'';runsAgainst=g.runsAgainst||'';gameDate=g.date||''}
+    if(g){opponent=g.opponent||'';runsFor=g.runsFor||'';runsAgainst=g.runsAgainst||'';gameDate=g.date||'';gameLocation=g.location||''}
   }
 
   if(editingPostId){
@@ -1357,6 +1580,7 @@ function publishPost(){
       post.gameId=composerGameId||'';
       if(composerType==='recap'){
         post.opponent=opponent;post.runsFor=runsFor;post.runsAgainst=runsAgainst;
+        post.location=gameLocation;
         if(gameDate)post.date=gameDate;
       }
     }
@@ -1367,7 +1591,7 @@ function publishPost(){
       author:composerData.author||'Anonymous Groover',
       date:composerType==='recap'&&gameDate?gameDate:new Date().toISOString().slice(0,10),
       createdAt:Date.now(),photos:composerData.photos||[],
-      opponent,runsFor,runsAgainst,gameId:composerGameId||'',
+      opponent,runsFor,runsAgainst,location:gameLocation,gameId:composerGameId||'',
       comments:[]};
     D.posts.unshift(post);
   }
@@ -1383,10 +1607,48 @@ function renderFeed(){
   D.posts.forEach((p,i)=>{
     html+=`<div class="post" data-postid="${p.id}">`;
     if(p.type==='recap'&&p.runsFor){
-      const w=n(p.runsFor)>n(p.runsAgainst),l=n(p.runsFor)<n(p.runsAgainst),r=w?'W':l?'L':'T',rc=w?'win':l?'loss':'tie';
+      const w=n(p.runsFor)>n(p.runsAgainst),l=n(p.runsFor)<n(p.runsAgainst);
+      const rc=w?'win':l?'loss':'tie';
       const rl=w?'WIN':l?'LOSS':'TIE';
-      const atVs=p.location?'at':'vs';
-      html+=`<div class="recap-banner"><div class="rb-left"><div class="rb-author">Official Game Recap by ${playerChip(p.author)}</div><div class="rb-meta">${fmtDate(p.createdAt||p.date)}</div></div><div class="rb-right"><div class="rb-result ${rc}">${rl} <span class="rb-opponent">${atVs} ${esc(p.opponent||'TBD')}</span></div><div class="rb-score">${esc(p.runsFor)} – ${esc(p.runsAgainst)}</div></div></div>`;
+      const loc=resolveLocation(p);
+      const gdate=fmtGameDate(p.date);
+      const isHome=loc&&(/inwood/i.test(loc)||/randall/i.test(loc));
+      const atVs=isHome?'vs':'at';
+      // Resolve game for weather + stats
+      const game=p.gameId?D.games.find(x=>x.id===p.gameId):null;
+      const weather=game&&game.weather?game.weather:'';
+      // Compute key stats from box score
+      let statsHtml='';
+      if(game&&game.players&&game.players.length){
+        const pl=game.players;
+        const totalH=pl.reduce((s,x)=>s+n(x.h),0);
+        const totalHR=pl.reduce((s,x)=>s+n(x.hr),0);
+        const totalBB=pl.reduce((s,x)=>s+n(x.bb),0);
+        const totalK=pl.reduce((s,x)=>s+n(x.so),0);
+        statsHtml+=`<span class="rb-stat"><span class="rb-stat-val">${totalH}</span><span class="rb-stat-label">H</span></span>`;
+        if(totalHR)statsHtml+=`<span class="rb-stat"><span class="rb-stat-val">${totalHR}</span><span class="rb-stat-label">HR</span></span>`;
+        statsHtml+=`<span class="rb-stat"><span class="rb-stat-val">${totalBB}</span><span class="rb-stat-label">BB</span></span>`;
+        statsHtml+=`<span class="rb-stat"><span class="rb-stat-val">${totalK}</span><span class="rb-stat-label">K</span></span>`;
+      }
+      // Info row: opponent left, date+location+weather right
+      let infoHtml=`<span class="rb-opponent">${atVs} ${esc(p.opponent||'TBD')}</span>`;
+      infoHtml+=`<span class="rb-info-right">`;
+      infoHtml+=`<span class="rb-date">${gdate}</span>`;
+      if(loc)infoHtml+=`<span class="rb-sep">·</span><span class="rb-location"><span class="material-symbols-outlined">location_on</span><a href="${mapsUrl(loc)}" target="_blank" rel="noopener">${esc(loc)}</a></span>`;
+      if(weather)infoHtml+=`<span class="rb-sep">·</span><span class="rb-weather"><span class="material-symbols-outlined">thermostat</span>${esc(weather)}</span>`;
+      infoHtml+=`</span>`;
+      // Details row: stats + box score left, author right
+      let detailsHtml=`<span class="rb-stats-group">${statsHtml}`;
+      if(p.gameId)detailsHtml+=`<button class="rb-boxlink" onclick="activeGame='${p.gameId}';activeTab='boxscores';renderAll()"><span class="material-symbols-outlined">open_in_new</span>Box Score</button>`;
+      detailsHtml+=`</span>`;
+      detailsHtml+=`<span class="rb-detail-spacer"></span>`;
+      detailsHtml+=`<span class="rb-author">Recap by ${playerChip(p.author)}</span>`;
+
+      html+=`<div class="recap-banner"><div class="rb-grid">`
+        +`<div class="rb-score-block"><div class="rb-result ${rc}">${rl}</div><div class="rb-score">${esc(p.runsFor)} – ${esc(p.runsAgainst)}</div></div>`
+        +`<div class="rb-info">${infoHtml}</div>`
+        +`<div class="rb-details">${detailsHtml}</div>`
+        +`</div></div>`;
       if(p.title)html+=`<div class="post-title">${chipifyText(p.title)}</div>`;
     }else{
       html+=`<div class="post-header"><div><div class="post-author">${playerChip(p.author)}</div><div class="post-date">${fmtDate(p.createdAt||p.date)}</div></div></div>`;
@@ -1425,7 +1687,7 @@ function addComment(postId){
   saveNow();renderFeed();
 }
 
-function movePost(i,dir){const j=i+dir;if(j<0||j>=D.posts.length)return;[D.posts[i],D.posts[j]]=[D.posts[j],D.posts[i]];renderFeed()}
+function movePost(i,dir){const j=i+dir;if(j<0||j>=D.posts.length)return;[D.posts[i],D.posts[j]]=[D.posts[j],D.posts[i]];saveNow();renderFeed()}
 function delPost(i,btn){
   if(btn.classList.contains('confirm')){D.posts.splice(i,1);saveNow();renderFeed();return}
   btn.classList.add('confirm');btn.innerHTML='<span class="material-symbols-outlined" style="font-size:16px">warning</span>Click again to delete';
@@ -1437,11 +1699,58 @@ function heroClick(){
   openComposer();
 }
 
+let _teaserPlayed = false;
+
 function renderHome(){
-  document.getElementById('headerTeam').textContent='Welcome to GrooveHub!';
+  document.getElementById('headerTeam').textContent='Welcome to GrooveHub '+activeSeason;
   // Apply season body class for color scheme
   SEASONS.forEach(y=>document.body.classList.remove('season-'+y));
   document.body.classList.add('season-'+activeSeason);
+
+  // Teaser banner — billboard on 2024, page header on 2026
+  const teaser = document.getElementById('teaserBanner');
+  if(teaser){
+    if(activeTab==='home') teaser.classList.add('active');
+    else { teaser.classList.remove('active'); }
+    // On 2026: acts as the page header (bigger). On 2024: just a banner.
+    teaser.classList.toggle('is-header', activeSeason==='2026');
+
+    const titleEl = document.getElementById('teaserTitle');
+
+    // Always show the 2026 teaser — this is the billboard
+    if(titleEl) titleEl.textContent = 'GrooveHub 2026';
+
+    // Season switcher state — update all toggle buttons
+    teaser.querySelectorAll('.ts-btn').forEach(b=>{
+      const is24 = b.classList.contains('ts-btn-full-24') || b.classList.contains('ts-btn-col-24');
+      const is26 = b.classList.contains('ts-btn-full-26') || b.classList.contains('ts-btn-col-26');
+      b.classList.toggle('active', (is24 && activeSeason==='2024') || (is26 && activeSeason==='2026'));
+    });
+
+    if(!_teaserPlayed){
+      _teaserPlayed = true;
+      teaser.classList.remove('animate');
+      requestAnimationFrame(()=>{
+        teaser.classList.add('animate');
+      });
+    } else {
+      teaser.classList.add('animate');
+    }
+  }
+
+  // Showcase badge for 2024
+  const badge = document.getElementById('showcaseBadge');
+  if(badge){
+    if(activeSeason==='2024') badge.classList.add('active');
+    else badge.classList.remove('active');
+  }
+
+  // On 2026 home: banner IS the header, hide the regular one
+  const headerEl=document.querySelector('.header');
+  if(headerEl){
+    headerEl.style.display=(activeSeason==='2026'&&activeTab==='home')?'none':'';
+  }
+
   renderRecord();
   const btn=document.getElementById('heroBtn');
   if(btn){
@@ -1458,7 +1767,7 @@ function renderHome(){
   const ft=document.getElementById('siteFooter');
   if(ft){
     let fhtml='NY Groove · '+activeSeason;
-    if(activeSeason==='2024')fhtml+=` · <a href="https://docs.google.com/spreadsheets/d/1" target="_blank" rel="noopener" style="color:var(--mut);text-decoration:underline;font-size:11px" id="sheetLink">See original StatHub 2024</a>`;
+    if(activeSeason==='2024')fhtml+=` · <a href="https://docs.google.com/spreadsheets/d/1vFn1eYuYG4SQ_C8OQ-yOL_Nk2iubau-TU45tNtDggeQ/edit?usp=sharing" target="_blank" rel="noopener" style="color:var(--mut);text-decoration:underline;font-size:11px" id="sheetLink">See original StatHub 2024</a>`;
     ft.innerHTML=fhtml;
   }
   // Mobile season toggle
@@ -2123,6 +2432,57 @@ document.addEventListener('mouseover',function(e){
   delete song.dataset.spotify;
   song.innerHTML=`<iframe style="border-radius:12px" src="https://open.spotify.com/embed/track/${id}?utm_source=generator&theme=0" width="100%" height="152" frameBorder="0" allowfullscreen allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" loading="lazy"></iframe>`;
 });
+
+// Teaser banner: animated collapse/expand on scroll
+(function(){
+  let collapsed = false;
+  let animating = false;
+  const collapseAt = 60;
+  const dur = 280;
+
+  window.addEventListener('scroll', function(){
+    if(animating) return;
+    const banner = document.getElementById('teaserBanner');
+    if(!banner || !banner.classList.contains('active')) return;
+    const inner = document.getElementById('teaserInner');
+    const col = document.getElementById('teaserCollapsed');
+    const y = window.scrollY;
+
+    if(!collapsed && y > collapseAt){
+      // Collapse: lock current height, add class, animate to collapsed height
+      animating = true;
+      const hFrom = inner.offsetHeight;
+      inner.style.height = hFrom + 'px';
+      banner.classList.add('collapsed');
+      banner.classList.remove('settled');
+      const hTo = col.offsetHeight;
+      inner.offsetHeight; // reflow
+      inner.style.height = hTo + 'px';
+      setTimeout(function(){
+        // Keep explicit height — collapsed bar is absolute so nothing else sizes the container
+        banner.classList.add('settled');
+        animating = false;
+      }, dur);
+      collapsed = true;
+
+    } else if(collapsed && y <= 0){
+      // Expand: lock collapsed height, remove class, animate to full height
+      animating = true;
+      const hFrom = col.offsetHeight;
+      inner.style.height = hFrom + 'px';
+      banner.classList.remove('collapsed','settled');
+      const full = document.getElementById('teaserFull');
+      const hTo = full.offsetHeight;
+      inner.offsetHeight; // reflow
+      inner.style.height = hTo + 'px';
+      setTimeout(function(){
+        inner.style.height = '';
+        animating = false;
+      }, dur);
+      collapsed = false;
+    }
+  }, {passive:true});
+})();
 </script>
 </body>
 </html>
