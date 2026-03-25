@@ -772,19 +772,33 @@ function switchSeason(year) {
   exitEditContext();
   // Reset teaser animation so it replays on season switch
   _teaserPlayed = false;
-  // Stop listening to old season
-  stopRealtimeSync();
-  activeSeason = year;
-  activeGame = null;
-  activeTab = 'home';
-  openComments = {};
-  expandedRoster = {};
-  // Load new season's data
-  loadData(() => {
-    renderAll();
-    if (firebaseReady && currentUser) startRealtimeSync();
-    autoFillWeather();
-  });
+
+  // Crossfade transition
+  const wrap = document.querySelector('.page-wrap');
+  const badge = document.getElementById('showcaseBadge');
+  wrap.style.transition = 'opacity 0.3s ease';
+  wrap.style.opacity = '0';
+
+  setTimeout(() => {
+    // Stop listening to old season
+    stopRealtimeSync();
+    activeSeason = year;
+    activeGame = null;
+    activeTab = 'home';
+    openComments = {};
+    expandedRoster = {};
+    // Load new season's data
+    loadData(() => {
+      renderAll();
+      if (firebaseReady && currentUser) startRealtimeSync();
+      autoFillWeather();
+      // Fade back in
+      requestAnimationFrame(() => {
+        wrap.style.opacity = '1';
+        setTimeout(() => { wrap.style.transition = ''; }, 300);
+      });
+    });
+  }, 300);
 }
 
 const DEFAULT_STATS=[{id:'pa',label:'PA',full:'Plate Appearances',on:true},{id:'ab',label:'AB',full:'At Bats',on:true},{id:'r',label:'R',full:'Runs',on:true},{id:'h',label:'H',full:'Hits',on:true},{id:'singles',label:'1B',full:'Singles',on:true},{id:'doubles',label:'2B',full:'Doubles',on:true},{id:'triples',label:'3B',full:'Triples',on:true},{id:'hr',label:'HR',full:'Home Runs',on:true},{id:'rbi',label:'RBI',full:'RBI',on:true},{id:'bb',label:'BB',full:'Walks',on:true},{id:'so',label:'K',full:'Strikeouts',on:true},{id:'hbp',label:'HBP',full:'Hit-by-Pitch',on:true},{id:'sf',label:'SF',full:'Sac Flies',on:true},{id:'sb',label:'SB',full:'Stolen Bases',on:true},{id:'cs',label:'CS',full:'Caught Stealing',on:true},{id:'gidp',label:'GIDP',full:'Grounded Into DP',on:true}];
@@ -836,7 +850,8 @@ async function uploadPhoto(blob,filename){
   }
   const path=`photos/${activeSeason}/${uid()}-${filename.replace(/[^a-zA-Z0-9._-]/g,'_')}`;
   const ref=storage.ref(path);
-  const snap=await ref.put(blob);
+  const meta={contentType:blob.type||'image/jpeg'};
+  const snap=await ref.put(blob,meta);
   return snap.ref.getDownloadURL();
 }
 
@@ -1370,32 +1385,50 @@ async function handleBulkPhotos(files){
   if(!files||!files.length)return;
   let matched=0,skipped=[];
   for(const f of Array.from(files)){
-    // Strip extension, replace separators with spaces, lowercase
-    const base=f.name.replace(/\.[^.]+$/,'').replace(/[-_]/g,' ').trim().toLowerCase();
+    // Strip extension, remove trailing numbers/spaces, replace separators, lowercase
+    const base=f.name.replace(/\.[^.]+$/,'').replace(/[-_]/g,' ').replace(/\s*\d+\s*$/,'').trim().toLowerCase();
+    // Also create a version with all spaces removed for "nickcolon" style
+    const baseNoSpaces=base.replace(/\s+/g,'');
     // Try to match against roster names
     let idx=-1;
     for(let i=0;i<D.roster.length;i++){
       const rn=(D.roster[i].name||'').trim().toLowerCase();
       if(!rn)continue;
-      // Exact match, or filename contains full name, or name contains filename
-      if(base===rn||base.includes(rn)||rn.includes(base)){idx=i;break}
-      // Try last name match
+      const rnNoSpaces=rn.replace(/\s+/g,'');
+      // Exact match
+      if(base===rn){idx=i;break}
+      // Filename contains full name or vice versa
+      if(base.includes(rn)||rn.includes(base)){idx=i;break}
+      // No-spaces match (nickcolon → nick colon)
+      if(baseNoSpaces===rnNoSpaces){idx=i;break}
+      if(baseNoSpaces.includes(rnNoSpaces)||rnNoSpaces.includes(baseNoSpaces)){idx=i;break}
+      // Last name match
       const parts=rn.split(/\s+/);
       const last=parts[parts.length-1];
-      if(last.length>2&&base===last){idx=i;break}
-      // Try first name match
+      if(last.length>2&&(base===last||base.includes(last))){idx=i;break}
+      // First name match
       const first=parts[0];
-      if(first.length>2&&base===first){idx=i;break}
+      if(first.length>2&&(base===first||base.includes(first))){idx=i;break}
+      // Check aliases
+      const aliases=(D.roster[i].aliases||[]).map(a=>a.trim().toLowerCase());
+      if(aliases.some(a=>base===a||base.includes(a)||a.includes(base))){idx=i;break}
     }
     if(idx>=0){
-      const isPng=f.type==='image/png'||/\.png$/i.test(f.name);
-      const blob=await resizeImage(f,300);
-      const ext=isPng?'.png':'.jpg';
-      const url=await uploadPhoto(blob,'roster-'+D.roster[idx].id+ext);
-      D.roster[idx].photo=url;
-      matched++;
+      try{
+        const isPng=f.type==='image/png'||/\.png$/i.test(f.name);
+        const blob=await resizeImage(f,300);
+        const ext=isPng?'.png':'.jpg';
+        const url=await uploadPhoto(blob,'roster-'+D.roster[idx].id+ext);
+        D.roster[idx].photo=url;
+        matched++;
+        console.log('Matched',f.name,'→',D.roster[idx].name);
+      }catch(e){
+        console.error('Upload failed for',f.name,e);
+        skipped.push(f.name+' (upload error)');
+      }
     }else{
-      skipped.push(f.name);
+      skipped.push(f.name+' (no match)');
+      console.log('No match for',f.name,'— tried against:',D.roster.map(r=>r.name));
     }
   }
   if(matched)saveNow();
@@ -1826,8 +1859,7 @@ function renderHome(){
   if(teaser){
     if(activeTab==='home') teaser.classList.add('active');
     else { teaser.classList.remove('active'); }
-    // On 2026: acts as the page header (bigger). On 2024: just a banner.
-    teaser.classList.toggle('is-header', activeSeason==='2026');
+    // Banner is the same size on both seasons for smooth transitions
 
     const titleEl = document.getElementById('teaserTitle');
 
@@ -1859,11 +1891,7 @@ function renderHome(){
     else badge.classList.remove('active');
   }
 
-  // On 2026 home: banner IS the header, hide the regular one
-  const headerEl=document.querySelector('.header');
-  if(headerEl){
-    headerEl.style.display=(activeSeason==='2026'&&activeTab==='home')?'none':'';
-  }
+  // Header always visible — banner is consistent across seasons
 
   renderRecord();
   const btn=document.getElementById('heroBtn');
