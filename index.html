@@ -163,39 +163,33 @@ button{cursor:pointer;font-family:inherit}input,textarea,select{font-family:inhe
 .rb-stat .rb-stat-val{color:#fff;font-weight:900}
 .rb-stat .rb-stat-label{opacity:0.7;text-transform:uppercase;letter-spacing:0.5px;font-size:10px}
 .rb-stats-group{display:flex;align-items:center;gap:10px}
-.rb-boxlink{
-  font-size:11px;font-weight:700;color:#fff;
-  display:inline-flex;align-items:center;gap:4px;
-  cursor:pointer;transition:all 0.15s;
-  background:rgba(255,255,255,0.12);border:1px solid rgba(255,255,255,0.18);
-  border-radius:6px;padding:5px 12px;
-  font-family:inherit;line-height:1;
-  white-space:nowrap;flex-shrink:0;
-}
-.rb-boxlink:hover{background:rgba(255,255,255,0.2);border-color:rgba(255,255,255,0.3)}
 .rb-detail-spacer{flex:1}
 .rb-author{font-size:12px;font-weight:600;opacity:0.7;display:flex;align-items:center;gap:4px;white-space:nowrap;line-height:1}
 .rb-author .player-chip{background:rgba(255,255,255,0.15);color:#fff;font-size:12px}
 .rb-author .player-chip .pc-num{color:rgba(255,255,255,0.7)}
 
 @media(max-width:640px){
-  /* Score block: stack box score button below score */
-  .rb-score-block{padding:10px 8px;width:90px;gap:6px}
+  /* On mobile: score spans rows 1-2 only, lineup gets full width on row 3 */
+  .rb-score-block{grid-row:1/3;padding:10px 8px;width:90px;gap:6px}
   .rb-score{font-size:26px}
   .rb-result{font-size:10px;letter-spacing:1.5px}
-  .rb-mobile-boxlink{display:block}
   .rb-info{padding:8px 14px;flex-wrap:wrap;gap:4px}
   .rb-info-right{margin-left:0;width:100%;gap:8px}
   .rb-opponent{font-size:15px}
   .rb-details{padding:6px 14px;flex-wrap:wrap;gap:6px}
   .rb-detail-spacer{display:none}
-  /* Hide the inline box score button on mobile — it's in the score block now */
-  .rb-details .rb-boxlink{display:none}
 }
-/* Mobile box score button inside score block — hidden on desktop */
-.rb-mobile-boxlink{display:none}
-.rb-mobile-boxlink .rb-boxlink{font-size:10px;padding:4px 10px;margin-top:2px}
-.rb-mobile-boxlink .rb-boxlink .material-symbols-outlined{display:none}
+/* Box score button in post body */
+.post-boxscore-btn{
+  width:100%;padding:10px 0;
+  background:var(--pri);color:#fff;border:none;
+  border-radius:var(--radius);
+  font-family:'Sen',sans-serif;font-size:13px;font-weight:700;
+  letter-spacing:0.5px;cursor:pointer;
+  transition:all 0.15s;
+  box-shadow:0 2px 8px rgba(0,0,0,0.1);
+}
+.post-boxscore-btn:hover{opacity:0.9;box-shadow:0 4px 16px rgba(0,0,0,0.15)}
 .result-tag{font-size:12px;font-weight:800;color:#fff;padding:3px 10px;border-radius:4px}
 /* Comments */
 .comments-section{padding:0 24px 12px}
@@ -416,10 +410,10 @@ tr.bs-row .row-check{width:15px;height:15px;accent-color:var(--blue);cursor:poin
 }
 .pc-hover-photo-none .material-symbols-outlined{font-size:22px;color:rgba(255,255,255,0.25)}
 
-/* Bottom section: walkup song */
-.pc-hover-bottom{padding:0}
-.pc-hover-song{border-radius:0;overflow:hidden}
-.pc-hover-song iframe{width:100%;height:152px;border:none;border-radius:0}
+/* Bottom section: walkup song — flush to popup edges so popup border-radius clips */
+.pc-hover-bottom{padding:0;margin:0 -1px -1px;overflow:hidden}
+.pc-hover-song{border-radius:0;overflow:hidden;margin:0}
+.pc-hover-song iframe{width:calc(100% + 2px);height:152px;border:none;border-radius:0;margin-left:-1px;display:block}
 /* Box score notes */
 .box-notes{margin-top:12px}
 .box-notes label{display:block;font-size:10px;font-weight:700;color:var(--mut);text-transform:uppercase;letter-spacing:0.6px;margin-bottom:4px}
@@ -684,8 +678,8 @@ body.has-save-bar .main{padding-bottom:80px !important}
 .rb-lineup{
   grid-row:3;grid-column:2;
   display:flex;align-items:flex-end;
-  padding:2px 20px 0;gap:0;
-  height:34px;
+  padding:0 20px;gap:0;
+  height:36px;
   overflow-x:auto;overflow-y:visible;
   scrollbar-width:none;
 }
@@ -695,11 +689,11 @@ body.has-save-bar .main{padding-bottom:80px !important}
   justify-content:flex-end;
   width:34px;height:100%;
 }
-/* Transparent cutout photos — anchored to bottom, no circle */
+/* Transparent cutout photos — flush with bottom edge */
 .rb-lineup-photo-cutout{
-  width:32px;height:32px;object-fit:contain;object-position:center bottom;
+  width:32px;height:34px;object-fit:contain;object-position:center bottom;
   filter:drop-shadow(0 1px 2px rgba(0,0,0,0.3));
-  margin-top:auto;
+  margin-top:auto;margin-bottom:0;
 }
 /* Non-transparent / placeholder — circle, floats just above bottom */
 .rb-lineup-photo-circle{
@@ -716,8 +710,8 @@ body.has-save-bar .main{padding-bottom:80px !important}
 .rb-lineup-placeholder .material-symbols-outlined{font-size:14px;color:rgba(255,255,255,0.3)}
 
 @media(max-width:640px){
-  .rb-lineup{padding:4px 14px 2px;height:auto;flex-wrap:wrap;overflow:visible;gap:2px 0}
-  .rb-lineup-player{width:28px;height:28px}
+  .rb-lineup{grid-column:1/-1;padding:0 14px;height:auto;flex-wrap:wrap;overflow:visible;gap:0}
+  .rb-lineup-player{width:28px;height:30px}
   .rb-lineup-photo-cutout{width:26px;height:26px}
   .rb-lineup-photo-circle{width:22px;height:22px}
   .rb-lineup-placeholder{width:22px;height:22px}
@@ -1923,11 +1917,10 @@ function renderFeed(){
       if(loc||weather)infoHtml+=`<span class="rb-sep">·</span>`;
       infoHtml+=`<span class="rb-date">${gdate}</span>`;
       infoHtml+=`</span>`;
-      // Details row: stats left, author + box score button right
+      // Details row: stats left, author right
       let detailsHtml=`<span class="rb-stats-group">${statsHtml}</span>`;
       detailsHtml+=`<span class="rb-detail-spacer"></span>`;
       detailsHtml+=`<span class="rb-author">Recap by ${playerChip(p.author)}</span>`;
-      if(p.gameId)detailsHtml+=`<button class="rb-boxlink" onclick="activeGame='${p.gameId}';activeTab='boxscores';renderAll()">See Box Score</button>`;
 
       // Lineup photos — players in order, with roster photos
       let lineupHtml='';
@@ -1949,7 +1942,7 @@ function renderFeed(){
       }
 
       html+=`<div class="recap-banner"><div class="rb-grid">`
-        +`<div class="rb-score-block"><div class="rb-result ${rc}">${rl}</div><div class="rb-score">${esc(p.runsFor)} – ${esc(p.runsAgainst)}</div>${p.gameId?`<div class="rb-mobile-boxlink"><button class="rb-boxlink" onclick="activeGame='${p.gameId}';activeTab='boxscores';renderAll()">See Box Score</button></div>`:''}</div>`
+        +`<div class="rb-score-block"><div class="rb-result ${rc}">${rl}</div><div class="rb-score">${esc(p.runsFor)} – ${esc(p.runsAgainst)}</div></div>`
         +`<div class="rb-info">${infoHtml}</div>`
         +`<div class="rb-details">${detailsHtml}</div>`
         +(lineupHtml?`<div class="rb-lineup">${lineupHtml}</div>`:'')
@@ -1961,6 +1954,7 @@ function renderFeed(){
     }
     if(p.body)html+=`<div class="post-body">${chipifyText(p.body)}</div>`;
     if(p.photos&&p.photos.length){html+=`<div class="post-photos">`;p.photos.forEach(ph=>{html+=`<img src="${ph}" style="max-height:360px">`});html+=`</div>`}
+    if(p.type==='recap'&&p.gameId){html+=`<div style="padding:4px 24px 12px"><button class="post-boxscore-btn" onclick="activeGame='${p.gameId}';activeTab='boxscores';renderAll()">See Box Score</button></div>`}
     const commOpen=openComments[p.id];
     const cc=p.comments||[];
     html+=`<div class="comments-section">`;
