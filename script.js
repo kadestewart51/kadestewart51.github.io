@@ -1424,43 +1424,19 @@ function renderFeed(){
       // Resolve game for weather + stats
       const game=p.gameId?D.games.find(x=>x.id===p.gameId):null;
       const weather=game&&game.weather?game.weather:'';
-      // Compute key stats from box score
-      let statsHtml='';
-      const dash=v=>v?v:'—';
-      if(game&&game.players&&game.players.length){
-        const pl=game.players;
-        const anyH=pl.some(x=>x.h!=null&&x.h!=='');
-        const anyBB=pl.some(x=>x.bb!=null&&x.bb!=='');
-        const anyK=pl.some(x=>x.so!=null&&x.so!=='');
-        const totalH=anyH?pl.reduce((s,x)=>s+n(x.h),0):null;
-        const totalHR=pl.reduce((s,x)=>s+n(x.hr),0);
-        const totalBB=anyBB?pl.reduce((s,x)=>s+n(x.bb),0):null;
-        const totalK=anyK?pl.reduce((s,x)=>s+n(x.so),0):null;
-        statsHtml+=`<span class="rb-stat-section">BAT</span>`;
-        statsHtml+=`<span class="rb-stat"><span class="rb-stat-val">${dash(totalH)}</span><span class="rb-stat-label">H</span></span>`;
-        if(totalHR)statsHtml+=`<span class="rb-stat"><span class="rb-stat-val">${totalHR}</span><span class="rb-stat-label">HR</span></span>`;
-        statsHtml+=`<span class="rb-stat"><span class="rb-stat-val">${dash(totalBB)}</span><span class="rb-stat-label">BB</span></span>`;
-        statsHtml+=`<span class="rb-stat"><span class="rb-stat-val">${dash(totalK)}</span><span class="rb-stat-label">K</span></span>`;
+      // Byline — compact "By [headshot]"
+      const authorRm=rosterMap();
+      const authorEntry=authorRm[(p.author||'').trim().toLowerCase()];
+      let bylineHtml='';
+      if(authorEntry&&authorEntry.photo){
+        const isCutout=/\.png/i.test(authorEntry.photo);
+        const avatarCls=isCutout?'rb-by-cutout':'rb-by-circle';
+        bylineHtml=`<span class="rb-byline player-chip" style="background:transparent;padding:0;cursor:pointer"><span class="rb-by-text">By</span><img class="${avatarCls}" src="${authorEntry.photo}">${chipHoverHtml(authorEntry)}</span>`;
+      }else{
+        bylineHtml=`<span class="rb-byline"><span class="rb-by-text">By</span> ${esc(p.author||'')}</span>`;
       }
-      if(game&&game.pitching&&game.pitching.length){
-        const pp=game.pitching;
-        const anyIP=pp.some(x=>x.ip!=null&&x.ip!=='');
-        const anyPH=pp.some(x=>x.ph!=null&&x.ph!=='');
-        const anyPBB=pp.some(x=>x.pbb!=null&&x.pbb!=='');
-        const anyPK=pp.some(x=>x.pk!=null&&x.pk!=='');
-        const totalIP=anyIP?pp.reduce((s,x)=>s+parseFloat(x.ip||0),0):null;
-        const totalPH=anyPH?pp.reduce((s,x)=>s+n(x.ph),0):null;
-        const totalPBB=anyPBB?pp.reduce((s,x)=>s+n(x.pbb),0):null;
-        const totalPK=anyPK?pp.reduce((s,x)=>s+n(x.pk),0):null;
-        statsHtml+=`<span class="rb-stat-sep">|</span><span class="rb-stat-section">ARM</span>`;
-        statsHtml+=`<span class="rb-stat"><span class="rb-stat-val">${totalIP!=null?totalIP:'—'}</span><span class="rb-stat-label">IP</span></span>`;
-        statsHtml+=`<span class="rb-stat"><span class="rb-stat-val">${dash(totalPH)}</span><span class="rb-stat-label">H</span></span>`;
-        statsHtml+=`<span class="rb-stat"><span class="rb-stat-val">${dash(totalPBB)}</span><span class="rb-stat-label">BB</span></span>`;
-        statsHtml+=`<span class="rb-stat"><span class="rb-stat-val">${dash(totalPK)}</span><span class="rb-stat-label">K</span></span>`;
-      }
-      // Info row: stats left, location · weather · date right
-      let infoHtml=statsHtml?`<span class="rb-stats-group">${statsHtml}</span>`:`<span class="rb-opponent">${atVs} ${esc(p.opponent||'TBD')}</span>`;
-      // Line score (full-width bottom row, built separately)
+
+      // Line score
       const lsAway=game&&game.lineScoreAway?game.lineScoreAway:'';
       const lsHome=game&&game.lineScoreHome?game.lineScoreHome:'';
       let lineScoreHtml='';
@@ -1468,11 +1444,11 @@ function renderFeed(){
         const awayInns=(lsAway||'').split(',').map(s=>s.trim()).filter(Boolean);
         const homeInns=(lsHome||'').split(',').map(s=>s.trim()).filter(Boolean);
         const numInnings=Math.max(awayInns.length,homeInns.length);
-        const isHome=loc&&(/inwood/i.test(loc)||/randall/i.test(loc));
-        const topFull=isHome?esc(p.opponent||'AWAY'):'Groove';
-        const botFull=isHome?'Groove':esc(p.opponent||'HOME');
-        const topShort=isHome?esc((p.opponent||'AWY').slice(0,3).toUpperCase()):'NYG';
-        const botShort=isHome?'NYG':esc((p.opponent||'HME').slice(0,3).toUpperCase());
+        const lsIsHome=loc&&(/inwood/i.test(loc)||/randall/i.test(loc));
+        const topFull=lsIsHome?esc(p.opponent||'AWAY'):'Groove';
+        const botFull=lsIsHome?'Groove':esc(p.opponent||'HOME');
+        const topShort=lsIsHome?esc((p.opponent||'AWY').slice(0,3).toUpperCase()):'NYG';
+        const botShort=lsIsHome?'NYG':esc((p.opponent||'HME').slice(0,3).toUpperCase());
         const teamCell=(full,short)=>`<td class="rb-ls-team"><span class="rb-ls-full">${full}</span><span class="rb-ls-short">${short}</span></td>`;
         lineScoreHtml+=`<div class="rb-linescore"><table class="rb-ls-table"><thead><tr><th></th>`;
         for(let i=0;i<numInnings;i++)lineScoreHtml+=`<th>${i+1}</th>`;
@@ -1486,21 +1462,46 @@ function renderFeed(){
         lineScoreHtml+=`<td class="rb-ls-total">${homeInns.reduce((s,v)=>s+parseInt(v||0),0)}</td>`;
         lineScoreHtml+=`</tr></tbody></table></div>`;
       }
-      infoHtml+=`<span class="rb-info-right">`;
-      if(loc)infoHtml+=`<span class="rb-location"><span class="material-symbols-outlined">location_on</span><a href="${mapsUrl(loc)}" target="_blank" rel="noopener">${esc(loc)}</a></span>`;
-      if(weather){if(loc)infoHtml+=`<span class="rb-sep">·</span>`;infoHtml+=`<span class="rb-weather"><span class="material-symbols-outlined">thermostat</span>${esc(weather)}</span>`}
-      if(loc||weather)infoHtml+=`<span class="rb-sep">·</span>`;
-      const gameTime=game&&game.time?fmtTime(game.time):'';
-      infoHtml+=`<span class="rb-date">${gdate}${gameTime?' · '+gameTime:''}</span>`;
-      infoHtml+=`<span class="rb-author-mobile">Recap by ${playerChip(p.author)}</span>`;
-      infoHtml+=`</span>`;
-      // Details row: author left, lineup right
-      let detailsHtml=`<span class="rb-author">Recap by ${playerChip(p.author)}</span>`;
-      detailsHtml+=`<span class="rb-detail-spacer"></span>`;
 
-      // Lineup photos — inline in details row, with hover cards
+      // Expanded stats
+      let statsHtml='';
+      const dash=v=>v?v:'—';
       if(game&&game.players&&game.players.length){
-        detailsHtml+=`<span class="rb-lineup">`;
+        const pl=game.players;
+        const sv=k=>pl.some(x=>x[k]!=null&&x[k]!=='')?pl.reduce((s,x)=>s+n(x[k]),0):null;
+        statsHtml+=`<span class="rb-stat-section">BAT</span>`;
+        statsHtml+=`<span class="rb-stat"><span class="rb-stat-val">${dash(sv('h'))}</span><span class="rb-stat-label">H</span></span>`;
+        const hr=sv('hr');if(hr)statsHtml+=`<span class="rb-stat"><span class="rb-stat-val">${hr}</span><span class="rb-stat-label">HR</span></span>`;
+        statsHtml+=`<span class="rb-stat"><span class="rb-stat-val">${dash(sv('rbi'))}</span><span class="rb-stat-label">RBI</span></span>`;
+        statsHtml+=`<span class="rb-stat"><span class="rb-stat-val">${dash(sv('bb'))}</span><span class="rb-stat-label">BB</span></span>`;
+        statsHtml+=`<span class="rb-stat"><span class="rb-stat-val">${dash(sv('so'))}</span><span class="rb-stat-label">K</span></span>`;
+        statsHtml+=`<span class="rb-stat"><span class="rb-stat-val">${dash(sv('sb'))}</span><span class="rb-stat-label">SB</span></span>`;
+        const totalH=sv('h'),totalAB=sv('ab');
+        statsHtml+=`<span class="rb-stat"><span class="rb-stat-val">${avg3(totalH||0,totalAB||0)}</span><span class="rb-stat-label">AVG</span></span>`;
+      }
+      if(game&&game.pitching&&game.pitching.length){
+        const pp=game.pitching;
+        const pv=k=>pp.some(x=>x[k]!=null&&x[k]!=='')?pp.reduce((s,x)=>s+(k==='ip'?parseFloat(x[k]||0):n(x[k])),0):null;
+        statsHtml+=`<span class="rb-stat-sep">|</span><span class="rb-stat-section">ARM</span>`;
+        statsHtml+=`<span class="rb-stat"><span class="rb-stat-val">${pv('ip')!=null?pv('ip'):'—'}</span><span class="rb-stat-label">IP</span></span>`;
+        statsHtml+=`<span class="rb-stat"><span class="rb-stat-val">${dash(pv('ph'))}</span><span class="rb-stat-label">H</span></span>`;
+        statsHtml+=`<span class="rb-stat"><span class="rb-stat-val">${dash(pv('pr'))}</span><span class="rb-stat-label">R</span></span>`;
+        statsHtml+=`<span class="rb-stat"><span class="rb-stat-val">${dash(pv('pbb'))}</span><span class="rb-stat-label">BB</span></span>`;
+        statsHtml+=`<span class="rb-stat"><span class="rb-stat-val">${dash(pv('pk'))}</span><span class="rb-stat-label">K</span></span>`;
+        statsHtml+=`<span class="rb-stat"><span class="rb-stat-val">${dash(pv('phbp'))}</span><span class="rb-stat-label">HBP</span></span>`;
+      }
+
+      // Location / weather / date row
+      let metaHtml='';
+      if(loc)metaHtml+=`<span class="rb-location"><span class="material-symbols-outlined">location_on</span><a href="${mapsUrl(loc)}" target="_blank" rel="noopener">${esc(loc)}</a></span>`;
+      if(weather){if(loc)metaHtml+=`<span class="rb-sep">·</span>`;metaHtml+=`<span class="rb-weather"><span class="material-symbols-outlined">thermostat</span>${esc(weather)}</span>`}
+      const gameTime=game&&game.time?fmtTime(game.time):'';
+      if(loc||weather)metaHtml+=`<span class="rb-sep">·</span>`;
+      metaHtml+=`<span class="rb-date">${gdate}${gameTime?' · '+gameTime:''}</span>`;
+
+      // Lineup
+      let lineupHtml='';
+      if(game&&game.players&&game.players.length){
         game.players.forEach(gp=>{
           const rEntry=gp.rosterId?D.roster.find(r=>r.id===gp.rosterId):D.roster.find(r=>r.name&&r.name.trim().toLowerCase()===(gp.name||'').trim().toLowerCase());
           const photo=rEntry&&rEntry.photo?rEntry.photo:'';
@@ -1514,18 +1515,20 @@ function renderFeed(){
           }else{
             imgHtml=`<span class="rb-lineup-placeholder"><span class="material-symbols-outlined">person</span></span>`;
           }
-          detailsHtml+=`<span class="rb-lineup-player player-chip rb-lineup-chip">${imgHtml}${hoverCard}</span>`;
+          lineupHtml+=`<span class="rb-lineup-player player-chip rb-lineup-chip">${imgHtml}${hoverCard}</span>`;
         });
-        detailsHtml+=`</span>`;
       }
 
+      // Assemble banner
+      // Row 1: title + byline | Row 2: lineup | Row 3: meta | Row 4: line score | Row 5: stats
       html+=`<div class="recap-banner"><div class="rb-grid">`
         +`<div class="rb-score-block"><div class="rb-result ${rc}">${rl} ${atVs} ${esc(p.opponent||'')}</div><div class="rb-score">${esc(p.runsFor)} – ${esc(p.runsAgainst)}</div></div>`
-        +`<div class="rb-info">${infoHtml}</div>`
-        +`<div class="rb-details">${detailsHtml}</div>`
+        +`<div class="rb-title-row">${p.title?`<span class="rb-title">${chipifyText(p.title)}</span>`:''}${bylineHtml}</div>`
+        +`<div class="rb-lineup-row">${lineupHtml?`<span class="rb-lineup">${lineupHtml}</span>`:''}</div>`
+        +`<div class="rb-meta-row">${metaHtml}</div>`
         +(lineScoreHtml?`<div class="rb-linescore-row">${lineScoreHtml}</div>`:'')
+        +(statsHtml?`<div class="rb-stats-row"><span class="rb-stats-group">${statsHtml}</span></div>`:'')
         +`</div></div>`;
-      if(p.title)html+=`<div class="post-title">${chipifyText(p.title)}</div>`;
     }else{
       html+=`<div class="post-header"><div><div class="post-author">${playerChip(p.author)}</div><div class="post-date">${fmtDate(p.createdAt||p.date)}</div></div></div>`;
       if(p.title)html+=`<div class="post-title">${chipifyText(p.title)}</div>`;

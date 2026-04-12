@@ -121,11 +121,13 @@ button{cursor:pointer;font-family:inherit}input,textarea,select{font-family:inhe
 .feed{max-width:100%;margin:0 auto}
 .post{background:var(--card);border:1px solid var(--brd);border-radius:var(--radius);margin-bottom:16px;box-shadow:0 2px 12px rgba(0,0,0,0.05);transition:box-shadow 0.2s}
 .post>.recap-banner{margin:-1px -1px 0;border-radius:var(--radius) var(--radius) 0 0}
+.post>.recap-banner+.post-body{padding-top:20px}
+.post>.recap-banner+.post-photos{padding-top:20px}
 .post:hover{box-shadow:0 4px 20px rgba(0,0,0,0.08)}
 .post-header{padding:18px 24px 8px;display:flex;justify-content:space-between;align-items:flex-start}
 .post-author{font-weight:700;font-size:14px;color:var(--pri)}.post-date{font-size:13px;color:var(--mut);margin-top:2px}
 .post-title{font-size:22px;font-weight:800;color:var(--pri);padding:18px 24px 14px}
-.post-body{padding:6px 24px 20px;font-size:15px;line-height:2;color:#444;white-space:pre-wrap}
+.post-body{padding:6px 24px 20px;font-size:16px;line-height:1.7;color:#444;white-space:pre-wrap;font-family:'Lora',Georgia,serif}
 .post-photos{padding:0 24px 20px;display:flex;gap:8px;flex-wrap:wrap}
 .post-photos img{max-width:100%;border-radius:8px;border:1px solid var(--brd)}
 /* ═══ LIGHTBOX ═══ */
@@ -155,7 +157,7 @@ button{cursor:pointer;font-family:inherit}input,textarea,select{font-family:inhe
 .rb-grid{
   display:grid;
   grid-template-columns:auto 1fr;
-  grid-template-rows:auto auto auto;
+  grid-template-rows:repeat(5,auto);
   gap:0;
 }
 
@@ -171,18 +173,35 @@ button{cursor:pointer;font-family:inherit}input,textarea,select{font-family:inhe
 .rb-result.win{color:#d4ffd4}.rb-result.loss{color:#ffd4d4}.rb-result.tie{color:#fff8d4}
 .rb-score{font-size:34px;font-weight:900;letter-spacing:-1px;line-height:1;text-shadow:0 2px 6px rgba(0,0,0,0.2);text-align:center;word-break:break-all}
 
-/* Top-right: opponent left, date+location+weather right */
-.rb-info{
+/* Row 1: title + byline */
+.rb-title-row{
   grid-row:1;grid-column:2;
-  display:flex;align-items:center;
-  padding:12px 20px;
-  border-bottom:1px solid rgba(255,255,255,0.08);
-  min-height:0;
+  display:flex;align-items:center;gap:10px;
+  padding:12px 20px 6px;
 }
-.rb-opponent{font-size:17px;font-weight:900;letter-spacing:-0.3px;line-height:1}
-.rb-info-right{margin-left:auto;display:flex;align-items:center;gap:10px;flex-shrink:0}
+.rb-title{font-size:16px;font-weight:900;letter-spacing:-0.3px;line-height:1.2;flex:1;min-width:0}
+.rb-byline{display:inline-flex;align-items:center;gap:5px;flex-shrink:0;font-size:11px;font-weight:600;opacity:0.7;white-space:nowrap}
+.rb-by-text{font-size:10px;text-transform:uppercase;letter-spacing:0.5px;opacity:0.7}
+.rb-by-circle{width:22px;height:22px;border-radius:50%;object-fit:cover;border:1.5px solid rgba(255,255,255,0.3)}
+.rb-by-cutout{width:24px;height:26px;object-fit:contain;object-position:center bottom;filter:drop-shadow(0 1px 2px rgba(0,0,0,0.3))}
+
+/* Row 2: lineup */
+.rb-lineup-row{
+  grid-row:2;grid-column:2;
+  display:flex;align-items:center;
+  padding:2px 20px 6px;
+  z-index:2;
+}
+
+/* Row 3: location · weather · date */
+.rb-meta-row{
+  grid-row:3;grid-column:2;
+  display:flex;align-items:center;gap:10px;
+  padding:6px 20px;
+  border-top:1px solid rgba(255,255,255,0.08);
+}
 .rb-sep{opacity:0.3;font-size:11px;line-height:1}
-.rb-date{font-size:12px;font-weight:700;opacity:0.85;white-space:nowrap;line-height:1}
+.rb-date{font-size:11px;font-weight:600;opacity:0.65;white-space:nowrap;line-height:1;display:inline-flex;align-items:center;gap:3px}
 .rb-location{font-size:11px;font-weight:600;opacity:0.65;display:inline-flex;align-items:center;gap:3px;line-height:1}
 .rb-location a{color:#fff;text-decoration:none;transition:opacity 0.15s}
 .rb-location a:hover{opacity:1;text-decoration:underline}
@@ -190,13 +209,12 @@ button{cursor:pointer;font-family:inherit}input,textarea,select{font-family:inhe
 .rb-weather{font-size:11px;font-weight:600;opacity:0.6;display:inline-flex;align-items:center;gap:3px;line-height:1}
 .rb-weather .material-symbols-outlined{font-size:13px}
 
-/* Bottom-right: author left, lineup right */
-.rb-details{
-  grid-row:2;grid-column:2;
+/* Row 5: stats */
+.rb-stats-row{
+  grid-row:5;grid-column:2;
   display:flex;align-items:center;
-  padding:6px 20px;
-  min-height:0;
-  z-index:2;
+  padding:6px 20px 10px;
+  border-top:1px solid rgba(255,255,255,0.08);
 }
 .rb-stat{font-size:11px;font-weight:700;color:rgba(255,255,255,0.8);display:inline-flex;align-items:center;gap:3px;white-space:nowrap;line-height:1}
 .rb-stat .rb-stat-val{color:#fff;font-weight:900}
@@ -204,18 +222,13 @@ button{cursor:pointer;font-family:inherit}input,textarea,select{font-family:inhe
 .rb-stats-group{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
 .rb-stat-section{font-size:9px;font-weight:800;opacity:0.5;text-transform:uppercase;letter-spacing:1px;line-height:1}
 .rb-stat-sep{opacity:0.2;font-size:12px;line-height:1}
-.rb-detail-spacer{flex:1}
-.rb-author-mobile{display:none}
-.rb-author{font-size:12px;font-weight:600;opacity:0.7;display:flex;align-items:center;gap:4px;white-space:nowrap;line-height:1}
-.rb-details .player-chip{background:rgba(255,255,255,0.25);color:#fff;font-size:12px}
-.rb-details .player-chip .pc-num{color:rgba(255,255,255,0.8)}
 /* Lineup headshot chips — strip default chip styling, keep hover card */
 .rb-lineup-chip{background:transparent!important;padding:0!important;border-radius:0!important;cursor:pointer;font-size:inherit!important;line-height:0}
 /* Hover cards inside recap banner — fully opaque, above everything */
 .recap-banner .pc-hover{background:var(--card);z-index:502!important}
 /* Line score in recap banner */
 .rb-linescore-row{
-  grid-row:3;grid-column:2;
+  grid-row:4;grid-column:2;
   border-top:1px solid rgba(255,255,255,0.12);
   padding:8px 20px 10px;
 }
@@ -231,33 +244,43 @@ button{cursor:pointer;font-family:inherit}input,textarea,select{font-family:inhe
 
 @media(max-width:640px){
   /* Mobile: single column stack */
-  .rb-grid{grid-template-columns:1fr;grid-template-rows:auto auto auto auto}
-  .rb-score-block{grid-row:1;grid-column:1;width:100%;flex-direction:row;gap:10px;padding:10px 14px;border-right:none;border-bottom:1px solid rgba(255,255,255,0.1)}
-  .rb-score{font-size:28px}
-  .rb-result{font-size:9px;letter-spacing:1px;margin-bottom:0}
-  .rb-info{grid-row:2;grid-column:1;padding:8px 14px;flex-wrap:wrap;gap:4px;justify-content:center;border-bottom:none}
-  .rb-info-right{margin-left:0;width:100%;gap:6px;justify-content:center}
+  .rb-grid{display:flex;flex-direction:column}
+
+  /* Score: centered hero */
+  .rb-score-block{
+    width:100%;border-right:none;
+    padding:14px 16px 8px;
+    flex-direction:column;align-items:center;gap:2px;
+  }
+  .rb-result{font-size:10px;letter-spacing:1.5px}
+  .rb-score{font-size:34px}
+
+  /* Title + byline: centered below score */
+  .rb-title-row{padding:4px 16px 8px;justify-content:center;flex-wrap:wrap;gap:6px}
+  .rb-title{text-align:center;flex:none;width:100%;font-size:15px}
+
+  /* Lineup: fill width in a single row, scale to fit */
+  .rb-lineup-row{padding:6px 16px 8px;justify-content:center}
+  .rb-lineup{justify-content:center;flex-wrap:nowrap;margin-bottom:0;align-self:auto;width:100%;gap:2px}
+  .rb-lineup-player{flex:1 1 0;min-width:0;display:inline-flex;align-items:flex-end;justify-content:center;width:auto}
+  .rb-lineup-photo-cutout{width:100%;height:auto;aspect-ratio:auto}
+  .rb-lineup-photo-circle{width:100%;height:auto;aspect-ratio:1}
+  .rb-lineup-placeholder{width:100%;height:auto;aspect-ratio:1}
+
+  /* Meta: below line score, spread across full width */
+  .rb-meta-row{order:5;padding:8px 16px 12px;justify-content:space-between;flex-wrap:wrap;gap:4px;border-top:none}
   .rb-sep{display:none}
-  .rb-opponent{display:none}
-  .rb-stats-group{display:none}
-  .rb-stat-section{display:none}
-  .rb-stat-sep{display:none}
-  .rb-details{grid-row:3;grid-column:1;flex-wrap:wrap;justify-content:center;padding:6px 12px;border-top:1px solid rgba(255,255,255,0.1)}
-  .rb-detail-spacer{display:none}
-  .rb-author{display:none}
-  .rb-author-mobile{display:inline-flex;align-items:center;gap:4px;font-size:11px;font-weight:600;opacity:0.8;white-space:nowrap}
-  .rb-author-mobile .player-chip{background:rgba(255,255,255,0.2);color:#fff;font-size:11px}
-  .rb-author-mobile .player-chip .pc-num{color:rgba(255,255,255,0.7)}
-  .rb-lineup{justify-content:center;flex-wrap:wrap}
-  .rb-score-block{justify-content:center}
-  .rb-info{text-align:center}
-  .rb-info-right{justify-content:center}
-  .rb-linescore-row{grid-row:4;grid-column:1;padding:6px 12px 8px}
+
+  /* Line score: abbreviations */
+  .rb-linescore-row{order:4;padding:6px 16px 6px;overflow-x:auto}
   .rb-ls-table{font-size:11px}
   .rb-ls-table th,.rb-ls-table td{padding:3px 0;min-width:16px}
   .rb-ls-full{display:none}
   .rb-ls-short{display:inline}
   .rb-ls-team{padding-right:6px!important}
+
+  /* Stats: hidden on mobile */
+  .rb-stats-row{display:none}
 }
 /* Box score button in post body */
 .post-boxscore-btn{
@@ -420,7 +443,7 @@ tr.bs-row .row-check{width:15px;height:15px;accent-color:var(--blue);cursor:poin
 .roster-picker-chip.selected{background:var(--pri);color:#fff;border-color:var(--pri)}
 .roster-picker-chip .rp-num{font-size:9px;opacity:0.6}
 /* Player name chip — used in posts, box scores, everywhere a Groove player appears */
-.player-chip{display:inline-flex;align-items:center;font-weight:700;color:var(--pri);background:linear-gradient(135deg,rgba(232,168,56,0.12),rgba(232,168,56,0.05));padding:3px 9px;border-radius:6px;font-size:0.95em;white-space:nowrap;line-height:1.4;vertical-align:middle;position:relative;cursor:default}
+.player-chip{display:inline-flex;align-items:center;font-family:'Sen',sans-serif;font-weight:700;color:var(--pri);background:linear-gradient(135deg,rgba(232,168,56,0.12),rgba(232,168,56,0.05));padding:3px 9px;border-radius:6px;font-size:0.95em;white-space:nowrap;line-height:1.4;vertical-align:middle;position:relative;cursor:default}
 .player-chip .pc-num{font-size:0.8em;color:var(--acc);font-weight:800;margin-left:3px}
 .pc-avatar{width:20px;height:20px;border-radius:50%;object-fit:cover;margin-right:5px;flex-shrink:0;border:none;background:transparent}
 .pc-avatar-cutout{width:22px;height:22px;border-radius:0;object-fit:contain;object-position:center bottom;margin-right:4px;flex-shrink:0;align-self:flex-end;filter:drop-shadow(0 0.5px 1px rgba(0,0,0,0.15))}
@@ -623,6 +646,13 @@ body.season-2024 .admin-signin:hover{color:var(--pri);border-color:var(--pri)}
   .profile-modal{max-height:85vh}
   /* Content */
   .main{padding:0 12px 40px}
+  .post-title{font-size:18px;padding:14px 16px 10px}
+  .post-body{font-size:15px;line-height:1.55;padding:4px 16px 16px}
+  .post-body .player-chip{font-size:13px;padding:2px 7px}
+  .post-body .pc-avatar,.post-body .pc-avatar-cutout{width:16px;height:16px;margin-right:3px}
+  .post-header{padding:14px 16px 6px}
+  .post-photos{padding:0 16px 16px}
+  .comments-section{padding:0 16px 10px}
   .hero-btn{padding:14px 24px;font-size:13px}
   .composer{margin:12px;padding:20px}
   .leaders-grid{grid-template-columns:1fr 1fr}
@@ -794,11 +824,11 @@ body.has-save-bar .main{padding-bottom:80px !important}
 .rb-lineup-placeholder .material-symbols-outlined{font-size:12px;color:rgba(255,255,255,0.3)}
 
 @media(max-width:640px){
-  .rb-lineup{flex-wrap:wrap;overflow:visible;gap:0;justify-content:center}
-  .rb-lineup-player{width:22px}
-  .rb-lineup-photo-cutout{width:20px;height:22px}
-  .rb-lineup-photo-circle{width:18px;height:18px}
-  .rb-lineup-placeholder{width:22px;height:22px}
+  .recap-banner .rb-lineup{flex-wrap:nowrap;gap:2px}
+  .recap-banner .rb-lineup-player{flex:1 1 0;min-width:0;width:auto}
+  .recap-banner .rb-lineup-photo-cutout{width:100%;height:auto}
+  .recap-banner .rb-lineup-photo-circle{width:100%;height:auto;aspect-ratio:1}
+  .recap-banner .rb-lineup-placeholder{width:100%;height:auto;aspect-ratio:1}
 }
 
 /* ═══ 2024 SHOWCASE CONTEXT BADGE ═══ */
