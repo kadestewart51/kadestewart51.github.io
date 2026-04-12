@@ -1379,6 +1379,8 @@ function renderFeed(){
       const atVs=isHome?'vs':'at';
       // Resolve game for weather + stats
       const game=p.gameId?D.games.find(x=>x.id===p.gameId):null;
+      // TODO: remove test line score
+      if(game&&!game.lineScoreAway){game.lineScoreAway='0,2,0,1,0,0,3';game.lineScoreHome='1,0,3,0,2,1,0'}
       const weather=game&&game.weather?game.weather:'';
       // Compute key stats from box score
       let statsHtml='';
@@ -1393,10 +1395,12 @@ function renderFeed(){
         statsHtml+=`<span class="rb-stat"><span class="rb-stat-val">${totalBB}</span><span class="rb-stat-label">BB</span></span>`;
         statsHtml+=`<span class="rb-stat"><span class="rb-stat-val">${totalK}</span><span class="rb-stat-label">K</span></span>`;
       }
-      // Info row: line score (or opponent fallback) left, then location · weather · date right
+      // Info row: opponent left, location · weather · date right
+      let infoHtml=`<span class="rb-opponent">${atVs} ${esc(p.opponent||'TBD')}</span>`;
+      // Line score (full-width bottom row, built separately)
       const lsAway=game&&game.lineScoreAway?game.lineScoreAway:'';
       const lsHome=game&&game.lineScoreHome?game.lineScoreHome:'';
-      let infoHtml='';
+      let lineScoreHtml='';
       if(lsAway||lsHome){
         const awayInns=(lsAway||'').split(',').map(s=>s.trim()).filter(Boolean);
         const homeInns=(lsHome||'').split(',').map(s=>s.trim()).filter(Boolean);
@@ -1404,16 +1408,17 @@ function renderFeed(){
         const isHome=loc&&(/inwood/i.test(loc)||/randall/i.test(loc));
         const topLabel=isHome?esc(p.opponent||'AWAY'):'Groove';
         const botLabel=isHome?'Groove':esc(p.opponent||'HOME');
-        infoHtml+=`<div class="rb-linescore"><table class="rb-ls-table"><thead><tr><th></th>`;
-        for(let i=0;i<numInnings;i++)infoHtml+=`<th>${i+1}</th>`;
-        infoHtml+=`</tr></thead><tbody>`;
-        infoHtml+=`<tr><td class="rb-ls-team">${topLabel}</td>`;
-        for(let i=0;i<numInnings;i++)infoHtml+=`<td>${awayInns[i]||'—'}</td>`;
-        infoHtml+=`</tr><tr><td class="rb-ls-team">${botLabel}</td>`;
-        for(let i=0;i<numInnings;i++)infoHtml+=`<td>${homeInns[i]||'—'}</td>`;
-        infoHtml+=`</tr></tbody></table></div>`;
-      }else{
-        infoHtml+=`<span class="rb-opponent">${atVs} ${esc(p.opponent||'TBD')}</span>`;
+        lineScoreHtml+=`<div class="rb-linescore"><table class="rb-ls-table"><thead><tr><th></th>`;
+        for(let i=0;i<numInnings;i++)lineScoreHtml+=`<th>${i+1}</th>`;
+        lineScoreHtml+=`<th class="rb-ls-total">R</th>`;
+        lineScoreHtml+=`</tr></thead><tbody>`;
+        lineScoreHtml+=`<tr><td class="rb-ls-team">${topLabel}</td>`;
+        for(let i=0;i<numInnings;i++)lineScoreHtml+=`<td>${awayInns[i]||'—'}</td>`;
+        lineScoreHtml+=`<td class="rb-ls-total">${awayInns.reduce((s,v)=>s+parseInt(v||0),0)}</td>`;
+        lineScoreHtml+=`</tr><tr><td class="rb-ls-team">${botLabel}</td>`;
+        for(let i=0;i<numInnings;i++)lineScoreHtml+=`<td>${homeInns[i]||'—'}</td>`;
+        lineScoreHtml+=`<td class="rb-ls-total">${homeInns.reduce((s,v)=>s+parseInt(v||0),0)}</td>`;
+        lineScoreHtml+=`</tr></tbody></table></div>`;
       }
       infoHtml+=`<span class="rb-info-right">`;
       if(loc)infoHtml+=`<span class="rb-location"><span class="material-symbols-outlined">location_on</span><a href="${mapsUrl(loc)}" target="_blank" rel="noopener">${esc(loc)}</a></span>`;
@@ -1450,6 +1455,7 @@ function renderFeed(){
         +`<div class="rb-info">${infoHtml}</div>`
         +`<div class="rb-details">${detailsHtml}</div>`
         +(lineupHtml?`<div class="rb-lineup">${lineupHtml}</div>`:'')
+        +(lineScoreHtml?`<div class="rb-linescore-row">${lineScoreHtml}</div>`:'')
         +`</div></div>`;
       if(p.title)html+=`<div class="post-title">${chipifyText(p.title)}</div>`;
     }else{

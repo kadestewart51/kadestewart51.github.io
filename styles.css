@@ -148,9 +148,9 @@ button{cursor:pointer;font-family:inherit}input,textarea,select{font-family:inhe
   gap:0;
 }
 
-/* Score block — left column, spans all rows, fixed width */
+/* Score block — left column, spans info+details rows (not line score) */
 .rb-score-block{
-  grid-row:1/-1;grid-column:1;
+  grid-row:1/4;grid-column:1;
   display:flex;flex-direction:column;align-items:center;justify-content:center;
   padding:16px 12px;
   border-right:1px solid rgba(255,255,255,0.12);
@@ -195,12 +195,20 @@ button{cursor:pointer;font-family:inherit}input,textarea,select{font-family:inhe
 .rb-author .player-chip{background:rgba(255,255,255,0.15);color:#fff;font-size:12px}
 .rb-author .player-chip .pc-num{color:rgba(255,255,255,0.7)}
 /* Line score in recap banner */
-.rb-linescore{flex-shrink:0}
-.rb-ls-table{border-collapse:collapse;font-size:11px;font-weight:700;line-height:1}
-.rb-ls-table th,.rb-ls-table td{padding:2px 6px;text-align:center;min-width:20px}
-.rb-ls-table th{font-size:9px;font-weight:600;opacity:0.5}
-.rb-ls-table td{border-top:1px solid rgba(255,255,255,0.12)}
-.rb-ls-team{text-align:left!important;font-size:10px;font-weight:800;opacity:0.8;padding-right:8px!important;white-space:nowrap}
+.rb-linescore-row{
+  grid-column:1/-1;
+  border-top:1px solid rgba(255,255,255,0.12);
+  padding:10px 20px 12px;
+  margin-top:4px;
+}
+.rb-linescore{width:100%}
+.rb-ls-table{border-collapse:collapse;font-size:12px;font-weight:700;line-height:1;width:100%}
+.rb-ls-table th,.rb-ls-table td{padding:4px 0;text-align:center}
+.rb-ls-table th{font-size:9px;font-weight:600;opacity:0.5;padding-bottom:4px}
+.rb-ls-table td{border-top:1px solid rgba(255,255,255,0.1)}
+.rb-ls-team{text-align:left!important;font-size:10px;font-weight:800;opacity:0.85;padding-right:10px!important;white-space:nowrap}
+.rb-ls-total{font-weight:900;border-left:1px solid rgba(255,255,255,0.2);padding-left:8px!important}
+.rb-ls-table tr:nth-child(even){background:transparent}
 
 @media(max-width:640px){
   /* On mobile: score spans rows 1-2 only, lineup gets full width on row 3 */
