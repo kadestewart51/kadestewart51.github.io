@@ -1394,13 +1394,24 @@ function renderFeed(){
         statsHtml+=`<span class="rb-stat"><span class="rb-stat-val">${totalK}</span><span class="rb-stat-label">K</span></span>`;
       }
       // Info row: line score (or opponent fallback) left, then location · weather · date right
-      const lineScore=game&&game.lineScore?game.lineScore:'';
+      const lsAway=game&&game.lineScoreAway?game.lineScoreAway:'';
+      const lsHome=game&&game.lineScoreHome?game.lineScoreHome:'';
       let infoHtml='';
-      if(lineScore){
-        const innings=lineScore.split(',').map(s=>s.trim());
-        infoHtml+=`<span class="rb-linescore">`;
-        innings.forEach((r,i)=>{infoHtml+=`<span class="rb-inn"><span class="rb-inn-num">${i+1}</span><span class="rb-inn-runs">${r}</span></span>`});
-        infoHtml+=`</span>`;
+      if(lsAway||lsHome){
+        const awayInns=(lsAway||'').split(',').map(s=>s.trim()).filter(Boolean);
+        const homeInns=(lsHome||'').split(',').map(s=>s.trim()).filter(Boolean);
+        const numInnings=Math.max(awayInns.length,homeInns.length);
+        const isHome=loc&&(/inwood/i.test(loc)||/randall/i.test(loc));
+        const topLabel=isHome?esc(p.opponent||'AWAY'):'Groove';
+        const botLabel=isHome?'Groove':esc(p.opponent||'HOME');
+        infoHtml+=`<div class="rb-linescore"><table class="rb-ls-table"><thead><tr><th></th>`;
+        for(let i=0;i<numInnings;i++)infoHtml+=`<th>${i+1}</th>`;
+        infoHtml+=`</tr></thead><tbody>`;
+        infoHtml+=`<tr><td class="rb-ls-team">${topLabel}</td>`;
+        for(let i=0;i<numInnings;i++)infoHtml+=`<td>${awayInns[i]||'—'}</td>`;
+        infoHtml+=`</tr><tr><td class="rb-ls-team">${botLabel}</td>`;
+        for(let i=0;i<numInnings;i++)infoHtml+=`<td>${homeInns[i]||'—'}</td>`;
+        infoHtml+=`</tr></tbody></table></div>`;
       }else{
         infoHtml+=`<span class="rb-opponent">${atVs} ${esc(p.opponent||'TBD')}</span>`;
       }
@@ -1576,7 +1587,7 @@ function renderHome(){
 }
 
 /* ═══ BOX SCORES ═══ */
-function addGame(){const g={id:uid(),date:'',opponent:'',location:'',runsFor:'',runsAgainst:'',lineScore:'',weather:'',notes:'',players:D.roster.map(r=>({id:uid(),name:r.name,rosterId:r.id}))};D.games.push(g);activeGame=g.id;activeTab='boxscores';renderAll()}
+function addGame(){const g={id:uid(),date:'',opponent:'',location:'',runsFor:'',runsAgainst:'',lineScoreAway:'',lineScoreHome:'',weather:'',notes:'',players:D.roster.map(r=>({id:uid(),name:r.name,rosterId:r.id}))};D.games.push(g);activeGame=g.id;activeTab='boxscores';renderAll()}
 function renderBoxScores(){
   const admin=isAdmin();
   // Admin buttons area (clear — new game is in the tab row now)
@@ -1607,7 +1618,8 @@ function renderBoxScores(){
     html+=`<div><label>Conditions</label><input value="${esc(g.weather||'')}" placeholder="Sunny, rainy, etc." oninput="updGameNoRerender('${g.id}','weather',this.value)"></div>`;
     html+=`<div><label>Runs For</label><input type="number" min="0" value="${esc(g.runsFor||'')}" placeholder="0" oninput="updGameNoRerender('${g.id}','runsFor',this.value)"></div>`;
     html+=`<div><label>Runs Against</label><input type="number" min="0" value="${esc(g.runsAgainst||'')}" placeholder="0" oninput="updGameNoRerender('${g.id}','runsAgainst',this.value)"></div>`;
-    html+=`<div style="grid-column:1/-1"><label>Line Score (runs per inning, comma-separated)</label><input value="${esc(g.lineScore||'')}" placeholder="e.g. 0,3,1,0,2,0,4" oninput="updGameNoRerender('${g.id}','lineScore',this.value)"></div>`;
+    html+=`<div><label>Line Score — Away</label><input value="${esc(g.lineScoreAway||'')}" placeholder="e.g. 0,3,1,0,2" oninput="updGameNoRerender('${g.id}','lineScoreAway',this.value)"></div>`;
+    html+=`<div><label>Line Score — Home</label><input value="${esc(g.lineScoreHome||'')}" placeholder="e.g. 2,0,0,1,4" oninput="updGameNoRerender('${g.id}','lineScoreHome',this.value)"></div>`;
     html+=`</div>`;
     // Location → Google Maps link if filled
     if(g.location){html+=`<div style="margin-bottom:10px"><a href="https://www.google.com/maps/search/${encodeURIComponent(g.location)}" target="_blank" rel="noopener" style="font-size:11px;color:var(--blue);display:inline-flex;align-items:center;gap:3px;text-decoration:none"><span class="material-symbols-outlined" style="font-size:14px">map</span>Open in Google Maps</a></div>`}

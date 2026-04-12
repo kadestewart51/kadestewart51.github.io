@@ -195,10 +195,12 @@ button{cursor:pointer;font-family:inherit}input,textarea,select{font-family:inhe
 .rb-author .player-chip{background:rgba(255,255,255,0.15);color:#fff;font-size:12px}
 .rb-author .player-chip .pc-num{color:rgba(255,255,255,0.7)}
 /* Line score in recap banner */
-.rb-linescore{display:flex;align-items:center;gap:2px}
-.rb-inn{display:flex;flex-direction:column;align-items:center;min-width:22px;padding:2px 3px;border-radius:4px;background:rgba(255,255,255,0.1)}
-.rb-inn-num{font-size:8px;font-weight:700;opacity:0.5;line-height:1}
-.rb-inn-runs{font-size:13px;font-weight:900;line-height:1.2}
+.rb-linescore{flex-shrink:0}
+.rb-ls-table{border-collapse:collapse;font-size:11px;font-weight:700;line-height:1}
+.rb-ls-table th,.rb-ls-table td{padding:2px 6px;text-align:center;min-width:20px}
+.rb-ls-table th{font-size:9px;font-weight:600;opacity:0.5}
+.rb-ls-table td{border-top:1px solid rgba(255,255,255,0.12)}
+.rb-ls-team{text-align:left!important;font-size:10px;font-weight:800;opacity:0.8;padding-right:8px!important;white-space:nowrap}
 
 @media(max-width:640px){
   /* On mobile: score spans rows 1-2 only, lineup gets full width on row 3 */
