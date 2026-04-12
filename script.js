@@ -317,6 +317,13 @@ function fmtDateShort(ts){
   const months=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
   return `${months[d.getMonth()]} ${d.getDate()}`;
 }
+function fmtTime(t){
+  if(!t)return '';
+  const [h,m]=t.split(':').map(Number);
+  const ampm=h>=12?'PM':'AM';
+  const h12=h%12||12;
+  return m?`${h12}:${String(m).padStart(2,'0')} ${ampm}`:`${h12} ${ampm}`;
+}
 function fmtGameDate(ts){
   if(!ts)return '';
   const d=new Date(typeof ts==='number'?ts:ts+'T12:00:00');
@@ -377,9 +384,9 @@ async function fetchGameWeather(game){
     const res=await fetch(url);
     if(!res.ok) return null;
     const data=await res.json();
-    // Find ~6pm hour (typical game time) — index 18
+    // Use game time if available, otherwise default to ~6pm
     const hi=data.hourly;
-    const gameHour=18;
+    const gameHour=game.time?parseInt(game.time.split(':')[0]):18;
     const tempF=hi&&hi.temperature_2m?Math.round(hi.temperature_2m[gameHour]):null;
     const humid=hi&&hi.relative_humidity_2m?hi.relative_humidity_2m[gameHour]:null;
     const wcode=hi&&hi.weathercode?hi.weathercode[gameHour]:null;
@@ -1331,6 +1338,43 @@ function publishPost(){
   saveNow();closeComposer();activeTab='home';renderAll();
 }
 
+/* ═══ LIGHTBOX ═══ */
+let lbPhotos=[],lbIdx=0;
+function openLightbox(photos,idx){
+  lbPhotos=photos;lbIdx=idx;
+  const el=document.getElementById('lightbox');
+  el.classList.add('open');
+  renderLightbox();
+}
+function closeLightbox(){document.getElementById('lightbox').classList.remove('open');lbPhotos=[]}
+function lbNav(dir){lbIdx=(lbIdx+dir+lbPhotos.length)%lbPhotos.length;renderLightbox()}
+function renderLightbox(){
+  const img=document.getElementById('lbImg');
+  img.src=lbPhotos[lbIdx];
+  document.getElementById('lbCounter').textContent=lbPhotos.length>1?(lbIdx+1)+' / '+lbPhotos.length:'';
+  document.getElementById('lbPrev').style.display=lbPhotos.length>1?'':'none';
+  document.getElementById('lbNext').style.display=lbPhotos.length>1?'':'none';
+}
+document.addEventListener('keydown',e=>{
+  if(!document.getElementById('lightbox').classList.contains('open'))return;
+  if(e.key==='Escape')closeLightbox();
+  if(e.key==='ArrowLeft')lbNav(-1);
+  if(e.key==='ArrowRight')lbNav(1);
+});
+// Delegated click for post photos
+document.addEventListener('click',e=>{
+  const img=e.target.closest('.post-photos img[data-phi]');
+  if(!img)return;
+  const wrap=img.closest('.post-photos');
+  const photos=JSON.parse(wrap.dataset.photos);
+  openLightbox(photos,parseInt(img.dataset.phi));
+});
+// Touch swipe
+(function(){let sx=0;const lb=document.getElementById('lightbox');
+  lb.addEventListener('touchstart',e=>{sx=e.touches[0].clientX},{passive:true});
+  lb.addEventListener('touchend',e=>{const dx=e.changedTouches[0].clientX-sx;if(Math.abs(dx)>50){dx<0?lbNav(1):lbNav(-1)}},{passive:true});
+})();
+
 /* ═══ FEED ═══ */
 function renderFeed(){
   const area=document.getElementById('feedArea');
@@ -1382,19 +1426,40 @@ function renderFeed(){
       const weather=game&&game.weather?game.weather:'';
       // Compute key stats from box score
       let statsHtml='';
+      const dash=v=>v?v:'—';
       if(game&&game.players&&game.players.length){
         const pl=game.players;
-        const totalH=pl.reduce((s,x)=>s+n(x.h),0);
+        const anyH=pl.some(x=>x.h!=null&&x.h!=='');
+        const anyBB=pl.some(x=>x.bb!=null&&x.bb!=='');
+        const anyK=pl.some(x=>x.so!=null&&x.so!=='');
+        const totalH=anyH?pl.reduce((s,x)=>s+n(x.h),0):null;
         const totalHR=pl.reduce((s,x)=>s+n(x.hr),0);
-        const totalBB=pl.reduce((s,x)=>s+n(x.bb),0);
-        const totalK=pl.reduce((s,x)=>s+n(x.so),0);
-        statsHtml+=`<span class="rb-stat"><span class="rb-stat-val">${totalH}</span><span class="rb-stat-label">H</span></span>`;
+        const totalBB=anyBB?pl.reduce((s,x)=>s+n(x.bb),0):null;
+        const totalK=anyK?pl.reduce((s,x)=>s+n(x.so),0):null;
+        statsHtml+=`<span class="rb-stat-section">BAT</span>`;
+        statsHtml+=`<span class="rb-stat"><span class="rb-stat-val">${dash(totalH)}</span><span class="rb-stat-label">H</span></span>`;
         if(totalHR)statsHtml+=`<span class="rb-stat"><span class="rb-stat-val">${totalHR}</span><span class="rb-stat-label">HR</span></span>`;
-        statsHtml+=`<span class="rb-stat"><span class="rb-stat-val">${totalBB}</span><span class="rb-stat-label">BB</span></span>`;
-        statsHtml+=`<span class="rb-stat"><span class="rb-stat-val">${totalK}</span><span class="rb-stat-label">K</span></span>`;
+        statsHtml+=`<span class="rb-stat"><span class="rb-stat-val">${dash(totalBB)}</span><span class="rb-stat-label">BB</span></span>`;
+        statsHtml+=`<span class="rb-stat"><span class="rb-stat-val">${dash(totalK)}</span><span class="rb-stat-label">K</span></span>`;
       }
-      // Info row: opponent left, location · weather · date right
-      let infoHtml=`<span class="rb-opponent">${atVs} ${esc(p.opponent||'TBD')}</span>`;
+      if(game&&game.pitching&&game.pitching.length){
+        const pp=game.pitching;
+        const anyIP=pp.some(x=>x.ip!=null&&x.ip!=='');
+        const anyPH=pp.some(x=>x.ph!=null&&x.ph!=='');
+        const anyPBB=pp.some(x=>x.pbb!=null&&x.pbb!=='');
+        const anyPK=pp.some(x=>x.pk!=null&&x.pk!=='');
+        const totalIP=anyIP?pp.reduce((s,x)=>s+parseFloat(x.ip||0),0):null;
+        const totalPH=anyPH?pp.reduce((s,x)=>s+n(x.ph),0):null;
+        const totalPBB=anyPBB?pp.reduce((s,x)=>s+n(x.pbb),0):null;
+        const totalPK=anyPK?pp.reduce((s,x)=>s+n(x.pk),0):null;
+        statsHtml+=`<span class="rb-stat-sep">|</span><span class="rb-stat-section">ARM</span>`;
+        statsHtml+=`<span class="rb-stat"><span class="rb-stat-val">${totalIP!=null?totalIP:'—'}</span><span class="rb-stat-label">IP</span></span>`;
+        statsHtml+=`<span class="rb-stat"><span class="rb-stat-val">${dash(totalPH)}</span><span class="rb-stat-label">H</span></span>`;
+        statsHtml+=`<span class="rb-stat"><span class="rb-stat-val">${dash(totalPBB)}</span><span class="rb-stat-label">BB</span></span>`;
+        statsHtml+=`<span class="rb-stat"><span class="rb-stat-val">${dash(totalPK)}</span><span class="rb-stat-label">K</span></span>`;
+      }
+      // Info row: stats left, location · weather · date right
+      let infoHtml=statsHtml?`<span class="rb-stats-group">${statsHtml}</span>`:`<span class="rb-opponent">${atVs} ${esc(p.opponent||'TBD')}</span>`;
       // Line score (full-width bottom row, built separately)
       const lsAway=game&&game.lineScoreAway?game.lineScoreAway:'';
       const lsHome=game&&game.lineScoreHome?game.lineScoreHome:'';
@@ -1422,37 +1487,35 @@ function renderFeed(){
       if(loc)infoHtml+=`<span class="rb-location"><span class="material-symbols-outlined">location_on</span><a href="${mapsUrl(loc)}" target="_blank" rel="noopener">${esc(loc)}</a></span>`;
       if(weather){if(loc)infoHtml+=`<span class="rb-sep">·</span>`;infoHtml+=`<span class="rb-weather"><span class="material-symbols-outlined">thermostat</span>${esc(weather)}</span>`}
       if(loc||weather)infoHtml+=`<span class="rb-sep">·</span>`;
-      infoHtml+=`<span class="rb-date">${gdate}</span>`;
+      const gameTime=game&&game.time?fmtTime(game.time):'';
+      infoHtml+=`<span class="rb-date">${gdate}${gameTime?' · '+gameTime:''}</span>`;
       infoHtml+=`</span>`;
-      // Details row: stats left, author right
-      let detailsHtml=`<span class="rb-stats-group">${statsHtml}</span>`;
+      // Details row: author left, lineup right
+      let detailsHtml=`<span class="rb-author">Recap by ${playerChip(p.author)}</span>`;
       detailsHtml+=`<span class="rb-detail-spacer"></span>`;
-      detailsHtml+=`<span class="rb-author">Recap by ${playerChip(p.author)}</span>`;
 
-      // Lineup photos — players in order, with roster photos
-      let lineupHtml='';
+      // Lineup photos — inline in details row
       if(game&&game.players&&game.players.length){
+        detailsHtml+=`<span class="rb-lineup">`;
         game.players.forEach(gp=>{
           const rEntry=gp.rosterId?D.roster.find(r=>r.id===gp.rosterId):D.roster.find(r=>r.name&&r.name.trim().toLowerCase()===(gp.name||'').trim().toLowerCase());
           const photo=rEntry&&rEntry.photo?rEntry.photo:'';
           const isCutout=photo&&/\.png/i.test(photo);
-          let imgHtml;
           if(photo&&isCutout){
-            imgHtml=`<img class="rb-lineup-photo-cutout" src="${photo}" alt="${esc(gp.name||'')}">`;
+            detailsHtml+=`<span class="rb-lineup-player"><img class="rb-lineup-photo-cutout" src="${photo}" alt="${esc(gp.name||'')}"></span>`;
           }else if(photo){
-            imgHtml=`<img class="rb-lineup-photo-circle" src="${photo}" alt="${esc(gp.name||'')}">`;
+            detailsHtml+=`<span class="rb-lineup-player"><img class="rb-lineup-photo-circle" src="${photo}" alt="${esc(gp.name||'')}"></span>`;
           }else{
-            imgHtml=`<div class="rb-lineup-placeholder"><span class="material-symbols-outlined">person</span></div>`;
+            detailsHtml+=`<span class="rb-lineup-player"><span class="rb-lineup-placeholder"><span class="material-symbols-outlined">person</span></span></span>`;
           }
-          lineupHtml+=`<div class="rb-lineup-player">${imgHtml}</div>`;
         });
+        detailsHtml+=`</span>`;
       }
 
       html+=`<div class="recap-banner"><div class="rb-grid">`
         +`<div class="rb-score-block"><div class="rb-result ${rc}">${rl} ${atVs} ${esc(p.opponent||'')}</div><div class="rb-score">${esc(p.runsFor)} – ${esc(p.runsAgainst)}</div></div>`
         +`<div class="rb-info">${infoHtml}</div>`
         +`<div class="rb-details">${detailsHtml}</div>`
-        +(lineupHtml?`<div class="rb-lineup">${lineupHtml}</div>`:'')
         +(lineScoreHtml?`<div class="rb-linescore-row">${lineScoreHtml}</div>`:'')
         +`</div></div>`;
       if(p.title)html+=`<div class="post-title">${chipifyText(p.title)}</div>`;
@@ -1461,7 +1524,7 @@ function renderFeed(){
       if(p.title)html+=`<div class="post-title">${chipifyText(p.title)}</div>`;
     }
     if(p.body)html+=`<div class="post-body">${chipifyText(p.body)}</div>`;
-    if(p.photos&&p.photos.length){html+=`<div class="post-photos">`;p.photos.forEach(ph=>{html+=`<img src="${ph}" style="max-height:360px">`});html+=`</div>`}
+    if(p.photos&&p.photos.length){html+=`<div class="post-photos" data-photos='${JSON.stringify(p.photos).replace(/'/g,"&#39;")}'>`;p.photos.forEach((ph,phi)=>{html+=`<img src="${ph}" style="max-height:360px;cursor:pointer" data-phi="${phi}">`});html+=`</div>`}
     if(p.type==='recap'&&p.gameId){html+=`<div style="padding:4px 24px 12px"><button class="post-boxscore-btn" onclick="activeGame='${p.gameId}';activeTab='boxscores';renderAll()">See Box Score</button></div>`}
     const commOpen=openComments[p.id];
     const cc=p.comments||[];
@@ -1591,7 +1654,7 @@ function renderHome(){
 }
 
 /* ═══ BOX SCORES ═══ */
-function addGame(){const g={id:uid(),date:'',opponent:'',location:'',runsFor:'',runsAgainst:'',lineScoreAway:'',lineScoreHome:'',weather:'',notes:'',players:D.roster.map(r=>({id:uid(),name:r.name,rosterId:r.id}))};D.games.push(g);activeGame=g.id;activeTab='boxscores';renderAll()}
+function addGame(){const g={id:uid(),date:'',time:'',opponent:'',location:'',runsFor:'',runsAgainst:'',lineScoreAway:'',lineScoreHome:'',weather:'',notes:'',players:D.roster.map(r=>({id:uid(),name:r.name,rosterId:r.id}))};D.games.push(g);activeGame=g.id;activeTab='boxscores';renderAll()}
 function renderBoxScores(){
   const admin=isAdmin();
   // Admin buttons area (clear — new game is in the tab row now)
@@ -1617,6 +1680,7 @@ function renderBoxScores(){
     const dateMin=activeSeason+'-01-01', dateMax=activeSeason+'-12-31';
     html+=`<div class="game-form">`;
     html+=`<div><label>Date</label><input type="date" value="${esc(g.date||'')}" min="${dateMin}" max="${dateMax}" onchange="updGameNoRerender('${g.id}','date',this.value);updateGameTab('${g.id}',this.value)"></div>`;
+    html+=`<div><label>Time</label><input type="time" value="${esc(g.time||'')}" onchange="updGameNoRerender('${g.id}','time',this.value)"></div>`;
     html+=`<div><label>Opponent</label><input value="${esc(g.opponent||'')}" placeholder="Team" oninput="updGameNoRerender('${g.id}','opponent',this.value)"></div>`;
     html+=`<div><label>Location</label><input value="${esc(g.location||'')}" placeholder="Field name or address" oninput="updGameNoRerender('${g.id}','location',this.value)"></div>`;
     html+=`<div><label>Conditions</label><input value="${esc(g.weather||'')}" placeholder="Sunny, rainy, etc." oninput="updGameNoRerender('${g.id}','weather',this.value)"></div>`;
@@ -1676,7 +1740,8 @@ function renderBoxScores(){
     initBoxScoreDrag(g.id);
   }else{
     // Read-only box score with player chips
-    let html=`<div class="card card-pad"><h3 style="font-size:18px;font-weight:900;margin-bottom:6px">Game ${gi+1}${g.date?' — '+fmtDateShort(g.date):''}${g.opponent?' vs '+esc(g.opponent):''}</h3>`;
+    const timeStr=g.time?(' '+fmtTime(g.time)):'';
+    let html=`<div class="card card-pad"><h3 style="font-size:18px;font-weight:900;margin-bottom:6px">Game ${gi+1}${g.date?' — '+fmtDateShort(g.date)+timeStr:''}${g.opponent?' vs '+esc(g.opponent):''}</h3>`;
     if(g.location){html+=`<div style="margin-bottom:8px"><a href="https://www.google.com/maps/search/${encodeURIComponent(g.location)}" target="_blank" rel="noopener" style="font-size:12px;color:var(--blue);display:inline-flex;align-items:center;gap:3px;text-decoration:none"><span class="material-symbols-outlined" style="font-size:14px">map</span>${esc(g.location)}</a></div>`}
     if(g.runsFor||g.runsAgainst){
       const w=n(g.runsFor)>n(g.runsAgainst),l=n(g.runsFor)<n(g.runsAgainst),r=w?'W':l?'L':'T',bg=w?'var(--win)':l?'var(--loss)':'var(--tie)';
@@ -1687,16 +1752,16 @@ function renderBoxScores(){
     // Full table (desktop)
     html+=`<div style="font-size:10px;font-weight:700;color:var(--mut);text-transform:uppercase;letter-spacing:0.6px;margin-bottom:4px">Hitting</div>`;
     html+=`<div class="table-wrap bs-full"><table><thead><tr><th>Player</th>${hasPos?'<th>Pos</th>':''}`;es.forEach(s=>{html+=`<th title="${esc(s.full)}">${esc(s.label)}</th>`});html+=`</tr></thead><tbody>`;
-    (g.players||[]).forEach(p=>{const dn=playerDisplayName(p);if(!dn)return;html+=`<tr><td style="font-weight:600">${playerChip(dn)}</td>${hasPos?'<td style="font-size:11px;color:var(--mut)">'+esc(p.pos||'')+'</td>':''}`;es.forEach(s=>{html+=`<td>${p[s.id]||0}</td>`});html+=`</tr>`});
+    (g.players||[]).forEach(p=>{const dn=playerDisplayName(p);if(!dn)return;html+=`<tr><td style="font-weight:600">${playerChip(dn)}</td>${hasPos?'<td style="font-size:11px;color:var(--mut)">'+esc(p.pos||'')+'</td>':''}`;es.forEach(s=>{html+=`<td>${p[s.id]!=null&&p[s.id]!==''?p[s.id]:'—'}</td>`});html+=`</tr>`});
     if((g.players||[]).length){html+=`<tr class="total-row"><td>TEAM</td>${hasPos?'<td></td>':''}`;es.forEach(s=>{html+=`<td>${(g.players||[]).reduce((sum,p)=>sum+n(p[s.id]),0)}</td>`});html+=`</tr>`}
     html+=`</tbody></table></div>`;
     // Mobile split tables
     html+=`<div class="bs-mobile"><div class="table-wrap"><table><thead><tr><th>Player</th>${hasPos?'<th>Pos</th>':''}`;bsA.forEach(s=>{html+=`<th title="${esc(s.full)}">${esc(s.label)}</th>`});html+=`</tr></thead><tbody>`;
-    (g.players||[]).forEach(p=>{const dn=playerDisplayName(p);if(!dn)return;html+=`<tr><td style="font-weight:600">${playerChip(dn)}</td>${hasPos?'<td style="font-size:11px;color:var(--mut)">'+esc(p.pos||'')+'</td>':''}`;bsA.forEach(s=>{html+=`<td>${p[s.id]||0}</td>`});html+=`</tr>`});
+    (g.players||[]).forEach(p=>{const dn=playerDisplayName(p);if(!dn)return;html+=`<tr><td style="font-weight:600">${playerChip(dn)}</td>${hasPos?'<td style="font-size:11px;color:var(--mut)">'+esc(p.pos||'')+'</td>':''}`;bsA.forEach(s=>{html+=`<td>${p[s.id]!=null&&p[s.id]!==''?p[s.id]:'—'}</td>`});html+=`</tr>`});
     if((g.players||[]).length){html+=`<tr class="total-row"><td>TEAM</td>${hasPos?'<td></td>':''}`;bsA.forEach(s=>{html+=`<td>${(g.players||[]).reduce((sum,p)=>sum+n(p[s.id]),0)}</td>`});html+=`</tr>`}
     html+=`</tbody></table></div>`;
     html+=`<div class="table-wrap" style="margin-top:12px"><table><thead><tr><th>Player</th>`;bsB.forEach(s=>{html+=`<th title="${esc(s.full)}">${esc(s.label)}</th>`});html+=`</tr></thead><tbody>`;
-    (g.players||[]).forEach(p=>{const dn=playerDisplayName(p);if(!dn)return;html+=`<tr><td style="font-weight:600">${playerChip(dn)}</td>`;bsB.forEach(s=>{html+=`<td>${p[s.id]||0}</td>`});html+=`</tr>`});
+    (g.players||[]).forEach(p=>{const dn=playerDisplayName(p);if(!dn)return;html+=`<tr><td style="font-weight:600">${playerChip(dn)}</td>`;bsB.forEach(s=>{html+=`<td>${p[s.id]!=null&&p[s.id]!==''?p[s.id]:'—'}</td>`});html+=`</tr>`});
     if((g.players||[]).length){html+=`<tr class="total-row"><td>TEAM</td>`;bsB.forEach(s=>{html+=`<td>${(g.players||[]).reduce((sum,p)=>sum+n(p[s.id]),0)}</td>`});html+=`</tr>`}
     html+=`</tbody></table></div></div>`;
     // Read-only pitching lines
@@ -1704,7 +1769,7 @@ function renderBoxScores(){
     if(g.pitching&&g.pitching.length){
       html+=`<div style="font-size:10px;font-weight:700;color:var(--mut);text-transform:uppercase;letter-spacing:0.6px;margin:16px 0 4px">Pitching</div>`;
       html+=`<div class="table-wrap"><table><thead><tr><th>Pitcher</th>`;PSTATS.forEach(s=>{html+=`<th title="${esc(s.full)}">${esc(s.label)}</th>`});html+=`</tr></thead><tbody>`;
-      (g.pitching||[]).forEach(p=>{html+=`<tr><td style="font-weight:600">${playerChip(p.name)}</td>`;PSTATS.forEach(s=>{html+=`<td>${p[s.id]||0}</td>`});html+=`</tr>`});
+      (g.pitching||[]).forEach(p=>{html+=`<tr><td style="font-weight:600">${playerChip(p.name)}</td>`;PSTATS.forEach(s=>{html+=`<td>${p[s.id]!=null&&p[s.id]!==''?p[s.id]:'—'}</td>`});html+=`</tr>`});
       html+=`</tbody></table></div>`;
     }
     if(g.notes)html+=`<div style="margin-top:12px;padding:10px 14px;background:rgba(26,39,68,0.02);border-radius:var(--radius);font-size:13px;color:#666;line-height:1.6;white-space:pre-wrap">${esc(g.notes)}</div>`;

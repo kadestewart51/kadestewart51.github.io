@@ -70,6 +70,13 @@
   <div class="sb-left"><span class="sb-dirty-dot"></span><span class="material-symbols-outlined">edit</span><span class="sb-label" id="saveBarLabel">Editing</span></div>
   <div class="sb-right"><button class="sb-discard" id="saveBarDiscard" onclick="discardEdits()">Discard</button><button class="sb-save" id="saveBarSave" onclick="saveBarSave()">Save</button></div>
 </div>
+<div class="lightbox" id="lightbox" onclick="if(event.target===this)closeLightbox()">
+  <button class="lb-close" onclick="closeLightbox()"><span class="material-symbols-outlined">close</span></button>
+  <button class="lb-nav lb-prev" id="lbPrev" onclick="lbNav(-1)"><span class="material-symbols-outlined">chevron_left</span></button>
+  <img id="lbImg" class="lb-img">
+  <button class="lb-nav lb-next" id="lbNext" onclick="lbNav(1)"><span class="material-symbols-outlined">chevron_right</span></button>
+  <div class="lb-counter" id="lbCounter"></div>
+</div>
 <script src="script.js"></script>
 </body>
 </html>
