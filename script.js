@@ -1379,8 +1379,6 @@ function renderFeed(){
       const atVs=isHome?'vs':'at';
       // Resolve game for weather + stats
       const game=p.gameId?D.games.find(x=>x.id===p.gameId):null;
-      // TODO: remove test line score
-      if(game&&!game.lineScoreAway){game.lineScoreAway='0,2,0,1,0,0,3';game.lineScoreHome='1,0,3,0,2,1,0'}
       const weather=game&&game.weather?game.weather:'';
       // Compute key stats from box score
       let statsHtml='';
