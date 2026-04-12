@@ -1469,16 +1469,19 @@ function renderFeed(){
         const homeInns=(lsHome||'').split(',').map(s=>s.trim()).filter(Boolean);
         const numInnings=Math.max(awayInns.length,homeInns.length);
         const isHome=loc&&(/inwood/i.test(loc)||/randall/i.test(loc));
-        const topLabel=isHome?esc(p.opponent||'AWAY'):'Groove';
-        const botLabel=isHome?'Groove':esc(p.opponent||'HOME');
+        const topFull=isHome?esc(p.opponent||'AWAY'):'Groove';
+        const botFull=isHome?'Groove':esc(p.opponent||'HOME');
+        const topShort=isHome?esc((p.opponent||'AWY').slice(0,3).toUpperCase()):'NYG';
+        const botShort=isHome?'NYG':esc((p.opponent||'HME').slice(0,3).toUpperCase());
+        const teamCell=(full,short)=>`<td class="rb-ls-team"><span class="rb-ls-full">${full}</span><span class="rb-ls-short">${short}</span></td>`;
         lineScoreHtml+=`<div class="rb-linescore"><table class="rb-ls-table"><thead><tr><th></th>`;
         for(let i=0;i<numInnings;i++)lineScoreHtml+=`<th>${i+1}</th>`;
         lineScoreHtml+=`<th class="rb-ls-total">R</th>`;
         lineScoreHtml+=`</tr></thead><tbody>`;
-        lineScoreHtml+=`<tr><td class="rb-ls-team">${topLabel}</td>`;
+        lineScoreHtml+=`<tr>${teamCell(topFull,topShort)}`;
         for(let i=0;i<numInnings;i++)lineScoreHtml+=`<td>${awayInns[i]||'—'}</td>`;
         lineScoreHtml+=`<td class="rb-ls-total">${awayInns.reduce((s,v)=>s+parseInt(v||0),0)}</td>`;
-        lineScoreHtml+=`</tr><tr><td class="rb-ls-team">${botLabel}</td>`;
+        lineScoreHtml+=`</tr><tr>${teamCell(botFull,botShort)}`;
         for(let i=0;i<numInnings;i++)lineScoreHtml+=`<td>${homeInns[i]||'—'}</td>`;
         lineScoreHtml+=`<td class="rb-ls-total">${homeInns.reduce((s,v)=>s+parseInt(v||0),0)}</td>`;
         lineScoreHtml+=`</tr></tbody></table></div>`;
@@ -1489,6 +1492,7 @@ function renderFeed(){
       if(loc||weather)infoHtml+=`<span class="rb-sep">·</span>`;
       const gameTime=game&&game.time?fmtTime(game.time):'';
       infoHtml+=`<span class="rb-date">${gdate}${gameTime?' · '+gameTime:''}</span>`;
+      infoHtml+=`<span class="rb-author-mobile">Recap by ${playerChip(p.author)}</span>`;
       infoHtml+=`</span>`;
       // Details row: author left, lineup right
       let detailsHtml=`<span class="rb-author">Recap by ${playerChip(p.author)}</span>`;

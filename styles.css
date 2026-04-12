@@ -205,6 +205,7 @@ button{cursor:pointer;font-family:inherit}input,textarea,select{font-family:inhe
 .rb-stat-section{font-size:9px;font-weight:800;opacity:0.5;text-transform:uppercase;letter-spacing:1px;line-height:1}
 .rb-stat-sep{opacity:0.2;font-size:12px;line-height:1}
 .rb-detail-spacer{flex:1}
+.rb-author-mobile{display:none}
 .rb-author{font-size:12px;font-weight:600;opacity:0.7;display:flex;align-items:center;gap:4px;white-space:nowrap;line-height:1}
 .rb-details .player-chip{background:rgba(255,255,255,0.25);color:#fff;font-size:12px}
 .rb-details .player-chip .pc-num{color:rgba(255,255,255,0.8)}
@@ -223,21 +224,40 @@ button{cursor:pointer;font-family:inherit}input,textarea,select{font-family:inhe
 .rb-ls-table th,.rb-ls-table td{padding:4px 0;text-align:center}
 .rb-ls-table th{font-size:9px;font-weight:600;opacity:0.5;padding-bottom:4px}
 .rb-ls-table td{border-top:1px solid rgba(255,255,255,0.1)}
-.rb-ls-team{text-align:left!important;font-size:10px;font-weight:800;opacity:0.85;padding-right:10px!important;white-space:nowrap}
+.rb-ls-team{text-align:left!important;font-size:10px;font-weight:800;opacity:0.85;padding-right:10px!important;white-space:nowrap;width:1px}
+.rb-ls-short{display:none}
 .rb-ls-total{font-weight:900;border-left:1px solid rgba(255,255,255,0.2);padding-left:8px!important}
 .rb-ls-table tr:nth-child(even){background:transparent}
 
 @media(max-width:640px){
-  /* On mobile: score spans rows 1-2 only, lineup gets full width on row 3 */
-  .rb-score-block{grid-row:1/3;padding:10px 8px;width:110px;gap:4px}
-  .rb-score{font-size:26px}
-  .rb-result{font-size:10px;letter-spacing:1.5px}
-  .rb-info{padding:8px 14px;flex-wrap:wrap;gap:4px;justify-content:center}
-  .rb-info-right{margin-left:0;width:100%;gap:8px;justify-content:center}
+  /* Mobile: single column stack */
+  .rb-grid{grid-template-columns:1fr;grid-template-rows:auto auto auto auto}
+  .rb-score-block{grid-row:1;grid-column:1;width:100%;flex-direction:row;gap:10px;padding:10px 14px;border-right:none;border-bottom:1px solid rgba(255,255,255,0.1)}
+  .rb-score{font-size:28px}
+  .rb-result{font-size:9px;letter-spacing:1px;margin-bottom:0}
+  .rb-info{grid-row:2;grid-column:1;padding:8px 14px;flex-wrap:wrap;gap:4px;justify-content:center;border-bottom:none}
+  .rb-info-right{margin-left:0;width:100%;gap:6px;justify-content:center}
   .rb-sep{display:none}
   .rb-opponent{display:none}
-  .rb-details{display:none}
+  .rb-stats-group{display:none}
+  .rb-stat-section{display:none}
+  .rb-stat-sep{display:none}
+  .rb-details{grid-row:3;grid-column:1;flex-wrap:wrap;justify-content:center;padding:6px 12px;border-top:1px solid rgba(255,255,255,0.1)}
   .rb-detail-spacer{display:none}
+  .rb-author{display:none}
+  .rb-author-mobile{display:inline-flex;align-items:center;gap:4px;font-size:11px;font-weight:600;opacity:0.8;white-space:nowrap}
+  .rb-author-mobile .player-chip{background:rgba(255,255,255,0.2);color:#fff;font-size:11px}
+  .rb-author-mobile .player-chip .pc-num{color:rgba(255,255,255,0.7)}
+  .rb-lineup{justify-content:center;flex-wrap:wrap}
+  .rb-score-block{justify-content:center}
+  .rb-info{text-align:center}
+  .rb-info-right{justify-content:center}
+  .rb-linescore-row{grid-row:4;grid-column:1;padding:6px 12px 8px}
+  .rb-ls-table{font-size:11px}
+  .rb-ls-table th,.rb-ls-table td{padding:3px 0;min-width:16px}
+  .rb-ls-full{display:none}
+  .rb-ls-short{display:inline}
+  .rb-ls-team{padding-right:6px!important}
 }
 /* Box score button in post body */
 .post-boxscore-btn{
