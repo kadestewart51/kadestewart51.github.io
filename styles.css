@@ -196,6 +196,7 @@ button{cursor:pointer;font-family:inherit}input,textarea,select{font-family:inhe
   display:flex;align-items:center;
   padding:6px 20px;
   min-height:0;
+  z-index:2;
 }
 .rb-stat{font-size:11px;font-weight:700;color:rgba(255,255,255,0.8);display:inline-flex;align-items:center;gap:3px;white-space:nowrap;line-height:1}
 .rb-stat .rb-stat-val{color:#fff;font-weight:900}
@@ -208,9 +209,9 @@ button{cursor:pointer;font-family:inherit}input,textarea,select{font-family:inhe
 .rb-details .player-chip{background:rgba(255,255,255,0.25);color:#fff;font-size:12px}
 .rb-details .player-chip .pc-num{color:rgba(255,255,255,0.8)}
 /* Lineup headshot chips — strip default chip styling, keep hover card */
-.rb-lineup-chip{background:transparent!important;padding:0!important;border-radius:0!important;cursor:pointer}
-/* Hover cards inside recap banner — fully opaque, above overlay */
-.recap-banner .pc-hover{background:var(--card);z-index:500}
+.rb-lineup-chip{background:transparent!important;padding:0!important;border-radius:0!important;cursor:pointer;font-size:inherit!important;line-height:0}
+/* Hover cards inside recap banner — fully opaque, above everything */
+.recap-banner .pc-hover{background:var(--card);z-index:502!important}
 /* Line score in recap banner */
 .rb-linescore-row{
   grid-row:3;grid-column:2;
@@ -745,14 +746,16 @@ body.has-save-bar .main{padding-bottom:80px !important}
 
 /* ═══ LINEUP PHOTOS IN RECAP BANNER ═══ */
 .rb-lineup{
-  display:inline-flex;align-items:center;
+  display:inline-flex;align-items:flex-end;
   gap:0;
   overflow-x:auto;overflow-y:visible;
   scrollbar-width:none;
+  align-self:flex-end;
+  margin-bottom:-6px;
 }
 .rb-lineup::-webkit-scrollbar{display:none}
 .rb-lineup-player{
-  flex-shrink:0;display:inline-flex;align-items:center;
+  flex-shrink:0;display:inline-flex;align-items:flex-end;
   width:26px;
 }
 .rb-lineup-photo-cutout{
