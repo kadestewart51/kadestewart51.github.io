@@ -1494,20 +1494,23 @@ function renderFeed(){
       let detailsHtml=`<span class="rb-author">Recap by ${playerChip(p.author)}</span>`;
       detailsHtml+=`<span class="rb-detail-spacer"></span>`;
 
-      // Lineup photos — inline in details row
+      // Lineup photos — inline in details row, with hover cards
       if(game&&game.players&&game.players.length){
         detailsHtml+=`<span class="rb-lineup">`;
         game.players.forEach(gp=>{
           const rEntry=gp.rosterId?D.roster.find(r=>r.id===gp.rosterId):D.roster.find(r=>r.name&&r.name.trim().toLowerCase()===(gp.name||'').trim().toLowerCase());
           const photo=rEntry&&rEntry.photo?rEntry.photo:'';
           const isCutout=photo&&/\.png/i.test(photo);
+          const hoverCard=rEntry?chipHoverHtml({name:rEntry.name,number:rEntry.number||'',photo:rEntry.photo||'',position:rEntry.position||'',walkupSong:rEntry.walkupSong||''}):'';
+          let imgHtml;
           if(photo&&isCutout){
-            detailsHtml+=`<span class="rb-lineup-player"><img class="rb-lineup-photo-cutout" src="${photo}" alt="${esc(gp.name||'')}"></span>`;
+            imgHtml=`<img class="rb-lineup-photo-cutout" src="${photo}" alt="${esc(gp.name||'')}">`;
           }else if(photo){
-            detailsHtml+=`<span class="rb-lineup-player"><img class="rb-lineup-photo-circle" src="${photo}" alt="${esc(gp.name||'')}"></span>`;
+            imgHtml=`<img class="rb-lineup-photo-circle" src="${photo}" alt="${esc(gp.name||'')}">`;
           }else{
-            detailsHtml+=`<span class="rb-lineup-player"><span class="rb-lineup-placeholder"><span class="material-symbols-outlined">person</span></span></span>`;
+            imgHtml=`<span class="rb-lineup-placeholder"><span class="material-symbols-outlined">person</span></span>`;
           }
+          detailsHtml+=`<span class="rb-lineup-player player-chip rb-lineup-chip">${imgHtml}${hoverCard}</span>`;
         });
         detailsHtml+=`</span>`;
       }

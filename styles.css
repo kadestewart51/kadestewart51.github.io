@@ -145,11 +145,11 @@ button{cursor:pointer;font-family:inherit}input,textarea,select{font-family:inhe
   padding:0;color:#fff;position:relative;overflow:visible;
 }
 .recap-banner::before{
-  content:'';position:absolute;inset:0;
+  content:'';position:absolute;inset:0;z-index:0;
   background:linear-gradient(180deg,rgba(255,255,255,0.08) 0%,transparent 40%,rgba(0,0,0,0.15) 100%);
   pointer-events:none;border-radius:var(--radius) var(--radius) 0 0;
 }
-.recap-banner *{position:relative}
+.recap-banner *{position:relative;z-index:1}
 
 /* Grid: score block left, game info right */
 .rb-grid{
@@ -205,8 +205,12 @@ button{cursor:pointer;font-family:inherit}input,textarea,select{font-family:inhe
 .rb-stat-sep{opacity:0.2;font-size:12px;line-height:1}
 .rb-detail-spacer{flex:1}
 .rb-author{font-size:12px;font-weight:600;opacity:0.7;display:flex;align-items:center;gap:4px;white-space:nowrap;line-height:1}
-.rb-author .player-chip{background:rgba(255,255,255,0.15);color:#fff;font-size:12px}
-.rb-author .player-chip .pc-num{color:rgba(255,255,255,0.7)}
+.rb-details .player-chip{background:rgba(255,255,255,0.25);color:#fff;font-size:12px}
+.rb-details .player-chip .pc-num{color:rgba(255,255,255,0.8)}
+/* Lineup headshot chips — strip default chip styling, keep hover card */
+.rb-lineup-chip{background:transparent!important;padding:0!important;border-radius:0!important;cursor:pointer}
+/* Hover cards inside recap banner — fully opaque, above overlay */
+.recap-banner .pc-hover{background:var(--card);z-index:500}
 /* Line score in recap banner */
 .rb-linescore-row{
   grid-row:3;grid-column:2;
