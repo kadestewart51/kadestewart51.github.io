@@ -21,15 +21,19 @@ button{cursor:pointer;font-family:inherit}input,textarea,select{font-family:inhe
 .nav-icon .tip{position:absolute;left:52px;top:50%;transform:translateY(-50%) translateX(-4px);background:var(--pri);color:#fff;padding:5px 12px;border-radius:6px;font-size:11px;font-weight:600;white-space:nowrap;opacity:0;pointer-events:none;transition:opacity 0.15s,transform 0.15s;box-shadow:0 4px 16px rgba(0,0,0,0.15)}
 .nav-icon:hover .tip{opacity:1;transform:translateY(-50%) translateX(0)}
 /* Layout — full width */
-.header{padding:20px 24px 12px;margin-left:56px}
-.header-inner{max-width:100%;margin:0 auto;display:flex;justify-content:space-between;align-items:center;padding:0 16px}
-.header-left{display:flex;align-items:center;gap:12px}
-.header-logo{font-size:28px;line-height:1}
-.header-team{font-size:22px;font-weight:800;color:var(--pri);letter-spacing:-0.5px}
-.header-sub{font-size:9px;letter-spacing:4px;color:var(--acc);font-weight:700;margin-top:1px;text-transform:uppercase}
-.header-record{font-size:13px;font-weight:700;color:var(--pri);letter-spacing:0.5px;background:rgba(26,39,68,0.04);padding:6px 14px;border-radius:8px;display:flex;align-items:center;gap:6px}
+.header{padding:16px 24px 12px}
+.header-inner{max-width:100%;margin:0 auto;display:flex;justify-content:space-between;align-items:center;padding:0;gap:12px}
+.header-left-group{display:flex;align-items:center;gap:12px;min-width:0}
+.header-team{font-size:22px;font-weight:800;color:var(--pri);letter-spacing:-0.5px;white-space:nowrap}
+.header-record{font-size:13px;font-weight:700;color:var(--pri);letter-spacing:0.5px;background:rgba(26,39,68,0.04);padding:6px 14px;border-radius:8px;display:flex;align-items:center;gap:6px;white-space:nowrap}
 .header-record:empty{display:none}
 .header-record .rec-w{color:var(--win)}.header-record .rec-l{color:var(--loss)}.header-record .rec-t{color:var(--tie)}
+.season-switcher{
+  display:inline-flex;align-items:center;flex-shrink:0;
+  background:rgba(26,39,68,0.06);
+  border:1px solid rgba(26,39,68,0.08);
+  border-radius:20px;padding:3px;
+}
 .page-wrap{margin-left:56px;min-height:100vh}
 .main{max-width:100%;margin:0 auto;padding:0 24px 60px}
 .tab{display:none}.tab.active{display:block}
@@ -638,8 +642,12 @@ body.season-2024 .admin-signin:hover{color:var(--pri);border-color:var(--pri)}
   /* Remove left margins, clear fixed nav */
   .page-wrap,.header{margin-left:0 !important}
   .page-wrap{padding-top:48px}
-  .header{padding-top:12px}
-  .header .header-inner{left:0 !important}
+  .header{padding:12px 14px 10px}
+  .header-inner{padding:0;flex-wrap:wrap;gap:8px}
+  .header-left-group{gap:8px}
+  .header-team{font-size:17px}
+  .header-record{font-size:11px;padding:4px 10px}
+  .season-switcher{padding:2px}
   .season-bar{margin-left:0 !important}
   .profile-pill{top:auto;bottom:60px;right:12px}
   .pp-menu{top:auto;bottom:40px}
@@ -688,86 +696,8 @@ body.has-save-bar .main{padding-bottom:80px !important}
 .save-bar .sb-save:disabled{opacity:0.5;cursor:default;transform:none}
 @keyframes pulse-dot{0%,100%{opacity:1}50%{opacity:0.4}}
 
-/* ═══ 2026 TEASER BANNER — frosted glass ad bar ═══ */
-.teaser-banner{
-  display:none;margin-left:56px;overflow:hidden;
-  position:sticky;top:0;z-index:100;
-  background:rgba(16,24,48,0.82);
-  backdrop-filter:blur(24px) saturate(1.2);
-  -webkit-backdrop-filter:blur(24px) saturate(1.2);
-  border-bottom:1px solid rgba(255,255,255,0.06);
-}
-.teaser-banner.active{display:block}
-
-.teaser-inner{
-  overflow:hidden;
-  transition:height 0.28s cubic-bezier(0.4,0,0.2,1);
-}
-.teaser-content-full,
-.teaser-content-collapsed{
-  transition:opacity 0.2s ease;
-}
-
-/* ── Expanded: compact ad bar — text left, toggle right ── */
-.teaser-content-full{
-  display:flex;align-items:center;justify-content:space-between;
-  padding:14px 24px;opacity:1;gap:16px;
-}
-.teaser-left{display:flex;align-items:baseline;gap:10px}
-.teaser-title{
-  font-family:'Sen',sans-serif;font-size:18px;font-weight:900;
-  letter-spacing:1px;color:#fff;white-space:nowrap;
-  opacity:0;
-}
-.teaser-banner.animate .teaser-title{animation:teaser-fade 0.5s 0.15s ease-out forwards}
-.teaser-banner.animate-done .teaser-title{opacity:1}
-.teaser-sub-full{
-  font-family:'Sen',sans-serif;font-size:11px;font-weight:700;
-  letter-spacing:2px;text-transform:uppercase;
-  color:rgba(232,168,56,0.9);white-space:nowrap;
-  opacity:0;
-}
-.teaser-banner.animate .teaser-sub-full{animation:teaser-fade 0.4s 0.3s ease-out forwards}
-.teaser-banner.animate-done .teaser-sub-full{opacity:1}
-.teaser-switcher-full{
-  display:inline-flex;align-items:center;flex-shrink:0;
-  background:rgba(255,255,255,0.08);
-  border:1px solid rgba(255,255,255,0.1);
-  border-radius:20px;padding:3px;
-  opacity:0;
-}
-.teaser-banner.animate .teaser-switcher-full{animation:teaser-fade 0.4s 0.4s ease-out forwards}
-.teaser-banner.animate-done .teaser-switcher-full{opacity:1}
-
-@keyframes teaser-fade{0%{opacity:0}100%{opacity:1}}
-
-/* ── Collapsed state (on scroll) — same layout, just smaller ── */
-.teaser-content-collapsed{
-  position:absolute;top:0;left:0;right:0;
-  display:flex;align-items:center;justify-content:space-between;
-  padding:0 24px;height:38px;
-  opacity:0;pointer-events:none;
-}
-.teaser-collapsed-sub{
-  font-family:'Sen',sans-serif;font-size:10px;font-weight:700;
-  letter-spacing:2px;text-transform:uppercase;
-  color:rgba(232,168,56,0.9);white-space:nowrap;
-}
-.teaser-collapsed-title{
-  font-family:'Sen',sans-serif;font-size:14px;font-weight:900;
-  color:#fff;letter-spacing:0.5px;margin-right:8px;
-}
-.teaser-switcher-collapsed{
-  display:inline-flex;align-items:center;
-  background:rgba(255,255,255,0.08);
-  border:1px solid rgba(255,255,255,0.1);
-  border-radius:16px;padding:2px;
-}
-
-/* When collapsed */
-.teaser-banner.collapsed .teaser-content-full{opacity:0;pointer-events:none}
-.teaser-banner.collapsed .teaser-content-collapsed{opacity:1;pointer-events:auto}
-.teaser-banner.collapsed.settled .teaser-content-full{visibility:hidden}
+/* ═══ TEASER BANNER (removed — replaced by header season switcher) ═══ */
+.teaser-banner{display:none!important}
 
 /* Shared toggle styles */
 .ts-btn{
@@ -775,22 +705,15 @@ body.has-save-bar .main{padding-bottom:80px !important}
   font-family:'Sen',sans-serif;font-size:11px;font-weight:700;
   letter-spacing:1px;text-transform:uppercase;
   cursor:pointer;transition:all 0.2s;
-  background:transparent;color:rgba(255,255,255,0.45);
+  background:transparent;color:var(--mut);
 }
-.ts-btn:hover{color:rgba(255,255,255,0.8)}
+.ts-btn:hover{color:var(--pri)}
 .ts-btn.active{
-  background:rgba(255,255,255,0.14);color:#fff;
-  box-shadow:0 1px 6px rgba(0,0,0,0.2);
+  background:var(--pri);color:#fff;
+  box-shadow:0 1px 6px rgba(26,39,68,0.18);
 }
 
 @media(max-width:640px){
-  .teaser-banner{margin-left:0;top:48px}
-  .teaser-content-full{padding:10px 14px;gap:8px}
-  .teaser-title{display:none}
-  .teaser-sub-full{font-size:9px;letter-spacing:1.5px}
-  .teaser-content-collapsed{padding:0 14px;height:34px}
-  .teaser-collapsed-title{display:none}
-  .teaser-collapsed-sub{font-size:9px}
   .ts-btn{padding:4px 10px;font-size:10px}
 }
 

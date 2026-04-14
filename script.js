@@ -74,19 +74,31 @@ function ownRosterId(){
   return r?r.id:null;
 }
 function isOwnPlayerRow(gamePlayer){
-  // Check if a game player row belongs to the signed-in player
+  // Check if a game player row belongs to the signed-in player (or previewed player)
   if(!currentUser)return false;
-  const rid=ownRosterId();
+  const rid=previewRosterId();
   return rid && gamePlayer.rosterId===rid;
 }
 function canEditOwnStats(){
   // Players (non-admin) can edit their own stats
+  // Also true when admin is previewing as a player
+  if(_adminPreviewPlayer && isAdmin()) return true;
   return isPlayer() && !isAdmin() && isSignedIn();
 }
+function previewRosterId(){
+  // When admin is previewing, return the previewed player's rosterId
+  // Otherwise return the real signed-in player's rosterId
+  if(_adminPreviewPlayer && isAdmin()) return _adminPreviewPlayer;
+  return ownRosterId();
+}
+function toggleAdminPreview(rosterId){
+  _adminPreviewPlayer = rosterId || null;
+  renderBoxScores();
+}
 function isOwnPitcherRow(pitcherEntry){
-  // Check if a pitching row belongs to the signed-in player (by name match via roster)
+  // Check if a pitching row belongs to the signed-in player or previewed player (by name match via roster)
   if(!currentUser||!pitcherEntry.name)return false;
-  const rid=ownRosterId();
+  const rid=previewRosterId();
   if(!rid)return false;
   const r=D.roster.find(x=>x.id===rid);
   if(!r||!r.name)return false;
@@ -113,7 +125,6 @@ function switchSeason(year) {
     applySnapshot(JSON.parse(_snapshot));
   }
   exitEditContext();
-  // Don't reset teaser animation — only plays once on first load
 
   // Crossfade transition
   const wrap = document.querySelector('.page-wrap');
@@ -156,6 +167,7 @@ const DEFAULT_STATS=[{id:'pa',label:'PA',full:'Plate Appearances',on:true},{id:'
 const DEFAULT_CFG={teamName:'NY Groove',seasonLabel:'2026',stats:DEFAULT_STATS,journalSections:[],statNotes:"Note: Does not count rainouts.\n\nRBIs may be incomplete for early-season games.",showHome:true,showRoster:true,showBoxScores:true,showPlayerStats:true,showLeaderboards:true,showTrendTracker:true,showStatNotes:true,messageToClaude:'',messageToHarry:'',customNotes:''};
 let D={cfg:{...DEFAULT_CFG},games:[],roster:[],posts:[]};
 let activeTab='home',activeGame=null,trendStats=new Set(['rbi']),trendPlayer='team',settingsSub='general',trendChartInstance=null;
+let _adminPreviewPlayer=null; // rosterId to preview player-view as (admin only)
 let composerType='recap',composerData={},composerGameId=null,editingPostId=null;
 let playerStatsSort={col:null,dir:'desc'};
 let openComments={};
@@ -617,7 +629,8 @@ function updateSaveBar() {
   document.body.classList.add('has-save-bar');
   const dirty = isDirty();
   bar.classList.toggle('dirty', dirty);
-  const labels = { roster: 'Editing Roster', boxscore: canEditOwnStats() ? 'Editing Your Stats' : 'Editing Box Score', statnotes: 'Editing Stat Notes', settings: 'Editing Settings' };
+  const previewLabel=_adminPreviewPlayer?'Preview: '+((D.roster.find(r=>r.id===_adminPreviewPlayer)||{}).name||'Player')+"'s Stats":null;
+  const labels = { roster: 'Editing Roster', boxscore: previewLabel || (canEditOwnStats() ? 'Editing Your Stats' : 'Editing Box Score'), statnotes: 'Editing Stat Notes', settings: 'Editing Settings' };
   document.getElementById('saveBarLabel').textContent = labels[_editContext] || 'Editing';
   const saveBtn = document.getElementById('saveBarSave');
   saveBtn.textContent = 'Save';
@@ -949,6 +962,7 @@ function navTo(tab){
     applySnapshot(JSON.parse(_snapshot));
   }
   exitEditContext();
+  _adminPreviewPlayer=null;
   activeTab=tab;
   renderAll();
 }
@@ -1610,54 +1624,21 @@ function heroClick(){
   openComposer();
 }
 
-let _teaserPlayed = false;
-
 function renderHome(){
   document.getElementById('headerTeam').textContent='Welcome to GrooveHub';
   // Apply season body class for color scheme
   SEASONS.forEach(y=>document.body.classList.remove('season-'+y));
   document.body.classList.add('season-'+activeSeason);
 
-  // Teaser banner — billboard on 2024, page header on 2026
-  const teaser = document.getElementById('teaserBanner');
-  if(teaser){
-    teaser.classList.add('active');
-    // Banner is the same size on both seasons for smooth transitions
-
-    const titleEl = document.getElementById('teaserTitle');
-
-    if(titleEl) titleEl.textContent = 'GrooveHub ' + activeSeason;
-
-    const subText = activeSeason==='2026' ? 'New season begins April 11'
-      : activeSeason==='2025' ? '11–7 · The Lost Season'
-      : 'The inaugural season';
-    const subEl = document.getElementById('teaserSub');
-    if(subEl) subEl.textContent = subText;
-    const colTitle = document.getElementById('teaserColTitle');
-    if(colTitle) colTitle.textContent = 'GrooveHub ' + activeSeason;
-    const colSub = document.getElementById('teaserColSub');
-    if(colSub) colSub.textContent = subText;
-
-    // Season switcher state — update all toggle buttons
-    teaser.querySelectorAll('.ts-btn').forEach(b=>{
-      const is24 = b.classList.contains('ts-btn-full-24') || b.classList.contains('ts-btn-col-24');
-      const is25 = b.classList.contains('ts-btn-full-25') || b.classList.contains('ts-btn-col-25');
-      const is26 = b.classList.contains('ts-btn-full-26') || b.classList.contains('ts-btn-col-26');
+  // Season switcher state — update toggle buttons in header
+  const switcher = document.getElementById('seasonSwitcher');
+  if(switcher){
+    switcher.querySelectorAll('.ts-btn').forEach(b=>{
+      const is24 = b.classList.contains('ts-btn-24');
+      const is25 = b.classList.contains('ts-btn-25');
+      const is26 = b.classList.contains('ts-btn-26');
       b.classList.toggle('active', (is24 && activeSeason==='2024') || (is25 && activeSeason==='2025') || (is26 && activeSeason==='2026'));
     });
-
-    if(!_teaserPlayed){
-      _teaserPlayed = true;
-      teaser.classList.remove('animate');
-      teaser.classList.remove('animate-done');
-      requestAnimationFrame(()=>{
-        teaser.classList.add('animate');
-        // After intro animation, lock opacity so season switches don't re-fade
-        setTimeout(()=>{ teaser.classList.add('animate-done'); }, 600);
-      });
-    } else {
-      teaser.classList.add('animate-done');
-    }
   }
 
   // Showcase badge for 2024
@@ -1713,7 +1694,19 @@ function renderBoxScores(){
   if(!activeGame||!D.games.find(g=>g.id===activeGame)){area.innerHTML=D.games.length?'<div class="empty"><div class="empty-text">Select a game above.</div></div>':'<div class="empty"><div class="empty-text">No games yet.</div></div>';return}
   const g=D.games.find(x=>x.id===activeGame);const gi=D.games.indexOf(g);const es=enabledStats();
 
+  // Admin preview toggle — lets admins see the player-edit view
   if(admin){
+    adminBtns.innerHTML=`<div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">`+
+      `<span style="font-size:11px;font-weight:700;color:var(--mut);text-transform:uppercase;letter-spacing:0.5px">View as:</span>`+
+      `<select onchange="toggleAdminPreview(this.value)" style="font-size:12px;padding:4px 8px;border-radius:var(--radius);border:1px solid var(--bdr);background:var(--card);color:var(--fg);cursor:pointer">`+
+      `<option value="">Admin (full edit)</option>`+
+      D.roster.filter(r=>r.name).sort((a,b)=>a.name.localeCompare(b.name)).map(r=>`<option value="${r.id}"${_adminPreviewPlayer===r.id?' selected':''}>${esc(r.name)}</option>`).join('')+
+      `</select>`+
+      (_adminPreviewPlayer?`<button onclick="toggleAdminPreview('')" style="font-size:11px;padding:3px 8px;border:1px solid var(--bdr);border-radius:var(--radius);background:var(--card);color:var(--blue);cursor:pointer;font-weight:600">Back to Admin</button>`:'')+
+      `</div>`;
+  }
+
+  if(admin && !_adminPreviewPlayer){
     // Enter edit context for box scores
     if(activeTab==='boxscores' && activeGame) enterEditContext('boxscore');
     let html=`<div class="card card-pad"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;flex-wrap:wrap;gap:8px"><h3 style="font-size:18px;font-weight:900">Game ${gi+1}${g.date?' — '+fmtDateShort(g.date):''}</h3><div style="display:flex;gap:6px"><button class="btn btn-sm btn-danger" id="delgame-${gi}" onclick="delGame(${gi},this)">Delete</button></div></div>`;
@@ -1787,7 +1780,11 @@ function renderBoxScores(){
     // Read-only box score with player chips (own row editable for players)
     const timeStr=g.time?(' '+fmtTime(g.time)):'';
     let html=`<div class="card card-pad"><h3 style="font-size:18px;font-weight:900;margin-bottom:6px">Game ${gi+1}${g.date?' — '+fmtDateShort(g.date)+timeStr:''}${g.opponent?' vs '+esc(g.opponent):''}</h3>`;
-    if(playerEdit){html+=`<div style="margin-bottom:10px;padding:6px 10px;background:var(--blue);color:#fff;border-radius:var(--radius);font-size:11px;font-weight:600;display:inline-block">You can edit your own stats below</div>`}
+    if(playerEdit){
+      const previewName=_adminPreviewPlayer?((D.roster.find(r=>r.id===_adminPreviewPlayer)||{}).name||'Player'):'';
+      const bannerText=_adminPreviewPlayer?'Previewing as '+esc(previewName)+' — only their row is editable':'You can edit your own stats below';
+      html+=`<div style="margin-bottom:10px;padding:6px 10px;background:var(--blue);color:#fff;border-radius:var(--radius);font-size:11px;font-weight:600;display:inline-block">${bannerText}</div>`;
+    }
     if(g.location){html+=`<div style="margin-bottom:8px"><a href="https://www.google.com/maps/search/${encodeURIComponent(g.location)}" target="_blank" rel="noopener" style="font-size:12px;color:var(--blue);display:inline-flex;align-items:center;gap:3px;text-decoration:none"><span class="material-symbols-outlined" style="font-size:14px">map</span>${esc(g.location)}</a></div>`}
     if(g.runsFor||g.runsAgainst){
       const w=n(g.runsFor)>n(g.runsAgainst),l=n(g.runsFor)<n(g.runsAgainst),r=w?'W':l?'L':'T',bg=w?'var(--win)':l?'var(--loss)':'var(--tie)';
@@ -2428,52 +2425,4 @@ document.addEventListener('mouseover',function(e){
 });
 
 // Teaser banner: animated collapse/expand on scroll
-(function(){
-  let collapsed = false;
-  let animating = false;
-  const collapseAt = 60;
-  const dur = 280;
-
-  window.addEventListener('scroll', function(){
-    if(animating) return;
-    const banner = document.getElementById('teaserBanner');
-    if(!banner || !banner.classList.contains('active')) return;
-    const inner = document.getElementById('teaserInner');
-    const col = document.getElementById('teaserCollapsed');
-    const y = window.scrollY;
-
-    if(!collapsed && y > collapseAt){
-      // Collapse: lock current height, add class, animate to collapsed height
-      animating = true;
-      const hFrom = inner.offsetHeight;
-      inner.style.height = hFrom + 'px';
-      banner.classList.add('collapsed');
-      banner.classList.remove('settled');
-      const hTo = col.offsetHeight;
-      inner.offsetHeight; // reflow
-      inner.style.height = hTo + 'px';
-      setTimeout(function(){
-        // Keep explicit height — collapsed bar is absolute so nothing else sizes the container
-        banner.classList.add('settled');
-        animating = false;
-      }, dur);
-      collapsed = true;
-
-    } else if(collapsed && y <= 0){
-      // Expand: lock collapsed height, remove class, animate to full height
-      animating = true;
-      const hFrom = col.offsetHeight;
-      inner.style.height = hFrom + 'px';
-      banner.classList.remove('collapsed','settled');
-      const full = document.getElementById('teaserFull');
-      const hTo = full.offsetHeight;
-      inner.offsetHeight; // reflow
-      inner.style.height = hTo + 'px';
-      setTimeout(function(){
-        inner.style.height = '';
-        animating = false;
-      }, dur);
-      collapsed = false;
-    }
-  }, {passive:true});
-})();
+/* Scroll collapse listener removed — banner replaced by persistent header toggle */

@@ -22,37 +22,22 @@
 <div class="composer-overlay" id="composerOverlay"><div class="composer" id="composerInner"></div></div>
 <div class="profile-modal-overlay" id="profileModalOverlay"><div class="profile-modal" id="profileModalInner"></div></div>
 <div class="season-bar" id="seasonBar"></div>
-<!-- Teaser Banner -->
-<div class="teaser-banner" id="teaserBanner">
-  <div class="teaser-inner" id="teaserInner">
-    <div class="teaser-content-full" id="teaserFull">
-      <div class="teaser-left">
-        <div class="teaser-title" id="teaserTitle">GrooveHub 2026</div>
-        <div class="teaser-sub-full" id="teaserSub">New season begins April 11</div>
-      </div>
-      <div class="teaser-switcher-full">
-        <button class="ts-btn ts-btn-full-24" onclick="switchSeason('2024')">2024</button>
-        <button class="ts-btn ts-btn-full-25" onclick="switchSeason('2025')">2025</button>
-        <button class="ts-btn ts-btn-full-26" onclick="switchSeason('2026')">2026</button>
-      </div>
-    </div>
-    <div class="teaser-content-collapsed" id="teaserCollapsed">
-      <div style="display:flex;align-items:center">
-        <span class="teaser-collapsed-title" id="teaserColTitle">GrooveHub 2026</span>
-        <span class="teaser-collapsed-sub" id="teaserColSub">New season begins April 11</span>
-      </div>
-      <div class="teaser-switcher-collapsed">
-        <button class="ts-btn ts-btn-col-24" onclick="switchSeason('2024')">2024</button>
-        <button class="ts-btn ts-btn-col-25" onclick="switchSeason('2025')">2025</button>
-        <button class="ts-btn ts-btn-col-26" onclick="switchSeason('2026')">2026</button>
-      </div>
-    </div>
-  </div>
-</div>
 <div class="page-wrap">
 <div class="auth-bar" id="authBar"></div>
 <div class="profile-pill" id="profilePill"></div>
-<div class="header"><div class="header-inner" style="justify-content:center;flex-direction:column;align-items:center;gap:4px;position:relative;left:-28px"><div class="header-team" id="headerTeam" style="font-size:28px;text-align:center">Welcome to GrooveHub!</div><div class="header-record" id="headerRecord"></div></div></div>
+<div class="header">
+  <div class="header-inner">
+    <div class="header-left-group">
+      <div class="header-team" id="headerTeam">Welcome to GrooveHub</div>
+      <div class="header-record" id="headerRecord"></div>
+    </div>
+    <div class="season-switcher" id="seasonSwitcher">
+      <button class="ts-btn ts-btn-24" onclick="switchSeason('2024')">2024</button>
+      <button class="ts-btn ts-btn-25" onclick="switchSeason('2025')">2025</button>
+      <button class="ts-btn ts-btn-26" onclick="switchSeason('2026')">2026</button>
+    </div>
+  </div>
+</div>
 <div class="showcase-badge" id="showcaseBadge"><span class="sb-dot"></span>You're viewing real data from the 2024 season — <a href="https://docs.google.com/spreadsheets/d/1vFn1eYuYG4SQ_C8OQ-yOL_Nk2iubau-TU45tNtDggeQ/edit?usp=sharing" target="_blank" rel="noopener" style="color:var(--pri);text-decoration:underline">see our original StatHub!</a></div>
 <main class="main">
 <div class="tab" id="tab-home"><div class="hero-section"><button class="hero-btn" id="heroBtn" onclick="heroClick()">POST SOMETHING</button></div><div class="feed" id="feedArea"></div></div>
