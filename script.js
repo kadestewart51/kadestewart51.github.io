@@ -26,7 +26,12 @@ if (firebaseReady) {
    Everyone else gets read-only access.*/
 const ADMIN_EMAILS = [
   'kadeastewart@gmail.com',
-  'harry.breault@gmail.com'
+  'harry.breault@gmail.com',
+  'egoldfisch@gmail.com',
+  'velozjeury@gmail.com',
+  'tmarchetti95@gmail.com',
+  'dtk0329@gmail.com',
+  'charles.manfredi92@gmail.com'
 ];
 
 const PLAYER_EMAILS = [
@@ -61,6 +66,32 @@ function isPlayer(){
   return PLAYER_EMAILS.includes(currentUser.email.toLowerCase());
 }
 function isSignedIn(){return !!currentUser}
+function ownRosterId(){
+  // Return the roster ID linked to the current user's email
+  if(!currentUser)return null;
+  const email=currentUser.email.toLowerCase();
+  const r=D.roster.find(x=>x.email&&x.email.toLowerCase()===email);
+  return r?r.id:null;
+}
+function isOwnPlayerRow(gamePlayer){
+  // Check if a game player row belongs to the signed-in player
+  if(!currentUser)return false;
+  const rid=ownRosterId();
+  return rid && gamePlayer.rosterId===rid;
+}
+function canEditOwnStats(){
+  // Players (non-admin) can edit their own stats
+  return isPlayer() && !isAdmin() && isSignedIn();
+}
+function isOwnPitcherRow(pitcherEntry){
+  // Check if a pitching row belongs to the signed-in player (by name match via roster)
+  if(!currentUser||!pitcherEntry.name)return false;
+  const rid=ownRosterId();
+  if(!rid)return false;
+  const r=D.roster.find(x=>x.id===rid);
+  if(!r||!r.name)return false;
+  return r.name.trim().toLowerCase()===pitcherEntry.name.trim().toLowerCase();
+}
 function ownRosterIndex(){
   // Find the roster entry linked to the current user's email
   if(!currentUser)return -1;
@@ -577,7 +608,7 @@ function exitEditContext() {
 function updateSaveBar() {
   const bar = document.getElementById('saveBar');
   if (!bar) return;
-  if (!_editContext || !isAdmin()) {
+  if (!_editContext || !(isAdmin() || (canEditOwnStats() && _editContext==='boxscore'))) {
     bar.classList.remove('visible', 'dirty');
     document.body.classList.remove('has-save-bar');
     return;
@@ -586,7 +617,7 @@ function updateSaveBar() {
   document.body.classList.add('has-save-bar');
   const dirty = isDirty();
   bar.classList.toggle('dirty', dirty);
-  const labels = { roster: 'Editing Roster', boxscore: 'Editing Box Score', statnotes: 'Editing Stat Notes', settings: 'Editing Settings' };
+  const labels = { roster: 'Editing Roster', boxscore: canEditOwnStats() ? 'Editing Your Stats' : 'Editing Box Score', statnotes: 'Editing Stat Notes', settings: 'Editing Settings' };
   document.getElementById('saveBarLabel').textContent = labels[_editContext] || 'Editing';
   const saveBtn = document.getElementById('saveBarSave');
   saveBtn.textContent = 'Save';
@@ -613,7 +644,7 @@ function saveBarSave() {
   // Always save to localStorage as backup
   try { localStorage.setItem(STORE(), JSON.stringify(D)) } catch(e) { console.error(e) }
 
-  if (firebaseReady && db && isAdmin()) {
+  if (firebaseReady && db && (isAdmin() || canEditOwnStats())) {
     savingInProgress = true;
     const payload = JSON.parse(JSON.stringify(D));
     db.collection('stathub').doc(DOC_ID()).set(payload)
@@ -1749,9 +1780,14 @@ function renderBoxScores(){
     area.innerHTML=html;
     initBoxScoreDrag(g.id);
   }else{
-    // Read-only box score with player chips
+    // Player self-edit: if signed-in player, enter edit context so save bar works
+    const playerEdit=canEditOwnStats();
+    if(playerEdit && activeTab==='boxscores' && activeGame) enterEditContext('boxscore');
+
+    // Read-only box score with player chips (own row editable for players)
     const timeStr=g.time?(' '+fmtTime(g.time)):'';
     let html=`<div class="card card-pad"><h3 style="font-size:18px;font-weight:900;margin-bottom:6px">Game ${gi+1}${g.date?' — '+fmtDateShort(g.date)+timeStr:''}${g.opponent?' vs '+esc(g.opponent):''}</h3>`;
+    if(playerEdit){html+=`<div style="margin-bottom:10px;padding:6px 10px;background:var(--blue);color:#fff;border-radius:var(--radius);font-size:11px;font-weight:600;display:inline-block">You can edit your own stats below</div>`}
     if(g.location){html+=`<div style="margin-bottom:8px"><a href="https://www.google.com/maps/search/${encodeURIComponent(g.location)}" target="_blank" rel="noopener" style="font-size:12px;color:var(--blue);display:inline-flex;align-items:center;gap:3px;text-decoration:none"><span class="material-symbols-outlined" style="font-size:14px">map</span>${esc(g.location)}</a></div>`}
     if(g.runsFor||g.runsAgainst){
       const w=n(g.runsFor)>n(g.runsAgainst),l=n(g.runsFor)<n(g.runsAgainst),r=w?'W':l?'L':'T',bg=w?'var(--win)':l?'var(--loss)':'var(--tie)';
@@ -1759,27 +1795,27 @@ function renderBoxScores(){
     }
     const bsMid=Math.ceil(es.length/2);const bsA=es.slice(0,bsMid),bsB=es.slice(bsMid);
     const hasPos=(g.players||[]).some(p=>p.pos);
-    // Full table (desktop)
+    // Full table (desktop) — own row editable for players
     html+=`<div style="font-size:10px;font-weight:700;color:var(--mut);text-transform:uppercase;letter-spacing:0.6px;margin-bottom:4px">Hitting</div>`;
     html+=`<div class="table-wrap bs-full"><table><thead><tr><th>Player</th>${hasPos?'<th>Pos</th>':''}`;es.forEach(s=>{html+=`<th title="${esc(s.full)}">${esc(s.label)}</th>`});html+=`</tr></thead><tbody>`;
-    (g.players||[]).forEach(p=>{const dn=playerDisplayName(p);if(!dn)return;html+=`<tr><td style="font-weight:600">${playerChip(dn)}</td>${hasPos?'<td style="font-size:11px;color:var(--mut)">'+esc(p.pos||'')+'</td>':''}`;es.forEach(s=>{html+=`<td>${p[s.id]!=null&&p[s.id]!==''?p[s.id]:'—'}</td>`});html+=`</tr>`});
+    (g.players||[]).forEach(p=>{const dn=playerDisplayName(p);if(!dn)return;const own=playerEdit&&isOwnPlayerRow(p);html+=`<tr${own?' style="background:rgba(59,130,246,0.06)"':''}>`;html+=`<td style="font-weight:600">${playerChip(dn)}</td>${hasPos?'<td style="font-size:11px;color:var(--mut)">'+esc(p.pos||'')+'</td>':''}`;es.forEach(s=>{if(own){html+=`<td><input class="cell-input" type="number" min="0" value="${esc(p[s.id]||'')}" oninput="updPlayer('${g.id}','${p.id}','${s.id}',this.value)" style="width:48px"></td>`}else{html+=`<td>${p[s.id]!=null&&p[s.id]!==''?p[s.id]:'—'}</td>`}});html+=`</tr>`});
     if((g.players||[]).length){html+=`<tr class="total-row"><td>TEAM</td>${hasPos?'<td></td>':''}`;es.forEach(s=>{html+=`<td>${(g.players||[]).reduce((sum,p)=>sum+n(p[s.id]),0)}</td>`});html+=`</tr>`}
     html+=`</tbody></table></div>`;
-    // Mobile split tables
+    // Mobile split tables — own row editable for players
     html+=`<div class="bs-mobile"><div class="table-wrap"><table><thead><tr><th>Player</th>${hasPos?'<th>Pos</th>':''}`;bsA.forEach(s=>{html+=`<th title="${esc(s.full)}">${esc(s.label)}</th>`});html+=`</tr></thead><tbody>`;
-    (g.players||[]).forEach(p=>{const dn=playerDisplayName(p);if(!dn)return;html+=`<tr><td style="font-weight:600">${playerChip(dn)}</td>${hasPos?'<td style="font-size:11px;color:var(--mut)">'+esc(p.pos||'')+'</td>':''}`;bsA.forEach(s=>{html+=`<td>${p[s.id]!=null&&p[s.id]!==''?p[s.id]:'—'}</td>`});html+=`</tr>`});
+    (g.players||[]).forEach(p=>{const dn=playerDisplayName(p);if(!dn)return;const own=playerEdit&&isOwnPlayerRow(p);html+=`<tr${own?' style="background:rgba(59,130,246,0.06)"':''}>`;html+=`<td style="font-weight:600">${playerChip(dn)}</td>${hasPos?'<td style="font-size:11px;color:var(--mut)">'+esc(p.pos||'')+'</td>':''}`;bsA.forEach(s=>{if(own){html+=`<td><input class="cell-input" type="number" min="0" value="${esc(p[s.id]||'')}" oninput="updPlayer('${g.id}','${p.id}','${s.id}',this.value)" style="width:48px"></td>`}else{html+=`<td>${p[s.id]!=null&&p[s.id]!==''?p[s.id]:'—'}</td>`}});html+=`</tr>`});
     if((g.players||[]).length){html+=`<tr class="total-row"><td>TEAM</td>${hasPos?'<td></td>':''}`;bsA.forEach(s=>{html+=`<td>${(g.players||[]).reduce((sum,p)=>sum+n(p[s.id]),0)}</td>`});html+=`</tr>`}
     html+=`</tbody></table></div>`;
     html+=`<div class="table-wrap" style="margin-top:12px"><table><thead><tr><th>Player</th>`;bsB.forEach(s=>{html+=`<th title="${esc(s.full)}">${esc(s.label)}</th>`});html+=`</tr></thead><tbody>`;
-    (g.players||[]).forEach(p=>{const dn=playerDisplayName(p);if(!dn)return;html+=`<tr><td style="font-weight:600">${playerChip(dn)}</td>`;bsB.forEach(s=>{html+=`<td>${p[s.id]!=null&&p[s.id]!==''?p[s.id]:'—'}</td>`});html+=`</tr>`});
+    (g.players||[]).forEach(p=>{const dn=playerDisplayName(p);if(!dn)return;const own=playerEdit&&isOwnPlayerRow(p);html+=`<tr${own?' style="background:rgba(59,130,246,0.06)"':''}>`;html+=`<td style="font-weight:600">${playerChip(dn)}</td>`;bsB.forEach(s=>{if(own){html+=`<td><input class="cell-input" type="number" min="0" value="${esc(p[s.id]||'')}" oninput="updPlayer('${g.id}','${p.id}','${s.id}',this.value)" style="width:48px"></td>`}else{html+=`<td>${p[s.id]!=null&&p[s.id]!==''?p[s.id]:'—'}</td>`}});html+=`</tr>`});
     if((g.players||[]).length){html+=`<tr class="total-row"><td>TEAM</td>`;bsB.forEach(s=>{html+=`<td>${(g.players||[]).reduce((sum,p)=>sum+n(p[s.id]),0)}</td>`});html+=`</tr>`}
     html+=`</tbody></table></div></div>`;
-    // Read-only pitching lines
+    // Read-only pitching lines (players can also edit their own pitching row)
     const PSTATS=[{id:'ip',label:'IP',full:'Innings Pitched'},{id:'ph',label:'H',full:'Hits'},{id:'pr',label:'R',full:'Runs'},{id:'phbp',label:'HBP',full:'Hit-by-Pitch'},{id:'pbb',label:'BB',full:'Walks'},{id:'pk',label:'K',full:'Strikeouts'}];
     if(g.pitching&&g.pitching.length){
       html+=`<div style="font-size:10px;font-weight:700;color:var(--mut);text-transform:uppercase;letter-spacing:0.6px;margin:16px 0 4px">Pitching</div>`;
       html+=`<div class="table-wrap"><table><thead><tr><th>Pitcher</th>`;PSTATS.forEach(s=>{html+=`<th title="${esc(s.full)}">${esc(s.label)}</th>`});html+=`</tr></thead><tbody>`;
-      (g.pitching||[]).forEach(p=>{html+=`<tr><td style="font-weight:600">${playerChip(p.name)}</td>`;PSTATS.forEach(s=>{html+=`<td>${p[s.id]!=null&&p[s.id]!==''?p[s.id]:'—'}</td>`});html+=`</tr>`});
+      (g.pitching||[]).forEach((p,pi)=>{const ownPitch=playerEdit&&isOwnPitcherRow(p);html+=`<tr${ownPitch?' style="background:rgba(59,130,246,0.06)"':''}><td style="font-weight:600">${playerChip(p.name)}</td>`;PSTATS.forEach(s=>{if(ownPitch){html+=`<td><input class="cell-input" type="number" min="0" step="${s.id==='ip'?'0.1':'1'}" value="${esc(p[s.id]||'')}" oninput="updPitcher('${g.id}',${pi},'${s.id}',this.value)" style="width:48px"></td>`}else{html+=`<td>${p[s.id]!=null&&p[s.id]!==''?p[s.id]:'—'}</td>`}});html+=`</tr>`});
       html+=`</tbody></table></div>`;
     }
     if(g.notes)html+=`<div style="margin-top:12px;padding:10px 14px;background:rgba(26,39,68,0.02);border-radius:var(--radius);font-size:13px;color:#666;line-height:1.6;white-space:pre-wrap">${esc(g.notes)}</div>`;
