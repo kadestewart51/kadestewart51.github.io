@@ -715,12 +715,15 @@ function signOut(){
 }
 function renderAuthBar(){
   const pill=document.getElementById('profilePill');
-  if(!pill) return;
+  const signInSlot=document.getElementById('signInSlot');
   if(!firebaseReady){
-    pill.innerHTML='';
+    if(pill) pill.innerHTML='';
+    if(signInSlot) signInSlot.innerHTML='';
     return;
   }
   if(currentUser){
+    if(signInSlot) signInSlot.innerHTML='';
+    if(!pill) return;
     // Determine avatar: use roster photo if available, else Google photo, else initials
     const rIdx = ownRosterIndex();
     const rosterPhoto = rIdx >= 0 && D.roster[rIdx] && D.roster[rIdx].photo ? D.roster[rIdx].photo : null;
@@ -736,7 +739,8 @@ function renderAuthBar(){
       <button class="pp-menu-item danger" onclick="signOut();closeProfileMenu()"><span class="material-symbols-outlined" style="font-size:16px">logout</span>Sign Out</button>
     </div>`;
   } else {
-    pill.innerHTML=`<button class="admin-signin" onclick="signIn()"><svg class="g-logo" viewBox="0 0 24 24"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 0 1-2.2 3.32v2.77h3.57c2.08-1.92 3.27-4.74 3.27-8.1z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/></svg>Sign In</button>`;
+    if(pill) pill.innerHTML='';
+    if(signInSlot) signInSlot.innerHTML=`<button class="signin-cta" onclick="signIn()"><svg class="g-logo" viewBox="0 0 24 24"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 0 1-2.2 3.32v2.77h3.57c2.08-1.92 3.27-4.74 3.27-8.1z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/></svg>Sign In</button>`;
   }
 }
 function toggleProfileMenu(){
@@ -1664,6 +1668,7 @@ function renderHome(){
       btn.style.display='none';
     }
   }
+  renderUpcoming();
   renderFeed();
   renderAuthBar();
   const ft=document.getElementById('siteFooter');
@@ -2300,7 +2305,271 @@ function renderAll(){
   const editTabs = ['roster','boxscores','statnotes','settings'];
   if(_editContext && !editTabs.includes(activeTab)) exitEditContext();
   renderNav();renderTabs();renderHome();renderRoster();renderBoxScores();renderPlayerStats();renderLeaderboards();renderTrendTracker();renderStatNotes();renderSettings();
+  renderGameDayBanner();
 }
+
+/* ═══ UP NEXT (scheduled games) ═══ */
+function renderUpcoming(){
+  const el=document.getElementById('upcomingGames');
+  if(!el)return;
+  if(activeSeason!=='2026'){el.innerHTML='';return}
+  const today=todayISO();
+  const upcoming=D.games.filter(g=>g.date&&g.date>=today).sort((a,b)=>a.date.localeCompare(b.date));
+  if(!upcoming.length){el.innerHTML='';return}
+  let html=`<div class="upcoming-card"><div class="upcoming-title">Up Next</div><div class="upcoming-list">`;
+  upcoming.slice(0,4).forEach(g=>{
+    const dateStr=fmtDateShort(g.date);
+    const isToday=g.date===today;
+    const opp=g.opponent?'vs '+esc(g.opponent):'TBD';
+    const time=g.time?fmtTime(g.time):'';
+    const loc=g.location?esc(g.location):'';
+    const meta=[time,loc].filter(Boolean).join(' · ');
+    html+=`<button class="upcoming-row${isToday?' today':''}" onclick="activeTab='boxscores';activeGame='${g.id}';renderAll()">`;
+    html+=`<div class="up-date">${isToday?'Today':esc(dateStr)}</div>`;
+    html+=`<div class="up-opp">${opp}</div>`;
+    html+=`<div class="up-meta">${meta}</div>`;
+    html+=`</button>`;
+  });
+  html+=`</div></div>`;
+  el.innerHTML=html;
+}
+
+/* ═══ GAME DAY BANNER + QUICK LOG ═══ */
+function todayISO(){
+  const d=new Date();const pad=n=>String(n).padStart(2,'0');
+  return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`;
+}
+function findTodaysGame(){
+  const today=todayISO();
+  return D.games.find(g=>g.date===today);
+}
+function myGamePlayer(game){
+  if(!game)return null;
+  const rid=previewRosterId();
+  if(!rid)return null;
+  return (game.players||[]).find(p=>p.rosterId===rid)||null;
+}
+function isPitcherInGameLineup(game){
+  const p=myGamePlayer(game);
+  if(!p||!p.pos)return false;
+  const tokens=p.pos.toUpperCase().split(/[\/,\s\-]+/).filter(Boolean);
+  return tokens.some(t=>t==='P'||t==='SP'||t==='RP'||t==='CP');
+}
+function myPitcherEntry(game){
+  if(!game)return null;
+  const rid=previewRosterId();
+  if(!rid)return null;
+  const me=D.roster.find(r=>r.id===rid);
+  if(!me||!me.name)return null;
+  const target=me.name.trim().toLowerCase();
+  return (game.pitching||[]).find(p=>(p.name||'').trim().toLowerCase()===target)||null;
+}
+function ensureMyPitcherEntry(game){
+  let entry=myPitcherEntry(game);
+  if(entry)return entry;
+  const rid=previewRosterId();
+  const me=D.roster.find(r=>r.id===rid);
+  if(!me||!me.name)return null;
+  if(!game.pitching)game.pitching=[];
+  entry={name:me.name};
+  game.pitching.push(entry);
+  return entry;
+}
+function ipToOuts(ip){const f=Math.floor(ip);const dec=Math.round((ip-f)*10);return f*3+dec}
+function outsToIp(outs){const f=Math.floor(outs/3);const dec=outs%3;return f+dec/10}
+function canQuickLog(){
+  if(!isSignedIn())return false;
+  if(_adminPreviewPlayer&&isAdmin())return true;
+  return isPlayer(); // includes admin-who-is-also-player
+}
+
+function renderGameDayBanner(){
+  const banner=document.getElementById('gameDayBanner');
+  if(!banner)return;
+  if(!firebaseReady||!currentUser){banner.innerHTML='';banner.classList.remove('active');return}
+  const g=findTodaysGame();
+  if(!g){banner.innerHTML='';banner.classList.remove('active');return}
+  const me=myGamePlayer(g);
+  const showLog=canQuickLog()&&!!me;
+  const showLogIp=showLog&&isPitcherInGameLineup(g);
+  const opp=g.opponent?'vs '+esc(g.opponent):'Game Today';
+  const time=g.time?' · '+fmtTime(g.time):'';
+  const loc=g.location?' · '+esc(g.location):'';
+  let html=`<div class="gd-inner">`;
+  html+=`<div class="gd-left"><span class="gd-dot"></span><div class="gd-text"><span class="gd-label">Game Today</span><span class="gd-meta">${opp}${time}${loc}</span></div></div>`;
+  html+=`<div class="gd-actions">`;
+  if(showLog){
+    html+=`<button class="gd-btn gd-btn-pri" onclick="openLogPA('${g.id}')"><span class="material-symbols-outlined" style="font-size:18px">sports_baseball</span>Log PA</button>`;
+    if(showLogIp){
+      html+=`<button class="gd-btn gd-btn-pri" onclick="openLogIP('${g.id}')"><span class="material-symbols-outlined" style="font-size:18px">sports</span>Log IP</button>`;
+    }
+  } else {
+    html+=`<button class="gd-btn gd-btn-sec" onclick="activeTab='boxscores';activeGame='${g.id}';renderAll()">View Box Score</button>`;
+  }
+  html+=`</div></div>`;
+  banner.innerHTML=html;
+  banner.classList.add('active');
+}
+
+let _logState={gameId:null,mode:null};
+
+function openLogPA(gameId){
+  const g=D.games.find(x=>x.id===gameId);if(!g)return;
+  if(!myGamePlayer(g)){alert("You're not in this game's lineup yet — ask an admin to add you.");return}
+  _logState={gameId:gameId,mode:'pa',rbi:0,runScored:false,sb:0,cs:0};
+  renderLogModal();
+  document.getElementById('logModalOverlay').classList.add('open');
+}
+function openLogIP(gameId){
+  const g=D.games.find(x=>x.id===gameId);if(!g)return;
+  if(!myGamePlayer(g)){alert("You're not in this game's lineup yet — ask an admin to add you.");return}
+  _logState={gameId:gameId,mode:'ip',ipOuts:0,ph:0,pr:0,pbb:0,pk:0,phbp:0};
+  renderLogModal();
+  document.getElementById('logModalOverlay').classList.add('open');
+}
+function closeLogModal(){
+  document.getElementById('logModalOverlay').classList.remove('open');
+  _logState={gameId:null,mode:null};
+}
+function renderLogModal(){
+  const inner=document.getElementById('logModalInner');
+  if(!inner||!_logState.mode)return;
+  inner.innerHTML=_logState.mode==='pa'?renderLogPAModal():renderLogIPModal();
+}
+function setPALogState(k,v){_logState[k]=v;renderLogModal()}
+function setIPLogState(k,v){_logState[k]=v;renderLogModal()}
+
+function renderLogPAModal(){
+  const g=D.games.find(x=>x.id===_logState.gameId);
+  if(!g)return '';
+  const me=myGamePlayer(g);
+  const opp=g.opponent?'vs '+esc(g.opponent):'Today';
+  const date=g.date?fmtDateShort(g.date):'';
+  const myName=me?playerDisplayName(me):'';
+  const curr=`${n(me.h)}-${n(me.ab)}, ${n(me.rbi)} RBI`;
+  let html=`<div class="lm-header"><h2>Log Plate Appearance</h2><div class="lm-sub">${opp} · ${esc(date)}</div></div>`;
+  html+=`<div class="lm-body">`;
+  html+=`<div class="lm-player">${esc(myName)} <span style="color:var(--mut);font-weight:600">· current: ${curr}</span></div>`;
+  html+=`<div class="lm-section-label">Add to this AB <span style="font-weight:600;color:var(--mut);text-transform:none;letter-spacing:0">(tap before outcome)</span></div>`;
+  html+=`<div class="lm-row"><span class="lm-row-label">RBI</span>`;
+  for(let i=0;i<=4;i++){html+=`<button class="lm-chip${_logState.rbi===i?' active':''}" onclick="setPALogState('rbi',${i})">${i}</button>`}
+  html+=`</div>`;
+  html+=`<div class="lm-row" style="margin-top:8px">`;
+  html+=`<button class="lm-toggle${_logState.runScored?' active':''}" onclick="setPALogState('runScored',${!_logState.runScored})">${_logState.runScored?'✓ ':''}I scored</button>`;
+  html+=`<div class="lm-stepper"><span class="lm-stepper-label">SB</span><button onclick="setPALogState('sb',Math.max(0,_logState.sb-1))">−</button><span class="lm-stepper-val">${_logState.sb}</span><button onclick="setPALogState('sb',_logState.sb+1)">+</button></div>`;
+  html+=`<div class="lm-stepper"><span class="lm-stepper-label">CS</span><button onclick="setPALogState('cs',Math.max(0,_logState.cs-1))">−</button><span class="lm-stepper-val">${_logState.cs}</span><button onclick="setPALogState('cs',_logState.cs+1)">+</button></div>`;
+  html+=`</div>`;
+  html+=`<div class="lm-section-label">Outcome <span style="font-weight:600;color:var(--mut);text-transform:none;letter-spacing:0">(tap to log)</span></div>`;
+  html+=`<div class="lm-outcomes">`;
+  const outcomes=[
+    {id:'1b',label:'1B',full:'Single',cls:'hit'},
+    {id:'2b',label:'2B',full:'Double',cls:'hit'},
+    {id:'3b',label:'3B',full:'Triple',cls:'hit'},
+    {id:'hr',label:'HR',full:'Home Run',cls:'hr'},
+    {id:'bb',label:'BB',full:'Walk',cls:'walk'},
+    {id:'hbp',label:'HBP',full:'Hit-by-Pitch',cls:'walk'},
+    {id:'sf',label:'SF',full:'Sac Fly',cls:'walk'},
+    {id:'k',label:'K',full:'Strikeout',cls:'out'},
+    {id:'out',label:'Out',full:'In-play out',cls:'out'},
+    {id:'gidp',label:'GIDP',full:'Double Play',cls:'out'},
+    {id:'roe',label:'ROE',full:'Reached on Error',cls:'out'}
+  ];
+  outcomes.forEach(o=>{
+    html+=`<button class="lm-outcome lm-outcome-${o.cls}" onclick="submitLogPA('${o.id}')" title="${esc(o.full)}"><span class="lm-outcome-label">${o.label}</span><span class="lm-outcome-full">${esc(o.full)}</span></button>`;
+  });
+  html+=`</div></div>`;
+  html+=`<div class="lm-actions"><button class="lm-cancel" onclick="closeLogModal()">Cancel</button></div>`;
+  return html;
+}
+
+function submitLogPA(outcome){
+  const g=D.games.find(x=>x.id===_logState.gameId);if(!g)return;
+  const me=myGamePlayer(g);if(!me)return;
+  const inc=(k,by)=>{me[k]=n(me[k])+(by||1)};
+  inc('pa');
+  switch(outcome){
+    case '1b':inc('ab');inc('h');inc('singles');break;
+    case '2b':inc('ab');inc('h');inc('doubles');break;
+    case '3b':inc('ab');inc('h');inc('triples');break;
+    case 'hr':inc('ab');inc('h');inc('hr');break;
+    case 'bb':inc('bb');break;
+    case 'hbp':inc('hbp');break;
+    case 'sf':inc('sf');break;
+    case 'k':inc('ab');inc('so');break;
+    case 'out':inc('ab');break;
+    case 'gidp':inc('ab');inc('gidp');break;
+    case 'roe':inc('ab');break;
+  }
+  if(_logState.rbi)inc('rbi',_logState.rbi);
+  if(_logState.runScored)inc('r');
+  if(_logState.sb)inc('sb',_logState.sb);
+  if(_logState.cs)inc('cs',_logState.cs);
+  saveNow();
+  closeLogModal();
+  const labels={'1b':'Single','2b':'Double','3b':'Triple','hr':'Home Run','bb':'Walk','hbp':'HBP','sf':'Sac Fly','k':'Strikeout','out':'Out','gidp':'GIDP','roe':'Reached on Error'};
+  showToast(`✓ Logged ${labels[outcome]||outcome.toUpperCase()}`);
+  renderAll();
+}
+
+function renderLogIPModal(){
+  const g=D.games.find(x=>x.id===_logState.gameId);
+  if(!g)return '';
+  const me=myGamePlayer(g);
+  const opp=g.opponent?'vs '+esc(g.opponent):'Today';
+  const date=g.date?fmtDateShort(g.date):'';
+  const myName=me?playerDisplayName(me):'';
+  const existing=myPitcherEntry(g)||{};
+  const curIP=n(existing.ip);
+  const curLine=`${curIP||0} IP, ${n(existing.ph)} H, ${n(existing.pr)} R, ${n(existing.pbb)} BB, ${n(existing.pk)} K`;
+  const outs=_logState.ipOuts||0;
+  const ipDisp=outsToIp(outs).toFixed(1);
+  let html=`<div class="lm-header"><h2>Log Pitching</h2><div class="lm-sub">${opp} · ${esc(date)}</div></div>`;
+  html+=`<div class="lm-body">`;
+  html+=`<div class="lm-player">${esc(myName)} <span style="color:var(--mut);font-weight:600">· current: ${curLine}</span></div>`;
+  html+=`<div class="lm-section-label">This appearance</div>`;
+  html+=`<div class="lm-row"><span class="lm-row-label">IP</span><span class="lm-ip-display">+${ipDisp}</span>`;
+  html+=`<button class="lm-chip" onclick="setIPLogState('ipOuts',(_logState.ipOuts||0)+1)">+1 out</button>`;
+  html+=`<button class="lm-chip" onclick="setIPLogState('ipOuts',(_logState.ipOuts||0)+2)">+2 outs</button>`;
+  html+=`<button class="lm-chip" onclick="setIPLogState('ipOuts',(_logState.ipOuts||0)+3)">+1 inning</button>`;
+  html+=`<button class="lm-chip" style="border-style:dashed;color:var(--mut)" onclick="setIPLogState('ipOuts',0)">reset</button>`;
+  html+=`</div>`;
+  html+=`<div class="lm-section-label">In this appearance</div>`;
+  html+=`<div class="lm-row" style="flex-wrap:wrap">`;
+  const psteps=[['ph','H'],['pr','R'],['pbb','BB'],['pk','K'],['phbp','HBP']];
+  psteps.forEach(([k,lab])=>{
+    html+=`<div class="lm-stepper"><span class="lm-stepper-label">${lab}</span><button onclick="setIPLogState('${k}',Math.max(0,(_logState.${k}||0)-1))">−</button><span class="lm-stepper-val">${_logState[k]||0}</span><button onclick="setIPLogState('${k}',(_logState.${k}||0)+1)">+</button></div>`;
+  });
+  html+=`</div></div>`;
+  const hasAny=outs>0||['ph','pr','pbb','pk','phbp'].some(k=>(_logState[k]||0)>0);
+  html+=`<div class="lm-actions"><button class="lm-cancel" onclick="closeLogModal()">Cancel</button><button class="lm-submit" ${hasAny?'':'disabled'} onclick="submitLogIP()">Log it</button></div>`;
+  return html;
+}
+
+function submitLogIP(){
+  const g=D.games.find(x=>x.id===_logState.gameId);if(!g)return;
+  const entry=ensureMyPitcherEntry(g);if(!entry)return;
+  const curOuts=ipToOuts(n(entry.ip));
+  const addOuts=_logState.ipOuts||0;
+  if(addOuts)entry.ip=outsToIp(curOuts+addOuts);
+  ['ph','pr','pbb','pk','phbp'].forEach(k=>{if(_logState[k])entry[k]=n(entry[k])+_logState[k]});
+  saveNow();
+  closeLogModal();
+  showToast('✓ Pitching logged');
+  renderAll();
+}
+
+function showToast(msg){
+  let t=document.getElementById('toast');
+  if(!t){t=document.createElement('div');t.id='toast';t.className='toast';document.body.appendChild(t)}
+  t.textContent=msg;t.classList.add('show');
+  clearTimeout(t._timer);
+  t._timer=setTimeout(()=>t.classList.remove('show'),2200);
+}
+// Close log modal on backdrop click
+document.addEventListener('click',function(e){
+  const ov=document.getElementById('logModalOverlay');
+  if(ov&&e.target===ov)closeLogModal();
+});
 
 /* ═══ GRASS FIELD ANIMATION ═══ */
 let grassAnimId = null;

@@ -21,6 +21,7 @@
 <nav class="sidebar" id="sidebar"></nav>
 <div class="composer-overlay" id="composerOverlay"><div class="composer" id="composerInner"></div></div>
 <div class="profile-modal-overlay" id="profileModalOverlay"><div class="profile-modal" id="profileModalInner"></div></div>
+<div class="log-modal-overlay" id="logModalOverlay"><div class="log-modal" id="logModalInner"></div></div>
 <div class="season-bar" id="seasonBar"></div>
 <div class="page-wrap">
 <div class="auth-bar" id="authBar"></div>
@@ -31,16 +32,20 @@
       <div class="header-team" id="headerTeam">Welcome to GrooveHub</div>
       <div class="header-record" id="headerRecord"></div>
     </div>
-    <div class="season-switcher" id="seasonSwitcher">
-      <button class="ts-btn ts-btn-24" onclick="switchSeason('2024')">2024</button>
-      <button class="ts-btn ts-btn-25" onclick="switchSeason('2025')">2025</button>
-      <button class="ts-btn ts-btn-26" onclick="switchSeason('2026')">2026</button>
+    <div class="header-right-group">
+      <div class="season-switcher" id="seasonSwitcher">
+        <button class="ts-btn ts-btn-24" onclick="switchSeason('2024')">2024</button>
+        <button class="ts-btn ts-btn-25" onclick="switchSeason('2025')">2025</button>
+        <button class="ts-btn ts-btn-26" onclick="switchSeason('2026')">2026</button>
+      </div>
+      <div id="signInSlot"></div>
     </div>
   </div>
 </div>
+<div class="game-day-banner" id="gameDayBanner"></div>
 <div class="showcase-badge" id="showcaseBadge"><span class="sb-dot"></span>You're viewing real data from the 2024 season — <a href="https://docs.google.com/spreadsheets/d/1vFn1eYuYG4SQ_C8OQ-yOL_Nk2iubau-TU45tNtDggeQ/edit?usp=sharing" target="_blank" rel="noopener" style="color:var(--pri);text-decoration:underline">see our original StatHub!</a></div>
 <main class="main">
-<div class="tab" id="tab-home"><div class="hero-section"><button class="hero-btn" id="heroBtn" onclick="heroClick()">POST SOMETHING</button></div><div class="feed" id="feedArea"></div></div>
+<div class="tab" id="tab-home"><div class="hero-section"><button class="hero-btn" id="heroBtn" onclick="heroClick()">POST SOMETHING</button></div><div id="upcomingGames"></div><div class="feed" id="feedArea"></div></div>
 <div class="tab" id="tab-roster"><div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;margin-bottom:6px"><div><h2 class="sec-title">The Roster</h2><p class="sec-hint" id="rosterHint">The 2026 New York Groove.</p></div><div id="rosterAdminBtns"></div></div><div class="roster-grid" id="rosterGrid"></div></div>
 <div class="tab" id="tab-boxscores"><div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;margin-bottom:6px"><h2 class="sec-title">Box Scores</h2><div id="boxAdminBtns"></div></div><div class="game-tabs" id="gameTabs"></div><div id="boxScoreArea"></div></div>
 <div class="tab" id="tab-playerstats"><h2 class="sec-title">Player Stats</h2><p class="sec-hint">The Player Tracker 5000, reborn.</p><div id="playerStatsArea"></div></div>
