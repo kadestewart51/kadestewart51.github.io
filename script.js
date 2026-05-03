@@ -997,6 +997,12 @@ function renderNav(){
     TABS.forEach(t=>{if(t.cfg&&!D.cfg[t.cfg])return;html+=`<button class="nav-icon${activeTab===t.id?' active':''}" onclick="navTo('${t.id}')"><span class="material-symbols-outlined">${t.icon}</span><span class="tip">${t.label}</span></button>`});
   }
   html+=`</div>`;
+  // Year selector — bottom of sidebar on desktop, right end of top bar on mobile
+  html+=`<div class="sidebar-bottom"><div class="nav-year">`;
+  SEASONS.forEach(y=>{
+    html+=`<button class="ny-btn${activeSeason===y?' active':''}" onclick="switchSeason('${y}')" title="Switch to ${y} season">${y}</button>`;
+  });
+  html+=`</div></div>`;
   document.getElementById('sidebar').innerHTML=html;
 }
 function navTo(tab){

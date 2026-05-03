@@ -42,6 +42,22 @@ button{cursor:pointer;font-family:inherit}input,textarea,select{font-family:inhe
   border:1px solid rgba(26,39,68,0.08);
   border-radius:20px;padding:3px;
 }
+/* Year selector inside the sidebar/nav (replaces the in-header season-switcher) */
+.nav-year{
+  display:flex;flex-direction:column;gap:0;
+  background:rgba(26,39,68,0.06);
+  border:1px solid rgba(26,39,68,0.08);
+  border-radius:12px;padding:2px;
+}
+.ny-btn{
+  width:42px;min-height:24px;padding:5px 4px;border:none;background:transparent;
+  cursor:pointer;border-radius:9px;
+  font-family:'Sen',sans-serif;font-size:10px;font-weight:800;
+  color:var(--mut);letter-spacing:0.5px;
+  transition:all 0.18s;
+}
+.ny-btn:hover{color:var(--pri);background:rgba(26,39,68,0.05)}
+.ny-btn.active{background:var(--pri);color:#fff;box-shadow:0 1px 4px rgba(26,39,68,0.22)}
 .page-wrap{margin-left:56px;min-height:100vh}
 .main{max-width:100%;margin:0 auto;padding:0 24px 60px}
 .tab{display:none}.tab.active{display:block}
@@ -631,7 +647,9 @@ body.season-2024 .admin-signin:hover{color:var(--pri);border-color:var(--pri)}
   }
   nav.sidebar::-webkit-scrollbar{display:none}
   .sidebar-top{flex-direction:row;gap:0;padding:0 4px}
-  .sidebar-bottom{margin-top:0;margin-left:auto;flex-direction:row;gap:0;padding:0 4px 0 0}
+  .sidebar-bottom{margin-top:0;margin-left:auto;flex-direction:row;align-items:center;gap:0;padding:0 8px 0 0;height:48px}
+  .nav-year{flex-direction:row;border-radius:14px;padding:2px}
+  .ny-btn{width:30px;min-height:0;height:24px;font-size:10px;padding:0 4px}
   .nav-icon{
     width:auto !important;height:48px !important;
     border-radius:0 !important;margin:0 !important;
@@ -651,9 +669,9 @@ body.season-2024 .admin-signin:hover{color:var(--pri);border-color:var(--pri)}
   .page-wrap,.header{margin-left:0 !important}
   .page-wrap{padding-top:48px}
   .header{padding:12px 14px 10px}
-  .header-inner{padding:0;flex-wrap:nowrap;gap:8px}
-  .header-left-group{gap:8px;min-width:0;flex:1 1 auto;overflow:hidden}
-  .header-team{font-size:16px;overflow:hidden;text-overflow:ellipsis}
+  .header-inner{padding:0;flex-wrap:wrap;gap:8px;align-items:center}
+  .header-left-group{gap:8px}
+  .header-team{font-size:17px;white-space:nowrap}
   .header-record{font-size:11px;padding:4px 10px}
   .season-switcher{padding:2px;flex-shrink:0}
   .header-right-group{gap:6px;flex-shrink:0;margin-left:auto}
