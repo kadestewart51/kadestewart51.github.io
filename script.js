@@ -12,13 +12,21 @@ const firebaseConfig = {
 };
 
 const firebaseReady = firebaseConfig.apiKey !== "YOUR_API_KEY";
+// Dev mode: localhost OR opening the file directly (file://). Bypass auth, treat user as admin.
+// Edits save to localStorage only (no Firestore writes without real auth).
+const _devMode = (location.protocol === 'file:' || location.hostname === 'localhost' || location.hostname === '127.0.0.1');
 let fb, auth, db, storage = null, currentUser = null;
 
 if (firebaseReady) {
-  fb = firebase.initializeApp(firebaseConfig);
-  auth = firebase.auth();
-  db = firebase.firestore();
-  storage = firebase.storage();
+  try {
+    fb = firebase.initializeApp(firebaseConfig);
+    auth = firebase.auth();
+    db = firebase.firestore();
+    storage = firebase.storage();
+  } catch(e) {
+    // Firebase often fails to init on file:// due to origin restrictions — fall through to localStorage-only mode.
+    console.warn('Firebase init failed (dev mode will be local-only):', e.message);
+  }
 }
 
 /* ═══ ADMIN ALLOWLIST ═══
@@ -57,15 +65,17 @@ const PLAYER_EMAILS = [
 ];
 
 function isAdmin(){
+  if(_devMode) return true;
   if(!firebaseReady) return true;
   if(!currentUser) return false;
   return ADMIN_EMAILS.includes(currentUser.email);
 }
 function isPlayer(){
+  if(_devMode) return true;
   if(!currentUser) return false;
   return PLAYER_EMAILS.includes(currentUser.email.toLowerCase());
 }
-function isSignedIn(){return !!currentUser}
+function isSignedIn(){if(_devMode)return true;return !!currentUser}
 function ownRosterId(){
   // Return the roster ID linked to the current user's email
   if(!currentUser)return null;
@@ -94,6 +104,7 @@ function previewRosterId(){
 function toggleAdminPreview(rosterId){
   _adminPreviewPlayer = rosterId || null;
   renderBoxScores();
+  renderGameDayBanner();
 }
 function isOwnPitcherRow(pitcherEntry){
   // Check if a pitching row belongs to the signed-in player or previewed player (by name match via roster)
@@ -135,6 +146,7 @@ function switchSeason(year) {
   setTimeout(() => {
     // Stop listening to old season
     stopRealtimeSync();
+    stopReactionsSync();
     activeSeason = year;
     activeGame = null;
     activeTab = 'home';
@@ -153,6 +165,7 @@ function switchSeason(year) {
       loadData(() => {
         renderAll();
         if (firebaseReady && currentUser) startRealtimeSync();
+        startReactionsSync();
         autoFillWeather();
         requestAnimationFrame(() => {
           wrap.style.opacity = '1';
@@ -507,6 +520,24 @@ let firestoreUnsubscribe = null;
 let savingInProgress = false; // prevent onSnapshot feedback loop
 
 function loadData(cb) {
+  // Dev mode: localStorage wins so local edits persist across reloads.
+  // Falls back to Firestore only if there's no localStorage yet (initial seed).
+  if (_devMode) {
+    const local = localStorage.getItem(STORE());
+    if (local) {
+      try { applySnapshot(JSON.parse(local)); if (cb) cb(); return; }
+      catch(e) { console.warn('Local data parse failed:', e); }
+    }
+    if (firebaseReady && db) {
+      db.collection('stathub').doc(DOC_ID()).get().then(snap => {
+        if (snap.exists) applySnapshot(snap.data());
+        if (cb) cb();
+      }).catch(() => { if (cb) cb(); });
+    } else {
+      if (cb) cb();
+    }
+    return;
+  }
   if (firebaseReady && db) {
     db.collection('stathub').doc(DOC_ID()).get().then(snap => {
       if (snap.exists) {
@@ -573,8 +604,9 @@ function saveNow(btn) {
   // Always save to localStorage as backup
   try { localStorage.setItem(STORE(), JSON.stringify(D)) } catch(e) { console.error(e) }
 
-  // Save to Firestore if available and user is admin or player
-  if (firebaseReady && db && (isAdmin() || isPlayer())) {
+  // Save to Firestore if available and user is admin or player.
+  // Skip Firestore in dev mode (no real auth user) — localStorage only.
+  if (firebaseReady && db && currentUser && (isAdmin() || isPlayer())) {
     savingInProgress = true;
     const payload = JSON.parse(JSON.stringify(D));
     db.collection('stathub').doc(DOC_ID()).set(payload)
@@ -716,6 +748,12 @@ function signOut(){
 function renderAuthBar(){
   const pill=document.getElementById('profilePill');
   const signInSlot=document.getElementById('signInSlot');
+  if(_devMode){
+    // Dev mode: no Google sign-in available on localhost. Show indicator.
+    if(pill) pill.innerHTML='';
+    if(signInSlot) signInSlot.innerHTML='<div class="dev-mode-pill" title="Localhost — auth bypassed, edits save to localStorage only">DEV MODE</div>';
+    return;
+  }
   if(!firebaseReady){
     if(pill) pill.innerHTML='';
     if(signInSlot) signInSlot.innerHTML='';
@@ -756,7 +794,6 @@ document.addEventListener('click',function(e){
   const pill=document.getElementById('profilePill');
   if(pill && !pill.contains(e.target)) closeProfileMenu();
 });
-function isSignedIn(){return !!currentUser}
 
 if(firebaseReady&&auth){
   auth.onAuthStateChanged(user=>{
@@ -770,9 +807,16 @@ if(firebaseReady&&auth){
       stopRealtimeSync();
       document.body.classList.remove('admin-mode');
     }
+    // Reactions sync runs regardless of sign-in (anyone can view counts)
+    startReactionsSync();
     renderAll();
+    // If they just signed in via the fan-welcome modal, fire the reaction they intended
+    if(user) applyPendingReactionIfAny();
   });
 }
+// Reactions also sync without Firebase Auth (anonymous viewers see counts).
+// Kick off once on initial load if auth listener won't fire (e.g. no firebaseReady).
+if(firebaseReady && db && !auth) startReactionsSync();
 
 function recapGameIds(){return new Set(D.posts.filter(p=>p.type==='recap'&&p.gameId).map(p=>p.gameId))}
 
@@ -926,7 +970,7 @@ function closeProfileModal(){
 // Save for players — writes the full doc to Firestore so player edits persist
 function savePlayerProfile(){
   try { localStorage.setItem(STORE(), JSON.stringify(D)) } catch(e) { console.error(e) }
-  if(firebaseReady && db && (isAdmin() || isPlayer())){
+  if(firebaseReady && db && currentUser && (isAdmin() || isPlayer())){
     const payload = JSON.parse(JSON.stringify(D));
     db.collection('stathub').doc(DOC_ID()).set(payload)
       .catch(e => console.error('Player profile save failed:', e));
@@ -1424,6 +1468,190 @@ document.addEventListener('click',e=>{
   lb.addEventListener('touchend',e=>{const dx=e.changedTouches[0].clientX-sx;if(Math.abs(dx)>50){dx<0?lbNav(1):lbNav(-1)}},{passive:true});
 })();
 
+/* ═══ REACTIONS ═══ */
+const REACTIONS = [
+  {id:'heat',   label:"That's Heat",  file:'assets/reactions/heat.png'},
+  {id:'crush',  label:'Crushed It',   file:'assets/reactions/crush.png'},
+  {id:'letsgo', label:"Let's Go",     file:'assets/reactions/letsgo.png'},
+  {id:'vibes',  label:"Just Vibin'",  file:'assets/reactions/vibes.png'},
+  {id:'oof',    label:'Oof!',         file:'assets/reactions/oof.png'},
+];
+const REACTION_BY_ID = Object.fromEntries(REACTIONS.map(r=>[r.id,r]));
+
+let _reactions = {};      // postId -> { reactionId -> [reactor, ...] }
+let _myReactions = {};    // postId -> Set of reactionIds I've added
+let _reactionsUnsub = null;
+
+function startReactionsSync(){
+  if(!firebaseReady||!db)return;
+  if(_reactionsUnsub){_reactionsUnsub();_reactionsUnsub=null}
+  _reactionsUnsub = db.collection('reactions')
+    .where('season','==',activeSeason)
+    .onSnapshot(snap=>{
+      _reactions = {};
+      _myReactions = {};
+      snap.forEach(doc=>{
+        const r = doc.data();
+        if(!r.postId||!r.reaction)return;
+        if(!_reactions[r.postId]) _reactions[r.postId] = {};
+        if(!_reactions[r.postId][r.reaction]) _reactions[r.postId][r.reaction] = [];
+        _reactions[r.postId][r.reaction].push(r);
+        if(currentUser && r.uid === currentUser.uid){
+          if(!_myReactions[r.postId]) _myReactions[r.postId] = new Set();
+          _myReactions[r.postId].add(r.reaction);
+        }
+      });
+      // Re-render the feed if we're showing it
+      if(activeTab==='home') renderFeed();
+    }, err=>console.error('Reactions sync error:', err));
+}
+
+function stopReactionsSync(){
+  if(_reactionsUnsub){_reactionsUnsub();_reactionsUnsub=null}
+  _reactions = {};
+  _myReactions = {};
+}
+
+function toggleReaction(postId, reactionId){
+  if(!currentUser){
+    openFanWelcome(postId, reactionId);
+    return;
+  }
+  if(!firebaseReady||!db)return;
+  const docId = `${currentUser.uid}_${postId}_${reactionId}`;
+  const ref = db.collection('reactions').doc(docId);
+  const has = _myReactions[postId] && _myReactions[postId].has(reactionId);
+  if(has){
+    ref.delete().catch(e=>console.error('Remove reaction failed:', e));
+  } else {
+    ref.set({
+      season: activeSeason,
+      postId: postId,
+      reaction: reactionId,
+      uid: currentUser.uid,
+      displayName: currentUser.displayName || '',
+      photoURL: currentUser.photoURL || '',
+      email: currentUser.email || '',
+      createdAt: firebase.firestore.FieldValue.serverTimestamp()
+    }).catch(e=>{
+      console.error('Add reaction failed:', e);
+      alert('Could not save reaction — your sign-in may have expired. Try signing out and back in.');
+    });
+  }
+}
+
+function reactionsBarHtml(postId){
+  const counts = _reactions[postId] || {};
+  const mine = _myReactions[postId] || new Set();
+  const reactedTypes = REACTIONS.filter(r => (counts[r.id]||[]).length > 0);
+  const noneYet = reactedTypes.length === 0;
+  let html = '<div class="reactions-bar">';
+  reactedTypes.forEach(r => {
+    const reactors = counts[r.id] || [];
+    const isMine = mine.has(r.id);
+    const tooltip = reactors.map(x => x.displayName || 'Unknown').join(', ');
+    html += `<button class="reaction-btn${isMine?' mine':''}" onclick="toggleReaction('${postId}','${r.id}')" title="${esc(tooltip)}"><img class="reaction-img" src="${r.file}" alt="${esc(r.label)}"><span class="reaction-count">${reactors.length}</span><span class="rt-name">${esc(r.label)}</span></button>`;
+  });
+  if(noneYet){
+    // Inline tray for first reaction — more discoverable than a + button
+    html += `<div class="reaction-tray"><span class="reaction-tray-prompt">React</span>`;
+    REACTIONS.forEach(r => {
+      html += `<button class="reaction-tray-btn" onclick="toggleReaction('${postId}','${r.id}')" aria-label="${esc(r.label)}"><img src="${r.file}" alt="${esc(r.label)}"><span class="rt-name">${esc(r.label)}</span></button>`;
+    });
+    html += `</div>`;
+  } else {
+    html += `<button class="reaction-add" onclick="event.stopPropagation();openReactionPicker('${postId}',event)" title="Add reaction"><span class="material-symbols-outlined" style="font-size:18px">add_reaction</span></button>`;
+  }
+  html += '</div>';
+  return html;
+}
+
+function openReactionPicker(postId, ev){
+  const picker = document.getElementById('reactionPicker');
+  if(!picker)return;
+  picker.innerHTML = REACTIONS.map(r => `<button class="rp-btn" onclick="toggleReaction('${postId}','${r.id}');closeReactionPicker()" aria-label="${esc(r.label)}"><img src="${r.file}" alt="${esc(r.label)}"><span class="rp-name">${esc(r.label)}</span></button>`).join('');
+  const trigger = ev.currentTarget || ev.target;
+  const rect = trigger.getBoundingClientRect();
+  // Default position: just below the trigger, anchored to its left
+  let top = rect.bottom + 6;
+  let left = rect.left;
+  // Measure picker after rendering
+  picker.style.visibility='hidden';
+  picker.classList.add('open');
+  const pw = picker.offsetWidth || 300;
+  const ph = picker.offsetHeight || 70;
+  // If overflowing right edge, anchor to right of trigger
+  if(left + pw > window.innerWidth - 12) left = Math.max(12, window.innerWidth - pw - 12);
+  // If overflowing bottom, place above trigger
+  if(top + ph > window.innerHeight - 12) top = rect.top - ph - 6;
+  picker.style.top = top + 'px';
+  picker.style.left = left + 'px';
+  picker.style.visibility='';
+}
+function closeReactionPicker(){
+  const picker = document.getElementById('reactionPicker');
+  if(picker) picker.classList.remove('open');
+}
+document.addEventListener('click', function(e){
+  const picker = document.getElementById('reactionPicker');
+  if(!picker || !picker.classList.contains('open')) return;
+  if(picker.contains(e.target)) return;
+  if(e.target.closest('.reaction-add')) return;
+  closeReactionPicker();
+});
+
+/* ═══ FAN WELCOME MODAL ═══ */
+let _pendingReaction = null; // {postId, reactionId} preserved across sign-in
+
+function openFanWelcome(postId, reactionId){
+  _pendingReaction = (postId && reactionId) ? {postId, reactionId} : null;
+  const inner = document.getElementById('fanModalInner');
+  if(!inner) return;
+  const heroSrc = REACTION_BY_ID.letsgo ? REACTION_BY_ID.letsgo.file : '';
+  inner.innerHTML = `
+    <div class="fan-hero">
+      <img class="fan-hero-img" src="${heroSrc}" alt="Groove mascot">
+    </div>
+    <div class="fan-body">
+      <h2>Join the Groove crew</h2>
+      <p class="fan-sub">Sign in and you're a fan — we'd love to have you. Here's what you get:</p>
+      <div class="fan-benefits">
+        <div class="fan-benefit"><img src="assets/reactions/heat.png" alt=""><div><strong>React</strong> to posts with Groove emojis</div></div>
+        <div class="fan-benefit"><img src="assets/reactions/vibes.png" alt=""><div><strong>Comment</strong> on game recaps and team drops</div></div>
+        <div class="fan-benefit"><img src="assets/reactions/crush.png" alt=""><div><strong>First crack</strong> at team merch when it drops</div></div>
+      </div>
+      <button class="fan-signin-btn" onclick="fanSignInFromModal()">
+        <svg class="g-logo" viewBox="0 0 24 24"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 0 1-2.2 3.32v2.77h3.57c2.08-1.92 3.27-4.74 3.27-8.1z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/></svg>
+        Sign in with Google
+      </button>
+      <button class="fan-cancel" onclick="closeFanModal()">Maybe later</button>
+    </div>
+  `;
+  document.getElementById('fanModalOverlay').classList.add('open');
+}
+
+function closeFanModal(){
+  // Clear pending reaction — they bailed without signing in
+  _pendingReaction = null;
+  const ov = document.getElementById('fanModalOverlay');
+  if(ov) ov.classList.remove('open');
+}
+
+function fanSignInFromModal(){
+  // Preserve _pendingReaction so we can auto-apply after sign-in completes
+  const ov = document.getElementById('fanModalOverlay');
+  if(ov) ov.classList.remove('open');
+  signIn();
+}
+
+function applyPendingReactionIfAny(){
+  if(!_pendingReaction || !currentUser) return;
+  const pr = _pendingReaction;
+  _pendingReaction = null;
+  // Wait briefly so reactions snapshot has the user's identity loaded before toggling
+  setTimeout(()=>toggleReaction(pr.postId, pr.reactionId), 600);
+}
+
 /* ═══ FEED ═══ */
 function renderFeed(){
   const area=document.getElementById('feedArea');
@@ -1585,6 +1813,7 @@ function renderFeed(){
     if(p.body)html+=`<div class="post-body">${chipifyText(p.body)}</div>`;
     if(p.photos&&p.photos.length){html+=`<div class="post-photos" data-photos='${JSON.stringify(p.photos).replace(/'/g,"&#39;")}'>`;p.photos.forEach((ph,phi)=>{html+=`<img src="${ph}" style="max-height:360px;cursor:pointer" data-phi="${phi}">`});html+=`</div>`}
     if(p.type==='recap'&&p.gameId){html+=`<div style="padding:4px 24px 12px"><button class="post-boxscore-btn" onclick="activeGame='${p.gameId}';activeTab='boxscores';renderAll()">See Box Score</button></div>`}
+    html+=reactionsBarHtml(p.id);
     const commOpen=openComments[p.id];
     const cc=p.comments||[];
     html+=`<div class="comments-section">`;
@@ -2386,7 +2615,7 @@ function canQuickLog(){
 function renderGameDayBanner(){
   const banner=document.getElementById('gameDayBanner');
   if(!banner)return;
-  if(!firebaseReady||!currentUser){banner.innerHTML='';banner.classList.remove('active');return}
+  if(!isSignedIn()){banner.innerHTML='';banner.classList.remove('active');return}
   const g=findTodaysGame();
   if(!g){banner.innerHTML='';banner.classList.remove('active');return}
   const me=myGamePlayer(g);
@@ -2398,7 +2627,15 @@ function renderGameDayBanner(){
   let html=`<div class="gd-inner">`;
   html+=`<div class="gd-left"><span class="gd-dot"></span><div class="gd-text"><span class="gd-label">Game Today</span><span class="gd-meta">${opp}${time}${loc}</span></div></div>`;
   html+=`<div class="gd-actions">`;
-  if(showLog){
+  // Dev mode without a matched player: inline picker so Log PA is testable without signing in
+  if(_devMode && !me && (g.players||[]).some(p=>p.rosterId)){
+    const opts=(g.players||[]).filter(p=>p.rosterId).map(p=>{
+      const nm=esc(playerDisplayName(p)||'Player');
+      const sel=_adminPreviewPlayer===p.rosterId?' selected':'';
+      return `<option value="${p.rosterId}"${sel}>${nm}</option>`;
+    }).join('');
+    html+=`<select class="gd-picker" onchange="toggleAdminPreview(this.value)"><option value="">Log as…</option>${opts}</select>`;
+  } else if(showLog){
     html+=`<button class="gd-btn gd-btn-pri" onclick="openLogPA('${g.id}')"><span class="material-symbols-outlined" style="font-size:18px">sports_baseball</span>Log PA</button>`;
     if(showLogIp){
       html+=`<button class="gd-btn gd-btn-pri" onclick="openLogIP('${g.id}')"><span class="material-symbols-outlined" style="font-size:18px">sports</span>Log IP</button>`;
@@ -2655,6 +2892,8 @@ loadData(()=>{
     document.body.classList.add('admin-mode');
     initGrass();
   }
+  // Reactions sync — public read so unsigned viewers see counts
+  startReactionsSync();
   // Auto-fill missing weather from historical data
   autoFillWeather();
 });
