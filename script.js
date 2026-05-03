@@ -1535,7 +1535,16 @@ function toggleReaction(postId, reactionId){
       createdAt: firebase.firestore.FieldValue.serverTimestamp()
     }).catch(e=>{
       console.error('Add reaction failed:', e);
-      alert('Could not save reaction — your sign-in may have expired. Try signing out and back in.');
+      const code = (e && (e.code || '')) + '';
+      let hint = '';
+      if(code.includes('permission-denied')){
+        hint = '\n\nFirestore rules likely not deployed yet. Add the `reactions` collection rule in Firebase Console → Firestore → Rules, then Publish.';
+      } else if(code.includes('unauthenticated')){
+        hint = '\n\nSign-in expired — sign out and back in.';
+      } else if(code.includes('unavailable')){
+        hint = '\n\nFirestore unreachable — check your network.';
+      }
+      alert('Reaction failed to save.\n\n' + (e.message || code || 'Unknown error') + hint);
     });
   }
 }
