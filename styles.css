@@ -651,13 +651,13 @@ body.season-2024 .admin-signin:hover{color:var(--pri);border-color:var(--pri)}
   .page-wrap,.header{margin-left:0 !important}
   .page-wrap{padding-top:48px}
   .header{padding:12px 14px 10px}
-  .header-inner{padding:0;flex-wrap:wrap;gap:8px}
-  .header-left-group{gap:8px}
-  .header-team{font-size:17px}
+  .header-inner{padding:0;flex-wrap:nowrap;gap:8px}
+  .header-left-group{gap:8px;min-width:0;flex:1 1 auto;overflow:hidden}
+  .header-team{font-size:16px;overflow:hidden;text-overflow:ellipsis}
   .header-record{font-size:11px;padding:4px 10px}
-  .season-switcher{padding:2px}
-  .header-right-group{gap:6px}
-  .signin-cta{padding:7px 14px;font-size:12px;border-radius:20px}
+  .season-switcher{padding:2px;flex-shrink:0}
+  .header-right-group{gap:6px;flex-shrink:0;margin-left:auto}
+  .signin-cta{padding:7px 12px;font-size:12px;border-radius:20px}
   .signin-cta .g-logo{width:16px;height:16px}
   .season-bar{margin-left:0 !important}
   .profile-pill{top:auto;bottom:60px;right:12px}
@@ -882,6 +882,10 @@ body.has-save-bar .main{padding-bottom:80px !important}
 @media(max-width:640px){
   .upcoming-row{grid-template-columns:60px 1fr;gap:10px;padding:11px 14px}
   .up-meta{display:none}
+  /* Mobile: only show the next game so the headline isn't pushed down */
+  .upcoming-list .upcoming-row:nth-child(n+2){display:none}
+  .upcoming-card{margin-bottom:14px}
+  .upcoming-title{padding:10px 14px 6px}
 }
 
 /* ═══ REACTIONS ═══ */

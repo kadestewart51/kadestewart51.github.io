@@ -986,6 +986,7 @@ const TABS=[
   {id:'leaderboards',icon:'emoji_events',label:'Leaderboards',cfg:'showLeaderboards'},
   {id:'trendtracker',icon:'trending_up',label:'TrendTracker',cfg:'showTrendTracker'},
   {id:'statnotes',icon:'sticky_note_2',label:'Stat Notes',cfg:'showStatNotes'},
+  {id:'settings',icon:'settings',label:'Settings'},
 ];
 function renderNav(){
   let html='<div class="sidebar-top">';
@@ -995,11 +996,6 @@ function renderNav(){
   } else {
     TABS.forEach(t=>{if(t.cfg&&!D.cfg[t.cfg])return;html+=`<button class="nav-icon${activeTab===t.id?' active':''}" onclick="navTo('${t.id}')"><span class="material-symbols-outlined">${t.icon}</span><span class="tip">${t.label}</span></button>`});
   }
-  html+=`</div><div class="sidebar-bottom">`;
-  if(!currentUser){
-    html+=`<button class="nav-icon" onclick="signIn()" title="Sign In"><span class="material-symbols-outlined">login</span><span class="tip">Sign In</span></button>`;
-  }
-  if(activeSeason!=='2025') html+=`<button class="nav-icon${activeTab==='settings'?' active':''}" onclick="navTo('settings')"><span class="material-symbols-outlined">settings</span><span class="tip">Settings</span></button>`;
   html+=`</div>`;
   document.getElementById('sidebar').innerHTML=html;
 }
