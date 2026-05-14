@@ -310,6 +310,206 @@ button{cursor:pointer;font-family:inherit}input,textarea,select{font-family:inhe
   /* Stats: hidden on mobile */
   .rb-stats-row{display:none}
 }
+/* ═══ LINEUP BANNER (Padres-style starting lineup post) ═══ */
+.post>.lineup-banner{margin:-1px -1px 0;border-radius:var(--radius) var(--radius) 0 0}
+.post>.lineup-banner+.post-body{padding-top:20px}
+.post>.lineup-banner+.post-photos{padding-top:20px}
+.lineup-banner{
+  background:linear-gradient(135deg,#1a2744 0%,#243660 35%,#1f2e54 70%,#2b3e6e 100%);
+  padding:0;color:#fff;position:relative;overflow:visible;
+}
+.lineup-banner::before{
+  content:'';position:absolute;inset:0;z-index:0;
+  background:linear-gradient(180deg,rgba(255,255,255,0.06) 0%,transparent 40%,rgba(0,0,0,0.18) 100%);
+  pointer-events:none;border-radius:var(--radius) var(--radius) 0 0;
+}
+.lineup-banner *{position:relative;z-index:1}
+/* Gold accent stripe on left edge — Padres-style brand stripe */
+.lineup-banner::after{
+  content:'';position:absolute;left:0;top:0;bottom:0;width:4px;z-index:2;
+  background:linear-gradient(180deg,#e8a838 0%,#c4a035 100%);
+  border-radius:var(--radius) 0 0 0;
+}
+/* Field photo backdrop — duotone'd to navy, lightly blurred for atmosphere */
+.lup-bg{
+  position:absolute;inset:0;width:100%;height:100%;
+  object-fit:cover;object-position:center;
+  filter:grayscale(1) sepia(0.5) hue-rotate(195deg) brightness(0.55) contrast(1.1) blur(1.5px);
+  opacity:0.42;
+  z-index:0!important;
+  pointer-events:none;
+  border-radius:var(--radius) var(--radius) 0 0;
+  transform:scale(1.03);
+}
+.lup-grid{
+  display:flex;flex-direction:column;
+  padding-left:4px;
+}
+
+/* Header row — Athletic-style: eyebrow → meta → serif headline. Centered. */
+.lup-header-row{
+  padding:22px 24px 18px;
+  display:flex;flex-direction:column;gap:8px;
+  align-items:center;text-align:center;
+}
+.lup-eyebrow{
+  font-size:11px;font-weight:800;letter-spacing:2px;text-transform:uppercase;
+  color:#e8a838;line-height:1;
+}
+.lup-meta-top{
+  display:flex;align-items:center;justify-content:center;
+  gap:8px;flex-wrap:wrap;
+  font-size:11px;line-height:1;
+}
+.lup-headline{
+  font-family:'Lora',Georgia,serif;
+  font-size:clamp(26px,4vw,38px);
+  font-weight:700;letter-spacing:-0.5px;line-height:1.1;
+  color:#fff;margin:0;
+  max-width:680px;
+}
+/* Byline at the bottom of the banner */
+.lup-byline-bottom{
+  padding:12px 24px 14px;
+  display:flex;justify-content:center;align-items:center;
+  font-size:12px;color:rgba(255,255,255,0.72);
+  border-top:1px solid rgba(255,255,255,0.08);
+}
+.lup-byline-bottom .rb-byline{opacity:1;font-size:12px}
+.lup-byline-bottom .rb-by-text{opacity:0.6}
+
+/* Batting order list */
+.lup-list-row{
+  padding:4px 0 8px;
+}
+.lup-list{display:flex;flex-direction:column}
+/* Gestalt rows: edge-to-edge dividers, no container fill. */
+.lineup-banner .lup-row{
+  display:flex;align-items:center;gap:10px;
+  padding:11px 18px;
+  background:none;border-radius:0;
+  font-size:13px;font-weight:400;color:#fff;
+  cursor:default;
+  border-bottom:1px solid rgba(255,255,255,0.07);
+  transition:none;
+}
+.lineup-banner .lup-row:last-child{border-bottom:none}
+.lineup-banner .lup-row.player-chip{cursor:pointer}
+.lineup-banner .lup-row.player-chip:hover .lup-name{color:#ffd97a}
+
+/* Order # — least emphasized */
+.lup-num{
+  font-size:11px;font-weight:600;color:rgba(255,255,255,0.4);
+  width:16px;text-align:right;font-variant-numeric:tabular-nums;line-height:1;
+  flex-shrink:0;
+}
+
+/* Photo */
+.lup-photo-wrap{display:inline-flex;align-items:flex-end;justify-content:center;width:34px;flex-shrink:0}
+.lup-row-photo-cutout{
+  width:32px;height:38px;object-fit:contain;object-position:center bottom;
+  filter:drop-shadow(0 2px 3px rgba(0,0,0,0.4));
+}
+.lup-row-photo-circle{
+  width:30px;height:30px;border-radius:50%;object-fit:cover;
+  border:1.5px solid rgba(255,255,255,0.3);
+}
+.lup-row-photo-placeholder{
+  width:30px;height:30px;border-radius:50%;
+  background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.14);
+  display:flex;align-items:center;justify-content:center;
+}
+.lup-row-photo-placeholder .material-symbols-outlined{font-size:16px;color:rgba(255,255,255,0.35)}
+
+/* Name + jersey paired together; takes remaining flex space */
+.lup-name-group{
+  flex:1;min-width:0;
+  display:flex;align-items:baseline;gap:6px;
+}
+
+/* Name — sized so "ERIC GOLDFISCHER" fits without truncation at ~350px wide */
+.lup-name{
+  font-family:'Sen',sans-serif;
+  font-size:clamp(14px,2.2vw,20px);
+  font-weight:900;letter-spacing:-0.3px;line-height:1;
+  text-transform:uppercase;color:#fff;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+  min-width:0;flex:1 1 auto;
+}
+
+/* Jersey — small pill next to the name */
+.lup-jersey{
+  font-size:10px;font-weight:800;letter-spacing:0.3px;
+  color:rgba(255,255,255,0.85);
+  background:rgba(255,255,255,0.13);
+  padding:3px 5px;border-radius:3px;line-height:1;
+  font-variant-numeric:tabular-nums;flex-shrink:0;
+}
+
+/* Position — bare text on the right */
+.lup-pos{
+  font-size:12px;font-weight:800;letter-spacing:0.7px;text-transform:uppercase;
+  color:rgba(255,255,255,0.6);line-height:1;
+  flex-shrink:0;margin-left:6px;
+}
+
+/* Hover cards inside lineup banner — fully opaque, above everything */
+.lineup-banner .pc-hover{background:var(--card);z-index:502!important;color:var(--pri)}
+
+.lineup-banner .rb-location,.lineup-banner .rb-date,.lineup-banner .rb-sep{color:#fff;opacity:0.75;font-size:11px;font-weight:600}
+.lineup-banner .rb-location a{color:#fff}
+
+@media(max-width:640px){
+  .lup-grid{padding-left:4px}
+  .lup-header-row{padding:18px 16px 14px;gap:6px}
+  .lup-eyebrow{font-size:10px;letter-spacing:1.5px}
+  .lup-list-row{padding:4px 0 8px}
+  /* Tighter rows on small screens so "Eric Goldfischer" fits */
+  .lineup-banner .lup-row{gap:8px;padding:10px 14px}
+  .lup-photo-wrap{width:30px}
+  .lup-row-photo-cutout{width:28px;height:34px}
+  .lup-row-photo-circle,.lup-row-photo-placeholder{width:26px;height:26px}
+  .lup-pos{font-size:11px;margin-left:4px}
+  .lup-byline-bottom{padding:10px 16px 12px}
+}
+
+/* ═══ LINEUP COMPOSER ═══ */
+.lu-edit-row{
+  display:flex;align-items:center;gap:6px;
+  padding:5px 8px;margin-bottom:4px;
+  background:#fafaf6;border:1px solid var(--brd);border-radius:6px;
+}
+.lu-edit-num{
+  font-size:13px;font-weight:900;color:var(--acc);
+  width:18px;text-align:center;font-variant-numeric:tabular-nums;flex-shrink:0;
+}
+.lu-edit-pos{
+  width:50px;padding:4px 6px;border:1px solid var(--brd);border-radius:4px;
+  font-size:11px;font-weight:700;text-align:center;text-transform:uppercase;
+  font-family:'Sen',sans-serif;
+}
+.lu-edit-name{
+  flex:1;font-size:13px;font-weight:700;color:var(--pri);
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+}
+.lu-edit-feat,.lu-edit-btn{
+  border:1px solid var(--brd);background:#fff;border-radius:4px;cursor:pointer;
+  width:26px;height:26px;display:inline-flex;align-items:center;justify-content:center;
+  color:var(--mut);transition:0.15s;flex-shrink:0;
+}
+.lu-edit-feat:hover,.lu-edit-btn:hover{border-color:var(--acc);color:var(--acc)}
+.lu-edit-feat.active{background:#fff7e0;border-color:var(--acc);color:var(--acc)}
+.lu-edit-btn:disabled{opacity:0.3;cursor:not-allowed}
+.lu-edit-rm:hover{border-color:var(--loss);color:var(--loss)}
+.lu-picker{display:flex;flex-wrap:wrap;gap:5px;margin-top:8px}
+.lu-load-btn{
+  margin-top:8px;padding:6px 12px;background:transparent;
+  border:1px dashed var(--brd);border-radius:var(--radius);
+  font-size:11px;font-weight:600;color:var(--mut);cursor:pointer;
+  display:inline-flex;align-items:center;gap:4px;transition:0.15s;
+}
+.lu-load-btn:hover{border-color:var(--acc);color:var(--acc)}
+
 /* Box score button in post body */
 .post-boxscore-btn{
   width:100%;padding:10px 0;

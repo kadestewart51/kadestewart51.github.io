@@ -1310,7 +1310,7 @@ function confirmDeleteAllPhotos(btn){
 }
 
 /* ═══ COMPOSER ═══ */
-function openComposer(){composerType='recap';composerData={title:'',body:'',author:currentUser?currentUser.displayName||'':'',photos:[]};composerGameId=null;editingPostId=null;renderComposer();document.getElementById('composerOverlay').classList.add('open')}
+function openComposer(){composerType='recap';composerData={title:'',body:'',author:currentUser?currentUser.displayName||'':'',photos:[],lineup:[],featuredRosterId:''};composerGameId=null;editingPostId=null;renderComposer();document.getElementById('composerOverlay').classList.add('open')}
 function closeComposer(){document.getElementById('composerOverlay').classList.remove('open');editingPostId=null}
 
 function editPost(postId){
@@ -1318,7 +1318,7 @@ function editPost(postId){
   if(!post)return;
   editingPostId=postId;
   composerType=post.type||'note';
-  composerData={title:post.title||'',body:post.body||'',author:post.author||'',photos:post.photos||[]};
+  composerData={title:post.title||'',body:post.body||'',author:post.author||'',photos:post.photos||[],lineup:(post.lineup||[]).map(r=>({...r})),featuredRosterId:post.featuredRosterId||''};
   composerGameId=post.gameId||null;
   renderComposer();
   document.getElementById('composerOverlay').classList.add('open');
@@ -1328,7 +1328,7 @@ function editPost(postId){
 
 function renderComposer(){
   const isEditing=!!editingPostId;
-  const types=[{id:'recap',label:'Game Recap',icon:'scoreboard'},{id:'photo',label:'Photos',icon:'photo_camera'},{id:'dataviz',label:'Data / Stats',icon:'bar_chart'},{id:'note',label:'Note',icon:'edit_note'}];
+  const types=[{id:'recap',label:'Game Recap',icon:'scoreboard'},{id:'lineup',label:'Lineup',icon:'format_list_numbered'},{id:'photo',label:'Photos',icon:'photo_camera'},{id:'dataviz',label:'Data / Stats',icon:'bar_chart'},{id:'note',label:'Note',icon:'edit_note'}];
   let html=`<h2>${isEditing?'Edit Post':'Post Something'}</h2><div class="composer-type-row">`;
   types.forEach(t=>{html+=`<button class="type-btn${composerType===t.id?' active':''}" onclick="composerType='${t.id}';composerGameId=null;renderComposer()"><span class="material-symbols-outlined" style="font-size:16px">${t.icon}</span>${t.label}</button>`});
   html+=`</div>`;
@@ -1356,6 +1356,58 @@ function renderComposer(){
     html+=`</div>`;
     html+=`<div class="cf"><label>Title</label><input value="${esc(composerData.title)}" placeholder="e.g. A Slugfest in the Rain" oninput="composerData.title=this.value"></div>`;
     html+=`<div class="cf"><label>Write-up</label><textarea placeholder="The full story of this game — etched into history..." oninput="composerData.body=this.value;autoResize(this)" style="min-height:200px">${esc(composerData.body)}</textarea><span style="font-size:10px;color:var(--mut);margin-top:2px">Use **bold** and *italic* for formatting</span></div>`;
+  }else if(composerType==='lineup'){
+    // Game picker (any game, not gated by recap-taken)
+    html+=`<div class="cf"><label>Game</label>`;
+    if(!D.games.length){html+=`<p style="font-size:13px;color:var(--mut)">No games yet. Create one in Box Scores first.</p>`}
+    else{
+      html+=`<div class="game-picker">`;
+      D.games.forEach((g,i)=>{
+        const sel=composerGameId===g.id;
+        const lbl=g.opponent?`vs ${esc(g.opponent)}`:`Game ${i+1}`;
+        const sub=g.date?fmtDateShort(g.date):'';
+        html+=`<div class="gp-cell ${sel?'selected':'available'}" onclick="setLineupGame('${g.id}')"><div style="font-size:12px;font-weight:700">${lbl}</div>${sub?`<div class="gp-label">${sub}</div>`:''}</div>`;
+      });
+      html+=`</div>`;
+    }
+    html+=`</div>`;
+    // Batting order builder
+    html+=`<div class="cf"><label>Batting Order <span style="font-weight:600;color:var(--mut);text-transform:none;letter-spacing:0">(↑↓ to reorder)</span></label>`;
+    if(!composerData.lineup.length){
+      html+=`<p style="font-size:12px;color:var(--mut);margin:4px 0 8px">Add players from the roster below.</p>`;
+    }else{
+      composerData.lineup.forEach((row,idx)=>{
+        const r=row.rosterId?D.roster.find(x=>x.id===row.rosterId):null;
+        const nm=r?r.name:(row.name||'');
+        html+=`<div class="lu-edit-row">`;
+        html+=`<span class="lu-edit-num">${idx+1}</span>`;
+        html+=`<input class="lu-edit-pos" placeholder="POS" value="${esc(row.position||'')}" oninput="composerData.lineup[${idx}].position=this.value.toUpperCase()">`;
+        html+=`<span class="lu-edit-name">${esc(nm)}</span>`;
+        html+=`<button class="lu-edit-btn" title="Move up" ${idx===0?'disabled':''} onclick="moveLineupRow(${idx},-1)"><span class="material-symbols-outlined" style="font-size:14px">arrow_upward</span></button>`;
+        html+=`<button class="lu-edit-btn" title="Move down" ${idx===composerData.lineup.length-1?'disabled':''} onclick="moveLineupRow(${idx},1)"><span class="material-symbols-outlined" style="font-size:14px">arrow_downward</span></button>`;
+        html+=`<button class="lu-edit-btn lu-edit-rm" title="Remove" onclick="rmLineupRow(${idx})"><span class="material-symbols-outlined" style="font-size:14px">close</span></button>`;
+        html+=`</div>`;
+      });
+    }
+    // Roster picker — chips for players not yet in lineup
+    const inLineup=new Set(composerData.lineup.map(r=>r.rosterId).filter(Boolean));
+    const avail=D.roster.filter(r=>r.name&&!inLineup.has(r.id)).sort((a,b)=>a.name.localeCompare(b.name));
+    if(avail.length){
+      html+=`<div class="lu-picker">`;
+      avail.forEach(r=>{
+        html+=`<button class="roster-picker-chip" onclick="addLineupRow('${r.id}')">${esc(r.name)}${r.number?' <span class="rp-num">#'+esc(r.number)+'</span>':''}</button>`;
+      });
+      html+=`</div>`;
+    }
+    // Quick action: load from box score lineup
+    if(composerGameId){
+      const g=D.games.find(x=>x.id===composerGameId);
+      if(g&&(g.players||[]).length){
+        html+=`<button class="lu-load-btn" onclick="loadLineupFromGame()"><span class="material-symbols-outlined" style="font-size:14px">download</span>Load order from box score</button>`;
+      }
+    }
+    html+=`</div>`;
+    html+=`<div class="cf"><label>Headline (optional)</label><input value="${esc(composerData.title)}" placeholder="e.g. Saturday's Lineup" oninput="composerData.title=this.value"></div>`;
   }else if(composerType==='photo'){
     html+=`<div class="cf"><label>Caption</label><input value="${esc(composerData.title)}" placeholder="What's in the photo?" oninput="composerData.title=this.value"></div>`;
     html+=`<div class="cf"><label>Photos</label><div class="photo-drop" onclick="document.getElementById('photoInput').click()">Click to upload photos</div><input type="file" id="photoInput" accept="image/*" multiple style="display:none" onchange="handlePhotos(this.files)"><div class="photo-preview" id="photoPreview"></div></div>`;
@@ -1394,11 +1446,54 @@ function updatePublishBtn(){
   if(btn){btn.disabled=pendingUploads>0;btn.textContent=pendingUploads>0?'Uploading...':'Save & Publish'}
 }
 
+/* ─── Lineup composer helpers ─── */
+function setLineupGame(gid){composerGameId=gid;renderComposer()}
+function addLineupRow(rosterId){
+  const r=D.roster.find(x=>x.id===rosterId);
+  if(!r)return;
+  if(!composerData.lineup)composerData.lineup=[];
+  // Try to seed position from box score for the picked game
+  let pos=r.position||'';
+  if(composerGameId){
+    const g=D.games.find(x=>x.id===composerGameId);
+    const gp=g&&(g.players||[]).find(p=>p.rosterId===rosterId);
+    if(gp&&gp.pos)pos=gp.pos;
+  }
+  composerData.lineup.push({rosterId:r.id,name:r.name,position:pos});
+  if(!composerData.featuredRosterId)composerData.featuredRosterId=r.id;
+  renderComposer();
+}
+function rmLineupRow(idx){
+  const removed=composerData.lineup.splice(idx,1)[0];
+  if(removed&&composerData.featuredRosterId===removed.rosterId){
+    composerData.featuredRosterId=composerData.lineup[0]?composerData.lineup[0].rosterId:'';
+  }
+  renderComposer();
+}
+function moveLineupRow(idx,dir){
+  const j=idx+dir;
+  if(j<0||j>=composerData.lineup.length)return;
+  [composerData.lineup[idx],composerData.lineup[j]]=[composerData.lineup[j],composerData.lineup[idx]];
+  renderComposer();
+}
+function setLineupFeatured(rosterId){composerData.featuredRosterId=rosterId;renderComposer()}
+function loadLineupFromGame(){
+  if(!composerGameId)return;
+  const g=D.games.find(x=>x.id===composerGameId);
+  if(!g||!g.players)return;
+  composerData.lineup=g.players.filter(p=>p.rosterId||p.name).map(p=>{
+    const r=p.rosterId?D.roster.find(x=>x.id===p.rosterId):null;
+    return{rosterId:p.rosterId||'',name:r?r.name:(p.name||''),position:p.pos||(r&&r.position)||''};
+  });
+  if(!composerData.featuredRosterId&&composerData.lineup[0])composerData.featuredRosterId=composerData.lineup[0].rosterId;
+  renderComposer();
+}
+
 function publishPost(){
   // Filter out any still-uploading placeholders
   composerData.photos=(composerData.photos||[]).filter(p=>p&&p!=='uploading');
   let opponent='',runsFor='',runsAgainst='',gameDate='',gameLocation='';
-  if(composerType==='recap'&&composerGameId){
+  if((composerType==='recap'||composerType==='lineup')&&composerGameId){
     const g=D.games.find(x=>x.id===composerGameId);
     if(g){opponent=g.opponent||'';runsFor=g.runsFor||'';runsAgainst=g.runsAgainst||'';gameDate=g.date||'';gameLocation=g.location||''}
   }
@@ -1418,16 +1513,28 @@ function publishPost(){
         post.location=gameLocation;
         if(gameDate)post.date=gameDate;
       }
+      if(composerType==='lineup'){
+        post.opponent=opponent;post.location=gameLocation;
+        if(gameDate)post.date=gameDate;
+        post.lineup=(composerData.lineup||[]).map(r=>({rosterId:r.rosterId||'',name:r.name||'',position:r.position||''}));
+        post.featuredRosterId=composerData.featuredRosterId||'';
+        post.body='';
+      }
     }
     editingPostId=null;
   } else {
     // Create new post
     const post={id:uid(),type:composerType,title:composerData.title||'',body:composerData.body||'',
       author:composerData.author||'Anonymous Groover',
-      date:composerType==='recap'&&gameDate?gameDate:new Date().toISOString().slice(0,10),
+      date:(composerType==='recap'||composerType==='lineup')&&gameDate?gameDate:new Date().toISOString().slice(0,10),
       createdAt:Date.now(),photos:composerData.photos||[],
       opponent,runsFor,runsAgainst,location:gameLocation,gameId:composerGameId||'',
       comments:[]};
+    if(composerType==='lineup'){
+      post.lineup=(composerData.lineup||[]).map(r=>({rosterId:r.rosterId||'',name:r.name||'',position:r.position||''}));
+      post.featuredRosterId=composerData.featuredRosterId||'';
+      post.body='';
+    }
     D.posts.unshift(post);
   }
   saveNow();closeComposer();activeTab='home';renderAll();
@@ -1664,6 +1771,92 @@ function applyPendingReactionIfAny(){
 }
 
 /* ═══ FEED ═══ */
+function renderLineupBanner(p){
+  const game=p.gameId?D.games.find(g=>g.id===p.gameId):null;
+  const loc=resolveLocation(p);
+  const gdate=fmtGameDate(p.date);
+  const isHome=loc&&(/inwood/i.test(loc)||/randall/i.test(loc));
+  const atVs=isHome?'vs':'at';
+  const gameTime=game&&game.time?fmtTime(game.time):'';
+
+  // Author byline
+  const authorRm=rosterMap();
+  const authorEntry=authorRm[(p.author||'').trim().toLowerCase()];
+  let bylineHtml='';
+  if(authorEntry&&authorEntry.photo){
+    const isCutout=/\.png/i.test(authorEntry.photo);
+    const avatarCls=isCutout?'rb-by-cutout':'rb-by-circle';
+    bylineHtml=`<span class="rb-byline player-chip" style="background:transparent;padding:0;cursor:pointer"><span class="rb-by-text">By</span><img class="${avatarCls}" src="${authorEntry.photo}">${chipHoverHtml(authorEntry)}</span>`;
+  }else if(p.author){
+    bylineHtml=`<span class="rb-byline"><span class="rb-by-text">By</span> ${esc(p.author)}</span>`;
+  }
+
+  // Batting order list — LOUD names, no stats for now
+  let listHtml='';
+  (p.lineup||[]).forEach((row,i)=>{
+    const r=row.rosterId?D.roster.find(x=>x.id===row.rosterId):null;
+    const name=r?r.name:(row.name||'');
+    const num=r&&r.number?'#'+r.number:'';
+    const pos=row.position||(r&&r.position)||'';
+    const photo=r&&r.photo;
+    let avatarHtml;
+    if(photo){
+      const isCut=/\.png/i.test(photo);
+      avatarHtml=isCut
+        ?`<img class="lup-row-photo-cutout" src="${photo}" alt="">`
+        :`<img class="lup-row-photo-circle" src="${photo}" alt="">`;
+    }else{
+      avatarHtml=`<span class="lup-row-photo-placeholder"><span class="material-symbols-outlined">person</span></span>`;
+    }
+    const hover=r?chipHoverHtml({name:r.name,number:r.number||'',photo:r.photo||'',position:r.position||'',walkupSong:r.walkupSong||''}):'';
+    const chipCls=r?' player-chip':'';
+    listHtml+=`<div class="lup-row${chipCls}">`
+      +`<span class="lup-num">${i+1}</span>`
+      +`<span class="lup-photo-wrap">${avatarHtml}</span>`
+      +`<span class="lup-name-group">`
+      +  `<span class="lup-name">${esc(name)}</span>`
+      +  (num?`<span class="lup-jersey">${esc(num)}</span>`:'')
+      +`</span>`
+      +`<span class="lup-pos">${esc(pos||'—')}</span>`
+      +hover
+      +`</div>`;
+  });
+
+  // Meta (location · date · time) — moved to TOP, just under the eyebrow
+  let metaHtml='';
+  if(loc)metaHtml+=`<span class="rb-location"><span class="material-symbols-outlined">location_on</span><a href="${mapsUrl(loc)}" target="_blank" rel="noopener">${esc(loc)}</a></span>`;
+  if(loc&&(gdate||gameTime))metaHtml+=`<span class="rb-sep">·</span>`;
+  metaHtml+=`<span class="rb-date">${gdate}${gameTime?' · '+gameTime:''}</span>`;
+
+  // Headline + eyebrow: title is the headline (serif). If no title, matchup
+  // becomes the headline. Eyebrow always shows "Starting Lineup", and includes
+  // the matchup as a sub-line when the title is being used.
+  const matchupText=p.opponent?`${atVs} ${esc(p.opponent)}`:'';
+  const headline=p.title?esc(p.title):(matchupText||'Starting Lineup');
+  const eyebrowText=p.title&&matchupText
+    ? `Starting Lineup · ${matchupText}`
+    : 'Starting Lineup';
+
+  // Field photo backdrop — Google Maps Static (satellite). Needs Maps Static API
+  // enabled on the same Cloud project as the Firebase key.
+  let bgHtml='';
+  if(loc&&firebaseConfig&&firebaseConfig.apiKey){
+    const url=`https://maps.googleapis.com/maps/api/staticmap?center=${encodeURIComponent(loc)}&zoom=18&size=1200x500&scale=2&maptype=satellite&key=${firebaseConfig.apiKey}`;
+    bgHtml=`<img class="lup-bg" src="${url}" alt="" onerror="this.remove()">`;
+  }
+
+  let out=`<div class="lineup-banner">${bgHtml}<div class="lup-grid">`;
+  out+=`<div class="lup-header-row">`
+    +`<div class="lup-eyebrow">${eyebrowText}</div>`
+    +`<div class="lup-meta-top">${metaHtml}</div>`
+    +`<h2 class="lup-headline">${headline}</h2>`
+    +`</div>`;
+  out+=`<div class="lup-list-row"><div class="lup-list">${listHtml||'<div style="font-size:12px;opacity:0.7;padding:10px 0;text-align:center">No players in lineup yet.</div>'}</div></div>`;
+  if(bylineHtml)out+=`<div class="lup-byline-bottom">${bylineHtml}</div>`;
+  out+=`</div></div>`;
+  return out;
+}
+
 function renderFeed(){
   const area=document.getElementById('feedArea');
 
@@ -1817,6 +2010,8 @@ function renderFeed(){
         +(lineScoreHtml?`<div class="rb-linescore-row">${lineScoreHtml}</div>`:'')
         +(statsHtml?`<div class="rb-stats-row"><span class="rb-stats-group">${statsHtml}</span></div>`:'')
         +`</div></div>`;
+    }else if(p.type==='lineup'){
+      html+=renderLineupBanner(p);
     }else{
       html+=`<div class="post-header"><div><div class="post-author">${playerChip(p.author)}</div><div class="post-date">${fmtDate(p.createdAt||p.date)}</div></div></div>`;
       if(p.title)html+=`<div class="post-title">${chipifyText(p.title)}</div>`;
